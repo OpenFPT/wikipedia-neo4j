@@ -98,27 +98,48 @@ def _strip_code_fence(s: str) -> str:
     return s.strip()
 
 
-def generate_readonly_cypher(question: str) -> str:
-    """Generate a read-only Cypher query for a natural-language question."""
-    schema = (
-        "Nodes: Page(id,title,url,summary), Chunk(id,text,sequence_number,embedding), "
-        "Entity(id,name,type) with optional labels Person/Organization/Location/Work. "
-        "Relationships: (Page)-[:HAS_CHUNK]->(Chunk), (Chunk)-[:MENTIONS]->(Entity), "
-        "typed mention edges (:MENTIONS_PERSON, :MENTIONS_ORG, :MENTIONS_LOCATION, :MENTIONS_WORK)."
-    )
-    prompt = f"""
-You are a Neo4j Cypher generator.
-Generate ONE read-only Cypher query for this question: {question}
+_CYPHER_SCHEMA = (
+    "Nodes: Page(id,title,url,summary), Chunk(id,text,sequence_number,embedding), "
+    "Entity(id,name,type) with optional labels Person/Organization/Location/Work. "
+    "Relationships: (Page)-[:HAS_CHUNK]->(Chunk), (Chunk)-[:MENTIONS]->(Entity)."
+)
 
-Schema: {schema}
-
+_CYPHER_SYSTEM_PROMPT = """You are a Neo4j Cypher generator.
 Strict rules:
 - Read-only only. No CREATE, MERGE, DELETE, SET, DROP, CALL dbms/procedures writes.
 - Return fields exactly as: page_title, page_url, chunk_id, chunk_text, score.
 - Use MATCH/WHERE with safe logic.
 - LIMIT 8 max.
-- Return ONLY JSON object: {{"cypher":"..."}}
-""".strip()
+- Return ONLY JSON object: {"cypher":"..."}"""
+
+
+def _build_cypher_user_prompt(question: str) -> str:
+    return f"Generate ONE read-only Cypher query for this question: {question}\n\nSchema: {_CYPHER_SCHEMA}"
+
+
+def _generate_cypher_local(question: str) -> str:
+    """Generate Cypher using the local SLM."""
+    from src.local_llm import chat
+
+    messages = [
+        {"role": "system", "content": _CYPHER_SYSTEM_PROMPT},
+        {"role": "user", "content": _build_cypher_user_prompt(question)},
+    ]
+    raw = chat(messages, max_new_tokens=512, temperature=0.1)
+    text = _strip_code_fence(raw)
+    parsed = json.loads(text)
+    cypher = str(parsed.get("cypher", "")).strip()
+    if not cypher:
+        raise RuntimeError("Local model returned empty Cypher")
+    if "$top_k" not in cypher and "limit" not in cypher.lower():
+        cypher = f"{cypher.rstrip(';')} LIMIT $top_k"
+    logger.debug("Cypher generation succeeded (local model)")
+    return cypher
+
+
+def _generate_cypher_gemini(question: str) -> str:
+    """Generate Cypher using Gemini API with key rotation."""
+    prompt = f"{_CYPHER_SYSTEM_PROMPT}\n\n{_build_cypher_user_prompt(question)}"
 
     clients = _client_pool()
     last_error: Exception | None = None
@@ -153,6 +174,13 @@ Strict rules:
             continue
 
     raise RuntimeError(f"All Gemini keys failed for cypher generation: {last_error}")
+
+
+def generate_readonly_cypher(question: str) -> str:
+    """Generate a read-only Cypher query for a natural-language question."""
+    if settings.model_mode == "local":
+        return _generate_cypher_local(question)
+    return _generate_cypher_gemini(question)
 
 
 def assert_readonly_cypher(cypher: str) -> None:

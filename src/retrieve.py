@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from src.config import settings
 from src.llm import assert_readonly_cypher, generate_readonly_cypher
 from src.logging_utils import get_logger
 from src.neo4j_client import neo4j_client
@@ -82,6 +83,11 @@ def _run_generated_query(question: str, top_k: int) -> list[dict]:
 
 def query_graph(question: str, top_k: int = 4) -> QueryResult:
     """Query graph and synthesize a deterministic answer with citations."""
+    if settings.model_mode == "local":
+        from src.agent import agent_query
+
+        return agent_query(question, top_k)
+
     try:
         rows = _run_generated_query(question, top_k)
     except (RuntimeError, ValueError, KeyError, TypeError):

@@ -5,80 +5,81 @@ from __future__ import annotations
 import pytest
 
 import src.ingest as ingest
+import src.ner as ner
 
 
 class TestClassifyEntityType:
     def test_organization_keywords(self) -> None:
-        assert ingest._classify_entity_type("Google Corporation") == "Organization"
-        assert ingest._classify_entity_type("Harvard University") == "Organization"
-        assert ingest._classify_entity_type("Tập đoàn Vingroup") == "Organization"
-        assert ingest._classify_entity_type("Đại học Bách Khoa") == "Organization"
+        assert ner.classify_entity_type("Google Corporation") == "Organization"
+        assert ner.classify_entity_type("Harvard University") == "Organization"
+        assert ner.classify_entity_type("Tập đoàn Vingroup") == "Organization"
+        assert ner.classify_entity_type("Đại học Bách Khoa") == "Organization"
 
     def test_location_keywords(self) -> None:
-        assert ingest._classify_entity_type("Ho Chi Minh City") == "Location"
-        assert ingest._classify_entity_type("Mekong River") == "Location"
-        assert ingest._classify_entity_type("Tỉnh Bình Dương") == "Location"
-        assert ingest._classify_entity_type("Mount Everest") == "Location"
+        assert ner.classify_entity_type("Ho Chi Minh City") == "Location"
+        assert ner.classify_entity_type("Mekong River") == "Location"
+        assert ner.classify_entity_type("Tỉnh Bình Dương") == "Location"
+        assert ner.classify_entity_type("Mount Everest") == "Location"
 
     def test_work_keywords(self) -> None:
-        assert ingest._classify_entity_type("The Great Film") == "Work"
-        assert ingest._classify_entity_type("Tiểu thuyết Số Đỏ") == "Work"
-        assert ingest._classify_entity_type("Dark Side Album") == "Work"
+        assert ner.classify_entity_type("The Great Film") == "Work"
+        assert ner.classify_entity_type("Tiểu thuyết Số Đỏ") == "Work"
+        assert ner.classify_entity_type("Dark Side Album") == "Work"
 
     def test_person_by_word_count(self) -> None:
-        assert ingest._classify_entity_type("John Smith") == "Person"
-        assert ingest._classify_entity_type("Nguyen Van A") == "Person"
+        assert ner.classify_entity_type("John Smith") == "Person"
+        assert ner.classify_entity_type("Nguyen Van A") == "Person"
 
     def test_unknown_single_word(self) -> None:
-        assert ingest._classify_entity_type("X") == "Unknown"
+        assert ner.classify_entity_type("X") == "Unknown"
 
     def test_unknown_long_name(self) -> None:
-        assert ingest._classify_entity_type("A B C D E") == "Unknown"
+        assert ner.classify_entity_type("A B C D E") == "Unknown"
 
 
 class TestExtractEntitiesNormalized:
     def test_simple_backend_returns_tuples(self, monkeypatch) -> None:
-        monkeypatch.setattr(ingest.settings, "ner_backend", "simple")
-        result = ingest._extract_entities("Google Cloud is in New York City area")
+        monkeypatch.setattr(ner.settings, "ner_backend", "simple")
+        result = ner.extract_entities("Google Cloud is in New York City area")
         assert all(isinstance(item, tuple) and len(item) == 2 for item in result)
         names = [name for name, _ in result]
         assert "Google Cloud" in names or "New York City" in names
 
     def test_underthesea_backend_returns_tuples(self, monkeypatch) -> None:
-        monkeypatch.setattr(ingest.settings, "ner_backend", "underthesea")
+        monkeypatch.setattr(ner.settings, "ner_backend", "underthesea")
 
         def _fake_underthesea(text, max_entities=25):
-            return ["Hanoi", "Vietnam"]
+            return [("Hanoi", "Location"), ("Vietnam", "Location")]
 
-        monkeypatch.setattr(ingest, "_extract_entities_underthesea", _fake_underthesea)
-        result = ingest._extract_entities("Hanoi is in Vietnam")
+        monkeypatch.setattr(ner, "_extract_entities_underthesea", _fake_underthesea)
+        result = ner.extract_entities("Hanoi is in Vietnam")
         assert all(isinstance(item, tuple) and len(item) == 2 for item in result)
 
     def test_phonlp_backend_returns_tuples(self, monkeypatch) -> None:
-        monkeypatch.setattr(ingest.settings, "ner_backend", "phonlp")
+        monkeypatch.setattr(ner.settings, "ner_backend", "phonlp")
 
         def _fake_phonlp(text, max_entities=25):
             return [("Hà Nội", "Location"), ("Việt Nam", "Location")]
 
-        monkeypatch.setattr(ingest, "_extract_entities_phonlp", _fake_phonlp)
-        result = ingest._extract_entities("Hà Nội là thủ đô Việt Nam")
+        monkeypatch.setattr(ner, "_extract_entities_phonlp", _fake_phonlp)
+        result = ner.extract_entities("Hà Nội là thủ đô Việt Nam")
         assert result == [("Hà Nội", "Location"), ("Việt Nam", "Location")]
 
 
 class TestExtractEntitiesSimple:
     def test_deduplication(self) -> None:
         text = "New York is great. New York is big."
-        entities = ingest._extract_entities_simple(text)
+        entities = ner._extract_entities_simple(text)
         assert entities.count("New York") == 1
 
     def test_max_entities_limit(self) -> None:
         text = " ".join(f"Entity{i} Name{i}" for i in range(50))
-        entities = ingest._extract_entities_simple(text, max_entities=5)
+        entities = ner._extract_entities_simple(text, max_entities=5)
         assert len(entities) <= 5
 
     def test_skips_short_candidates(self) -> None:
         text = "A B is here but So is John Smith"
-        entities = ingest._extract_entities_simple(text)
+        entities = ner._extract_entities_simple(text)
         for e in entities:
             assert len(e) >= 3
 
@@ -112,7 +113,7 @@ class TestUpsertPageFromText:
 
         monkeypatch.setattr(ingest, "neo4j_client", _FakeClient())
         monkeypatch.setattr(ingest, "embed_texts", lambda texts: [[0.1] * 3 for _ in texts])
-        monkeypatch.setattr(ingest.settings, "ner_backend", "simple")
+        monkeypatch.setattr(ner.settings, "ner_backend", "simple")
 
         result = ingest._upsert_page_from_text(
             page_id="p1",
@@ -158,7 +159,7 @@ class TestIngestTopic:
         monkeypatch.setattr(ingest.wikipedia, "page", lambda *a, **kw: _FakePage())
         monkeypatch.setattr(ingest.wikipedia, "summary", lambda *a, **kw: "Neo4j summary")
         monkeypatch.setattr(ingest, "embed_texts", lambda texts: [[0.1] for _ in texts])
-        monkeypatch.setattr(ingest.settings, "ner_backend", "simple")
+        monkeypatch.setattr(ner.settings, "ner_backend", "simple")
 
         queries: list[str] = []
 
@@ -203,7 +204,7 @@ class TestIngestTopic:
         monkeypatch.setattr(ingest.wikipedia, "page", lambda *a, **kw: _FakePage())
         monkeypatch.setattr(ingest.wikipedia, "summary", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("fail")))
         monkeypatch.setattr(ingest, "embed_texts", lambda texts: [[0.1] for _ in texts])
-        monkeypatch.setattr(ingest.settings, "ner_backend", "simple")
+        monkeypatch.setattr(ner.settings, "ner_backend", "simple")
 
         queries: list[str] = []
 

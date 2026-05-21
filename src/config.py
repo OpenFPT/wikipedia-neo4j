@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
 
+    model_mode: str = "api"
+    local_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
+
     app_api_key: str | None = None
     rate_limit_per_minute: int = 120
     log_level: str = "INFO"
@@ -57,6 +60,14 @@ class Settings(BaseSettings):
         if backend not in {"simple", "underthesea", "phonlp"}:
             raise ValueError("ner_backend must be 'simple', 'underthesea', or 'phonlp'")
         return backend
+
+    @field_validator("model_mode")
+    @classmethod
+    def validate_model_mode(cls, value: str) -> str:
+        mode = (value or "").strip().lower()
+        if mode not in {"local", "api"}:
+            raise ValueError("model_mode must be 'local' or 'api'")
+        return mode
 
     @field_validator("neo4j_uri", "neo4j_username", "neo4j_password", mode="before")
     @classmethod

@@ -71,8 +71,8 @@ def test_rate_limit_rejects_excess(monkeypatch) -> None:
     monkeypatch.setattr(main.settings, "app_api_key", None)
 
     class _Limiter:
-        def allow(self, _key: str) -> bool:
-            return False
+        def allow(self, _key: str) -> tuple[bool, int]:
+            return False, 0
 
     monkeypatch.setattr(main, "rate_limiter", _Limiter())
 

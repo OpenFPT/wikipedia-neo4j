@@ -96,35 +96,25 @@ def _upsert_page_from_text(
 
         for name, entity_type in entities:
             entity_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, name.lower()))
+            label = entity_type if entity_type in ("Person", "Organization", "Location", "Work", "Event") else "Entity"
             session.run(
-                """
-                MERGE (e:Entity {id: $entity_id})
-                SET e.name = $name,
-                    e.type = $entity_type
-                FOREACH (_ IN CASE WHEN $entity_type = 'Person' THEN [1] ELSE [] END | SET e:Person)
-                FOREACH (_ IN CASE WHEN $entity_type = 'Organization' THEN [1] ELSE [] END | SET e:Organization)
-                FOREACH (_ IN CASE WHEN $entity_type = 'Location' THEN [1] ELSE [] END | SET e:Location)
-                FOREACH (_ IN CASE WHEN $entity_type = 'Work' THEN [1] ELSE [] END | SET e:Work)
+                f"""
+                MERGE (e:{label} {{id: $entity_id}})
+                SET e.name = $name
                 """,
                 entity_id=entity_id,
                 name=name,
-                entity_type=entity_type,
             )
             session.run(
                 """
                 MATCH (p:Page {id: $page_id})-[:HAS_CHUNK]->(c:Chunk)
                 WHERE toLower(c.text) CONTAINS toLower($name)
-                MATCH (e:Entity {id: $entity_id})
+                MATCH (e {id: $entity_id})
                 MERGE (c)-[:MENTIONS]->(e)
-                FOREACH (_ IN CASE WHEN $entity_type = 'Person' THEN [1] ELSE [] END | MERGE (c)-[:MENTIONS_PERSON]->(e))
-                FOREACH (_ IN CASE WHEN $entity_type = 'Organization' THEN [1] ELSE [] END | MERGE (c)-[:MENTIONS_ORG]->(e))
-                FOREACH (_ IN CASE WHEN $entity_type = 'Location' THEN [1] ELSE [] END | MERGE (c)-[:MENTIONS_LOCATION]->(e))
-                FOREACH (_ IN CASE WHEN $entity_type = 'Work' THEN [1] ELSE [] END | MERGE (c)-[:MENTIONS_WORK]->(e))
                 """,
                 page_id=page_id,
                 entity_id=entity_id,
                 name=name,
-                entity_type=entity_type,
             )
 
     logger.info(
@@ -203,7 +193,7 @@ def ingest_topic(topic: str) -> IngestResult:
 
 
 def ingest_from_hf(
-    config_name: str = "20231101.en",
+    config_name: str = "20231101.vi",
     split: str = "train",
     sample_size: int = 5,
     streaming: bool = True,

@@ -3,16 +3,21 @@
 from __future__ import annotations
 
 import json
+import random
 import re
+import time
 
 from google import genai
 from google.genai import types
+from sentence_transformers import SentenceTransformer
 
 from src.config import load_gemini_api_keys, settings
 from src.logging_utils import get_logger
 
 
 logger = get_logger(__name__)
+
+_local_embedding_model: SentenceTransformer | None = None
 
 
 def _is_retryable_gemini_error(exc: Exception) -> bool:
@@ -37,8 +42,23 @@ def _client_pool() -> list[genai.Client]:
     return [genai.Client(api_key=key) for key in keys]
 
 
+def _get_local_embedding_model() -> SentenceTransformer:
+    global _local_embedding_model
+    if _local_embedding_model is None:
+        _local_embedding_model = SentenceTransformer(settings.local_embedding_model)
+    return _local_embedding_model
+
+
+def _embed_texts_local(texts: list[str]) -> list[list[float]]:
+    model = _get_local_embedding_model()
+    vectors = model.encode(texts, show_progress_bar=False, convert_to_numpy=True)
+    return [vec.tolist() for vec in vectors]
+
+
 def embed_texts(texts: list[str]) -> list[list[float]]:
     """Generate embeddings for texts with key-rotation fallback."""
+    if settings.embedding_backend == "local":
+        return _embed_texts_local(texts)
     clients = _client_pool()
     last_error: Exception | None = None
 
@@ -61,9 +81,12 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
             logger.warning("Embedding generation failed", extra={"client_index": i, "error": str(exc)})
             if not _is_retryable_gemini_error(exc):
                 raise
+            delay = min(2**i, 16) + random.uniform(0, 1)
+            time.sleep(delay)
             continue
 
-    raise RuntimeError(f"All Gemini keys failed for embeddings: {last_error}")
+    # All Gemini keys exhausted — raise so callers can skip or handle gracefully.
+    raise RuntimeError(f"All Gemini keys failed for embedding generation: {last_error}")
 
 
 def _strip_code_fence(s: str) -> str:
@@ -79,8 +102,9 @@ def generate_readonly_cypher(question: str) -> str:
     """Generate a read-only Cypher query for a natural-language question."""
     schema = (
         "Nodes: Page(id,title,url,summary), Chunk(id,text,sequence_number,embedding), "
-        "Entity(id,name,type). Relationships: (Page)-[:HAS_CHUNK]->(Chunk), "
-        "(Chunk)-[:MENTIONS]->(Entity)."
+        "Entity(id,name,type) with optional labels Person/Organization/Location/Work. "
+        "Relationships: (Page)-[:HAS_CHUNK]->(Chunk), (Chunk)-[:MENTIONS]->(Entity), "
+        "typed mention edges (:MENTIONS_PERSON, :MENTIONS_ORG, :MENTIONS_LOCATION, :MENTIONS_WORK)."
     )
     prompt = f"""
 You are a Neo4j Cypher generator.
@@ -124,6 +148,8 @@ Strict rules:
             logger.warning("Cypher generation failed", extra={"client_index": i, "error": str(exc)})
             if not _is_retryable_gemini_error(exc):
                 raise
+            delay = min(2**i, 16) + random.uniform(0, 1)
+            time.sleep(delay)
             continue
 
     raise RuntimeError(f"All Gemini keys failed for cypher generation: {last_error}")

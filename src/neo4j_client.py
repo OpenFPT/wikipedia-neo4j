@@ -21,6 +21,9 @@ class Neo4jClient:
         self.driver = GraphDatabase.driver(
             settings.neo4j_uri,
             auth=(settings.neo4j_username, settings.neo4j_password),
+            connection_timeout=30,
+            max_connection_pool_size=50,
+            connection_acquisition_timeout=60,
         )
         logger.debug("Neo4j driver initialized", extra={"uri": settings.neo4j_uri})
 
@@ -63,6 +66,10 @@ class Neo4jClient:
             )
             session.run("CREATE INDEX page_title_idx IF NOT EXISTS FOR (p:Page) ON (p.title)")
             session.run("CREATE INDEX entity_name_idx IF NOT EXISTS FOR (e:Entity) ON (e.name)")
+            session.run("CREATE INDEX person_name_idx IF NOT EXISTS FOR (p:Person) ON (p.name)")
+            session.run("CREATE INDEX organization_name_idx IF NOT EXISTS FOR (o:Organization) ON (o.name)")
+            session.run("CREATE INDEX location_name_idx IF NOT EXISTS FOR (l:Location) ON (l.name)")
+            session.run("CREATE INDEX work_name_idx IF NOT EXISTS FOR (w:Work) ON (w.name)")
         logger.debug("Neo4j schema ensured")
 
 

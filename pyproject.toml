@@ -10,7 +10,11 @@ dependencies = [
   "wikipedia>=1.4.0",
   "pydantic-settings>=2.4.0",
   "google-genai>=1.32.0",
-  "datasets>=3.0.0"
+  "datasets>=3.0.0",
+  "sentence-transformers>=3.0.0",
+  "underthesea>=9.5.0",
+  "phonlp>=0.3.5,<0.4.0; sys_platform != 'win32'",
+  "py-vncorenlp>=0.1.4"
 ]
 
 [dependency-groups]

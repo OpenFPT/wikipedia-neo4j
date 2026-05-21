@@ -309,6 +309,160 @@ def generate_unanswerable_qa(walks: list[KGWalk]) -> list[QAPair]:
     return qa_pairs
 
 
+# --- LLM Rewrite Stage ---
+
+_REWRITE_PROMPT = """Viết lại câu hỏi sau đây sao cho tự nhiên hơn, giữ nguyên ý nghĩa.
+Chỉ trả về câu hỏi đã viết lại, không giải thích.
+
+Câu hỏi gốc: {question}
+
+Câu hỏi viết lại:"""
+
+
+def rewrite_questions_with_llm(
+    qa_pairs: list[QAPair],
+    batch_size: int = 10,
+    use_local_model: bool = True,
+) -> list[QAPair]:
+    """Rewrite template questions using LLM for naturalness.
+
+    Falls back to original question if rewrite fails or is too different.
+    """
+    if not use_local_model:
+        logger.info("LLM rewrite skipped (use_local_model=False)")
+        return qa_pairs
+
+    from src.local_llm import chat
+
+    rewritten = 0
+    for i in range(0, len(qa_pairs), batch_size):
+        batch = qa_pairs[i : i + batch_size]
+        for qa in batch:
+            if qa.question_type == "unanswerable":
+                continue
+            try:
+                messages = [
+                    {"role": "system", "content": "Bạn là trợ lý viết lại câu hỏi tiếng Việt tự nhiên hơn."},
+                    {"role": "user", "content": _REWRITE_PROMPT.format(question=qa.question)},
+                ]
+                result = chat(messages, max_new_tokens=128, temperature=0.3)
+                rewritten_q = result.strip().split("\n")[0].strip()
+
+                if _is_valid_rewrite(qa.question, rewritten_q):
+                    qa.question = rewritten_q
+                    rewritten += 1
+            except Exception as e:
+                logger.debug("Rewrite failed, keeping original", extra={"error": str(e)})
+
+    logger.info("LLM rewrite complete", extra={"rewritten": rewritten, "total": len(qa_pairs)})
+    return qa_pairs
+
+
+def _is_valid_rewrite(original: str, rewritten: str) -> bool:
+    """Check if a rewritten question is valid (not empty, not too different)."""
+    if not rewritten or len(rewritten) < 10:
+        return False
+    if rewritten == original:
+        return False
+    if len(rewritten) > len(original) * 3:
+        return False
+    if not rewritten.endswith("?"):
+        rewritten += "?"
+    return True
+
+
+# --- QC Pipeline ---
+
+
+def _check_grounding(qa: QAPair, chunks: dict[str, str]) -> bool:
+    """Check if the answer is grounded in evidence chunks."""
+    if qa.question_type == "unanswerable":
+        return True
+
+    evidence_text = ""
+    for cid in qa.evidence_chunk_ids:
+        evidence_text += chunks.get(cid, "") + " "
+
+    if not evidence_text.strip():
+        return False
+
+    for entity in _extract_key_terms(qa.answer):
+        if entity.lower() in evidence_text.lower():
+            return True
+
+    return len(qa.answer) > 20
+
+
+def _extract_key_terms(text: str) -> list[str]:
+    """Extract key terms from text for grounding check."""
+    import re
+    words = re.findall(r"[A-ZÀ-Ỹ][a-zà-ỹ]+(?:\s+[A-ZÀ-Ỹ][a-zà-ỹ]+)*", text)
+    return [w for w in words if len(w) > 3]
+
+
+def _check_well_formed(qa: QAPair) -> bool:
+    """Check if the QA pair is well-formed."""
+    if not qa.question or len(qa.question) < 15:
+        return False
+    if not qa.answer or len(qa.answer) < 10:
+        return False
+    if qa.question == qa.answer:
+        return False
+    if not any(qa.question.endswith(c) for c in ["?", "？"]):
+        return False
+    return True
+
+
+def _check_no_duplicate(qa: QAPair, seen_questions: set[str]) -> bool:
+    """Check for near-duplicate questions."""
+    normalized = qa.question.lower().strip()
+    if normalized in seen_questions:
+        return False
+    seen_questions.add(normalized)
+    return True
+
+
+def run_qc_pipeline(qa_pairs: list[QAPair]) -> list[QAPair]:
+    """Run 3-stage QC: grounding, well-formedness, deduplication."""
+    chunk_ids = set()
+    for qa in qa_pairs:
+        chunk_ids.update(qa.evidence_chunk_ids)
+
+    chunks: dict[str, str] = {}
+    if chunk_ids:
+        with neo4j_client.session() as session:
+            for batch_start in range(0, len(chunk_ids), 500):
+                batch = list(chunk_ids)[batch_start : batch_start + 500]
+                records = session.run(
+                    "MATCH (c:Chunk) WHERE c.id IN $ids RETURN c.id AS id, c.text AS text",
+                    ids=batch,
+                )
+                for r in records:
+                    chunks[r["id"]] = r["text"]
+
+    passed: list[QAPair] = []
+    seen_questions: set[str] = set()
+    rejected = {"grounding": 0, "well_formed": 0, "duplicate": 0}
+
+    for qa in qa_pairs:
+        if not _check_well_formed(qa):
+            rejected["well_formed"] += 1
+            continue
+        if not _check_grounding(qa, chunks):
+            rejected["grounding"] += 1
+            continue
+        if not _check_no_duplicate(qa, seen_questions):
+            rejected["duplicate"] += 1
+            continue
+        passed.append(qa)
+
+    logger.info(
+        "QC pipeline complete",
+        extra={"passed": len(passed), "rejected": rejected, "total": len(qa_pairs)},
+    )
+    return passed
+
+
 def save_dataset(qa_pairs: list[QAPair], output_path: str = "data/viwiki_mhr.jsonl") -> None:
     """Save QA pairs to JSONL file."""
     path = Path(output_path)
@@ -338,6 +492,8 @@ def generate_dataset(
     three_hop_limit: int = 3000,
     broken_limit: int = 1000,
     output_path: str = "data/viwiki_mhr.jsonl",
+    rewrite: bool = False,
+    qc: bool = True,
 ) -> dict:
     """Run full dataset generation pipeline."""
     logger.info("Starting dataset generation")
@@ -350,8 +506,14 @@ def generate_dataset(
     qa_unanswerable = generate_unanswerable_qa(broken_walks)
 
     all_qa = qa_answerable + qa_unanswerable
-    random.shuffle(all_qa)
 
+    if rewrite:
+        all_qa = rewrite_questions_with_llm(all_qa)
+
+    if qc:
+        all_qa = run_qc_pipeline(all_qa)
+
+    random.shuffle(all_qa)
     save_dataset(all_qa, output_path)
 
     stats = {

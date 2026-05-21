@@ -167,3 +167,92 @@ class TestSaveDataset:
         assert record["id"] == "q1"
         assert record["question"] == "Test?"
         assert record["metadata"]["hops"] == 2
+
+
+class TestIsValidRewrite:
+    def test_valid_rewrite(self) -> None:
+        assert dg._is_valid_rewrite("Câu hỏi gốc?", "Câu hỏi đã viết lại?")
+
+    def test_empty_rewrite(self) -> None:
+        assert not dg._is_valid_rewrite("Câu hỏi gốc?", "")
+
+    def test_too_short(self) -> None:
+        assert not dg._is_valid_rewrite("Câu hỏi gốc?", "Ngắn?")
+
+    def test_same_as_original(self) -> None:
+        assert not dg._is_valid_rewrite("Câu hỏi gốc?", "Câu hỏi gốc?")
+
+    def test_too_long(self) -> None:
+        original = "Câu hỏi ngắn?"
+        rewritten = "A" * 200 + "?"
+        assert not dg._is_valid_rewrite(original, rewritten)
+
+
+class TestCheckWellFormed:
+    def test_valid_qa(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là tổng thống đầu tiên?",
+            answer="Hồ Chí Minh là chủ tịch đầu tiên.",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        assert dg._check_well_formed(qa)
+
+    def test_short_question(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai?",
+            answer="Hồ Chí Minh là chủ tịch đầu tiên.",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        assert not dg._check_well_formed(qa)
+
+    def test_no_question_mark(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Đây không phải câu hỏi",
+            answer="Hồ Chí Minh là chủ tịch đầu tiên.",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        assert not dg._check_well_formed(qa)
+
+
+class TestCheckNoDuplicate:
+    def test_unique(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Câu hỏi duy nhất?",
+            answer="answer", walk_id="w1", hops=2,
+            question_type="2hop_person", evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        seen: set[str] = set()
+        assert dg._check_no_duplicate(qa, seen)
+
+    def test_duplicate(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Câu hỏi trùng?",
+            answer="answer", walk_id="w1", hops=2,
+            question_type="2hop_person", evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        seen: set[str] = {"câu hỏi trùng?"}
+        assert not dg._check_no_duplicate(qa, seen)
+
+
+class TestRunQCPipeline:
+    def test_filters_bad_qa(self, monkeypatch) -> None:
+        good = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Vint Cerf được coi là cha đẻ của Internet.",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A", "B"],
+        )
+        bad_short = dg.QAPair(
+            qa_id="q2", question="Ai?",
+            answer="X", walk_id="w2", hops=2,
+            question_type="2hop_person", evidence_chunk_ids=["c2"], source_pages=["C"],
+        )
+        monkeypatch.setattr(dg.neo4j_client, "session", _mock_session([
+            {"id": "c1", "text": "Vint Cerf là cha đẻ của Internet và mạng máy tính toàn cầu"},
+        ]))
+        result = dg.run_qc_pipeline([good, bad_short])
+        assert len(result) == 1
+        assert result[0].qa_id == "q1"

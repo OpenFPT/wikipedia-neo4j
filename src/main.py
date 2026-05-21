@@ -39,8 +39,8 @@ class _RateLimiter:
         self._lock = threading.Lock()
         self._hits: dict[str, deque[float]] = {}
 
-    def allow(self, key: str) -> bool:
-        """Return whether a request is allowed for given client key."""
+    def allow(self, key: str) -> tuple[bool, int]:
+        """Return (allowed, remaining) for given client key."""
         now = time.time()
         with self._lock:
             bucket = self._hits.setdefault(key, deque())
@@ -48,9 +48,9 @@ class _RateLimiter:
             while bucket and bucket[0] < cutoff:
                 bucket.popleft()
             if len(bucket) >= self.max_requests:
-                return False
+                return False, 0
             bucket.append(now)
-            return True
+            return True, self.max_requests - len(bucket)
 
 
 rate_limiter = _RateLimiter(max_requests=settings.rate_limit_per_minute, period_seconds=60)
@@ -60,6 +60,10 @@ rate_limiter = _RateLimiter(max_requests=settings.rate_limit_per_minute, period_
 async def lifespan(_app: FastAPI):
     """Initialize runtime configuration and release resources on shutdown."""
     validate_runtime_settings()
+    try:
+        neo4j_client.setup_schema()
+    except Exception:
+        logger.warning("Schema setup failed on startup — will retry on first request")
     logger.info("Service starting")
     try:
         yield
@@ -71,16 +75,26 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=lifespan)
 
 
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception", extra={"path": request.url.path})
+    from fastapi.responses import JSONResponse
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
+
 class IngestRequest(BaseModel):
     """Request payload for Wikipedia topic ingestion."""
 
-    topics: list[str] = Field(min_length=1, description="Wikipedia page topics")
+    topics: list[str] = Field(min_length=1, max_length=20, description="Wikipedia page topics")
 
 
 class QueryRequest(BaseModel):
     """Request payload for query endpoint."""
 
-    question: str = Field(min_length=3)
+    question: str = Field(min_length=3, max_length=1000)
     top_k: int = Field(default=4, ge=1, le=20)
 
 
@@ -179,8 +193,14 @@ def _authorize(x_api_key: str | None = Header(default=None)) -> None:
 def _enforce_rate_limit(request: Request) -> None:
     """Enforce per-client request rate limit."""
     key = _client_key(request)
-    if not rate_limiter.allow(key):
-        raise HTTPException(status_code=429, detail="Rate limit exceeded")
+    allowed, remaining = rate_limiter.allow(key)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded",
+            headers={"Retry-After": "60", "X-RateLimit-Remaining": "0"},
+        )
+    request.state.rate_limit_remaining = remaining
 
 
 def _guard(request: Request, x_api_key: str | None = Header(default=None)) -> None:

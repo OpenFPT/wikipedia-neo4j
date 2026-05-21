@@ -5,11 +5,25 @@
 - `(:Page {id, title, url, summary})`
 - `(:Chunk {id, text, sequence_number, embedding})`
 - `(:Entity {id, name, type})`
+- `(:Person {id, name, type})` (typed entity label)
+- `(:Organization {id, name, type})` (typed entity label)
+- `(:Location {id, name, type})` (typed entity label)
+- `(:Work {id, name, type})` (typed entity label)
+
+Entity extraction:
+
+- `NER_BACKEND=simple` uses a regex heuristic.
+- `NER_BACKEND=underthesea` uses Underthesea NER (offline) and maps results into entities.
+- `NER_BACKEND=phonlp` uses PhoNLP + VnCoreNLP segmentation (offline) and maps results into entities.
 
 Relationships:
 
 - `(:Page)-[:HAS_CHUNK]->(:Chunk)`
 - `(:Chunk)-[:MENTIONS]->(:Entity)`
+- `(:Chunk)-[:MENTIONS_PERSON]->(:Person)`
+- `(:Chunk)-[:MENTIONS_ORG]->(:Organization)`
+- `(:Chunk)-[:MENTIONS_LOCATION]->(:Location)`
+- `(:Chunk)-[:MENTIONS_WORK]->(:Work)`
 - `(:Page)-[:LINKS_TO]->(:Page)`
 
 ## Components

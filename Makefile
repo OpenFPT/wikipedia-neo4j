@@ -29,3 +29,15 @@ docs:
 	uv run mkdocs build
 
 check: lint typecheck test
+
+weekly-slides:
+	uv run python scripts/gen_weekly_slides.py
+
+weekly-slides-pdf:
+	uv run python scripts/gen_weekly_slides.py --pdf
+
+weekly-slides:
+	uv run python scripts/gen_weekly_slides.py
+
+weekly-slides-pdf:
+	uv run python scripts/gen_weekly_slides.py --pdf

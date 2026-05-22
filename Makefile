@@ -1,4 +1,4 @@
-.PHONY: help install check lint typecheck test docs run
+.PHONY: help install check lint typecheck test docs run weekly-slides weekly-slides-pdf
 
 help:
 	@echo "Available targets:"
@@ -29,12 +29,6 @@ docs:
 	uv run mkdocs build
 
 check: lint typecheck test
-
-weekly-slides:
-	uv run python scripts/gen_weekly_slides.py
-
-weekly-slides-pdf:
-	uv run python scripts/gen_weekly_slides.py --pdf
 
 weekly-slides:
 	uv run python scripts/gen_weekly_slides.py

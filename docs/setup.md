@@ -4,7 +4,7 @@
 
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
-- Docker + Docker Compose
+- Neo4j (installed as systemd service)
 - (Optional) NVIDIA GPU with CUDA for local model mode
 
 ## 1) Configure environment
@@ -27,9 +27,14 @@ Important envs:
 
 ## 2) Start Neo4j
 
+Neo4j runs as a systemd service on this machine:
+
 ```bash
-docker compose up -d
+sudo systemctl start neo4j
+sudo systemctl status neo4j   # verify it's running
 ```
+
+Default connection: `bolt://localhost:7687` with auth configured in `/etc/neo4j/neo4j.conf`.
 
 ## 3) Install dependencies
 

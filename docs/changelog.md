@@ -1,6 +1,13 @@
 # Changelog
 
-## v0.7.0 (current)
+## v0.8.0 (current)
+
+- Added cross-encoder reranking module (`src/reranker.py`) using BAAI/bge-reranker-v2-m3.
+- Added evaluation pipeline (`src/evaluation.py`) with context hit rate, MRR, and latency metrics.
+- Completed Vietnamese Wikipedia ingestion (1000 pages) with typed entity graph.
+- Validated underthesea/phonlp NER output on Vietnamese text.
+
+## v0.7.0
 
 - Added KG walk extraction and question template engine (`src/dataset_gen.py`).
 - Added LLM rewrite stage for naturalizing template questions.

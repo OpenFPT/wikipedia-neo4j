@@ -18,13 +18,22 @@ Backend service for ingesting Vietnamese Wikipedia content into a Neo4j knowledg
 
 ## Quick links
 
-- [Architecture](architecture.md)
-- [Setup & Run](setup.md)
-- [API Endpoints](api/endpoints.md)
-- [Background Jobs](api/background-jobs.md)
-- [Ingestion: Wikipedia API](ingestion-wikipedia.md)
-- [Ingestion: Hugging Face](ingestion-hf.md)
-- [Operations & Troubleshooting](operations.md)
+### Project Status
+- [Progress Tracker](progress.md) — Current story status and next steps
+- [Roadmap](../plans/roadmap.md) — Full project roadmap with all stories
+
+### Documentation
+- [Architecture](architecture.md) — System design and components
+- [Setup & Run](setup.md) — Installation and running the service
+- [Operations & Troubleshooting](operations.md) — Common operations and debugging
+
+### API Reference
+- [API Endpoints](api/endpoints.md) — REST API documentation
+- [Background Jobs](api/background-jobs.md) — Async job management
+
+### Ingestion Guides
+- [Ingestion: Wikipedia API](ingestion-wikipedia.md) — Topic-based ingestion
+- [Ingestion: Hugging Face](ingestion-hf.md) — Dataset-based ingestion
 
 
 ## Operating modes

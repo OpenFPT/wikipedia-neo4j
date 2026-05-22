@@ -42,6 +42,8 @@ Relationships:
 - `src/job_store.py`: Persistent JSON store for async HF jobs
 - `src/config.py`: Pydantic Settings from `.env`, Gemini key loading, runtime validation
 - `src/logging_utils.py`: Structured logging with request-ID context
+- `src/reranker.py`: Cross-encoder reranking (BAAI/bge-reranker-v2-m3) for retrieval results
+- `src/evaluation.py`: Evaluation pipeline — context hit rate, MRR, latency on ViWiki-MHR dataset
 
 ## Query behavior
 

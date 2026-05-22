@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 uv sync --all-groups          # Install all dependencies
 uv run uvicorn src.main:app --reload --port 8000  # Run dev server
-docker compose up -d          # Start Neo4j (required for runtime)
+sudo systemctl start neo4j    # Start Neo4j (required for runtime)
 ```
 
 ## Test & Lint
@@ -65,10 +65,12 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
 - `src/job_store.py` — Thread-safe JSON file persistence for job state
 - `src/config.py` — Pydantic Settings from `.env`, Gemini key loading, runtime validation
 - `src/logging_utils.py` — Structured logging with request-ID context
+- `src/reranker.py` — Cross-encoder reranking (BAAI/bge-reranker-v2-m3)
+- `src/evaluation.py` — Evaluation pipeline: context hit rate, MRR, latency on ViWiki-MHR
 
 ## Configuration
 
-Copy `.env.example` to `.env`. Neo4j runs via docker-compose on `bolt://localhost:7687` with default auth `neo4j/please-change-me`.
+Copy `.env.example` to `.env`. Neo4j runs as a systemd service on `bolt://localhost:7687`.
 
 Key environment variables:
 

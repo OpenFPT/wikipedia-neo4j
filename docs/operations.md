@@ -5,7 +5,7 @@
 ### Neo4j auth mismatch
 
 - Symptom: `Neo.ClientError.Security.Unauthorized`
-- Fix: ensure `.env` `NEO4J_PASSWORD` matches `docker-compose.yml` auth.
+- Fix: ensure `.env` `NEO4J_PASSWORD` matches the password configured in `/etc/neo4j/neo4j.conf`.
 
 ### Empty retrieval after ingestion
 

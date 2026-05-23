@@ -195,7 +195,6 @@ def _extract_entities_underthesea(text: str, max_entities: int = 25) -> list[tup
             if kw_type == "Organization":
                 refined.append((name, "Organization"))
             elif kw_type == "Person" and len(name.split()) >= 3 and name.lower().split()[0] in _VN_FAMILY_NAMES:
-                # High-confidence person: starts with Vietnamese family name
                 refined.append((name, "Person"))
             else:
                 refined.append((name, bio_type))

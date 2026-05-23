@@ -36,8 +36,8 @@ def rerank(query: str, documents: list[dict], text_key: str = "chunk_text", top_
         return []
 
     model = _get_reranker()
-    pairs = [[query, (doc.get(text_key) or "")[:512]] for doc in documents]
-    scores = model.predict(pairs)
+    pairs: list[tuple[str, str]] = [(query, (doc.get(text_key) or "")[:512]) for doc in documents]
+    scores = model.predict(pairs)  # type: ignore[arg-type]
 
     for doc, score in zip(documents, scores):
         doc["rerank_score"] = float(score)

@@ -21,14 +21,14 @@ class Settings(BaseSettings):
     gemini_key_file: str = ".gemini_key.txt"
     gemini_model_text: str = "gemini-2.0-flash"
     gemini_model_embedding: str = "gemini-embedding-001"
-    embedding_backend: str = "gemini"
+    embedding_backend: str = "local"
     local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     ner_backend: str = "simple"
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
 
-    model_mode: str = "api"
+    model_mode: str = "local"
     local_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
 
     app_api_key: str | None = None

@@ -15,3 +15,12 @@ knowledge-base/.obsidian
 knowledge-base/z-template
 .phonlp/
 data/
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb

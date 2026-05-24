@@ -134,7 +134,7 @@ def _parse_agent_response(text: str) -> dict | None:
         return None
 
 
-def _synthesize_from_observations(observations: list[str], citations: list[dict]) -> QueryResult:
+def _synthesize_from_observations(observations: list[str], citations: list) -> QueryResult:
     """Build a fallback answer from collected observations when agent doesn't converge."""
     snippets = []
     for obs in observations:
@@ -146,7 +146,7 @@ def _synthesize_from_observations(observations: list[str], citations: list[dict]
     else:
         answer = "Không tìm thấy thông tin phù hợp trong cơ sở tri thức."
 
-    return QueryResult(answer=answer, citations=citations)
+    return QueryResult(answer=answer, citations=citations, strategy="agent", strategy_used="agent")
 
 
 def agent_query(question: str, top_k: int = 4) -> QueryResult:
@@ -158,7 +158,7 @@ def agent_query(question: str, top_k: int = 4) -> QueryResult:
         {"role": "user", "content": question},
     ]
 
-    citations: list[dict] = []
+    citations: list = []
     observations: list[str] = []
     seen_chunk_ids: set[str] = set()
 
@@ -179,7 +179,7 @@ def agent_query(question: str, top_k: int = 4) -> QueryResult:
         if "final_answer" in parsed:
             answer = parsed["final_answer"]
             logger.info("Agent converged", extra={"iterations": iteration + 1})
-            return QueryResult(answer=answer, citations=citations)
+            return QueryResult(answer=answer, citations=citations, strategy="agent", strategy_used="agent")
 
         action = parsed.get("action", "")
         action_input = parsed.get("action_input", {})

@@ -101,7 +101,8 @@ class QueryRequest(BaseModel):
 class HFDatasetIngestRequest(BaseModel):
     """Request payload for direct HF dataset ingestion endpoint."""
 
-    config_name: str = Field(default="20231101.vi", description="HF config, e.g. 20231101.vi")
+    dataset_id: str = Field(default="Keithsel/viwiki-20260523", description="HuggingFace dataset ID")
+    config_name: str = Field(default="cleaned", description="HF config, e.g. cleaned or raw")
     split: str = Field(default="train")
     sample_size: int = Field(default=5, ge=1, le=200)
     streaming: bool = Field(default=True, description="Use HF streaming mode for large configs")
@@ -313,6 +314,7 @@ def ingest_hf(req: HFDatasetIngestRequest, request: Request) -> dict:
             sample_size=req.sample_size,
             streaming=req.streaming,
             local_path=req.local_path,
+            dataset_id=req.dataset_id,
         )
     except RuntimeError as exc:
         logger.warning("HF ingest failed")
@@ -345,6 +347,7 @@ def _run_hf_ingest_job(job_id: str, req: HFIngestJobRequest) -> None:
             on_progress=_on_progress,
             should_stop=lambda: stop_event.is_set(),
             local_path=req.local_path,
+            dataset_id=req.dataset_id,
         )
         with _jobs_lock:
             job = _jobs[job_id]

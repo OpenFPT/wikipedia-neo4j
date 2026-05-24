@@ -13,7 +13,7 @@ import pyarrow.parquet as pq
 from neo4j import GraphDatabase
 
 from src.config import settings
-from src.entity_resolution import EntityResolver, ResolvedEntity
+from src.entity_resolution import EntityResolver
 from src.logging_utils import get_logger
 
 logger = get_logger(__name__)

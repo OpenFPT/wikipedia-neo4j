@@ -159,10 +159,10 @@ def text_search(
     seen: dict[str, dict[str, Any]] = {}
     for item in results:
         pid = str(item["paragraph_id"])
-        if pid not in seen or item["score"] > seen[pid]["score"]:
+        if pid not in seen or item["score"] > seen[pid]["score"]:  # type: ignore[operator]
             seen[pid] = item
 
-    final = sorted(seen.values(), key=lambda x: x["score"], reverse=True)[:top_k]
+    final = sorted(seen.values(), key=lambda x: float(x["score"]), reverse=True)[:top_k]
     return ToolResult(tool_name="text_search", success=True, data=final)
 
 

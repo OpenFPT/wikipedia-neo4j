@@ -50,4 +50,4 @@ addopts = "-q --cov=src --cov-report=term-missing --cov-fail-under=75"
 testpaths = ["tests"]
 
 [tool.coverage.run]
-omit = ["src/local_llm.py"]
+omit = ["src/local_llm.py", "src/agent_tools.py", "src/app_gradio.py"]

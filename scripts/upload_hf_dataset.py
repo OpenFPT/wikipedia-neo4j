@@ -6,7 +6,6 @@ import argparse
 from pathlib import Path
 
 from datasets import Dataset, DatasetDict, Features, Value, Sequence
-from huggingface_hub import HfApi
 
 from src.logging_utils import get_logger
 

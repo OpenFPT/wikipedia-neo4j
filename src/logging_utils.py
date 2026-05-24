@@ -6,6 +6,7 @@ import json
 import logging
 from contextvars import ContextVar, Token
 from datetime import datetime, timezone
+from pathlib import Path
 
 _REQUEST_ID: ContextVar[str] = ContextVar("request_id", default="-")
 _CONFIGURED = False
@@ -54,12 +55,19 @@ def reset_request_id(token: Token[str]) -> None:
     _REQUEST_ID.reset(token)
 
 
-def configure_logging(level_name: str = "INFO", json_logs: bool = False) -> None:
+def configure_logging(
+    level_name: str = "INFO",
+    json_logs: bool = False,
+    log_dir: str | None = None,
+    task_name: str | None = None,
+) -> None:
     """Configure process-wide logging once.
 
     Args:
         level_name: Logging level name (for example ``INFO`` or ``DEBUG``).
         json_logs: When true, emit one-line JSON log records.
+        log_dir: Directory for log files. When set, a FileHandler is added.
+        task_name: Prefix for the log filename (e.g. "export", "load").
     """
     global _CONFIGURED
     if _CONFIGURED:
@@ -81,6 +89,19 @@ def configure_logging(level_name: str = "INFO", json_logs: bool = False) -> None
     for handler in root_logger.handlers:
         handler.setFormatter(formatter)
         handler.addFilter(context_filter)
+
+    if log_dir:
+        log_path = Path(log_dir)
+        log_path.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        prefix = task_name or "app"
+        file_handler = logging.FileHandler(
+            log_path / f"{prefix}_{timestamp}.log", encoding="utf-8"
+        )
+        file_handler.setLevel(level)
+        file_handler.setFormatter(formatter)
+        file_handler.addFilter(context_filter)
+        root_logger.addHandler(file_handler)
 
     _CONFIGURED = True
 

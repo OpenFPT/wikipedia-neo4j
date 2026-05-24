@@ -31,7 +31,7 @@ Relationships:
 ## Components
 
 - `src/main.py`: FastAPI app, auth/rate-limit guard, job APIs, health/readiness/metrics
-- `src/ingest.py`: Wikipedia and HF ingestion pipelines
+- `src/ingest.py`: Wikipedia API, Hugging Face, and local dataset ingestion pipelines
 - `src/ner.py`: Pluggable NER backends (simple/underthesea/phonlp) and entity type classification
 - `src/retrieve.py`: Retrieval and answer assembly
 - `src/agent.py`: ReAct agent loop with graph tools for multi-hop QA
@@ -44,6 +44,7 @@ Relationships:
 - `src/logging_utils.py`: Structured logging with request-ID context
 - `src/reranker.py`: Cross-encoder reranking (BAAI/bge-reranker-v2-m3) for retrieval results
 - `src/evaluation.py`: Evaluation pipeline — context hit rate, MRR, latency on ViWiki-MHR dataset
+- `scripts/viwiki_processing/`: raw MediaWiki XML streaming, wikitext cleanup, and cleaned/raw Parquet export for `Keithsel/viwiki-20260523`
 
 ## Query behavior
 
@@ -73,6 +74,14 @@ Provides two interfaces:
 - `chat(messages)` — chat-template-aware generation (used by agent and dataset rewrite)
 
 ## Dataset generation pipeline
+
+Raw corpus preparation starts from the Vietnamese Wikipedia MediaWiki XML dump.
+`scripts/viwiki_processing/` streams the XML, filters main-namespace articles,
+cleans wikitext into plain text, and exports both cleaned and raw Parquet shards.
+The cleaned shard is suitable for graph ingestion and text retrieval, while the
+raw shard preserves wikitext for later link/template extraction. The processed
+snapshot is published as `Keithsel/viwiki-20260523` on Hugging Face for
+reproducible downstream dataset generation and evaluation.
 
 `src/dataset_gen.py` generates the ViWiki-MHR multi-hop QA dataset from the knowledge graph:
 

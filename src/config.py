@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     json_logs: bool = False
     require_gemini_key_on_startup: bool = False
 
+    multi_hop_expansion: bool = True
+    rerank_min_score: float = 0.1
+
     @field_validator("rate_limit_per_minute")
     @classmethod
     def validate_rate_limit_per_minute(cls, value: int) -> int:

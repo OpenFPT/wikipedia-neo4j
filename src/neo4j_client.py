@@ -70,6 +70,10 @@ class Neo4jClient:
             session.run("CREATE INDEX organization_name_idx IF NOT EXISTS FOR (o:Organization) ON (o.name)")
             session.run("CREATE INDEX location_name_idx IF NOT EXISTS FOR (l:Location) ON (l.name)")
             session.run("CREATE INDEX work_name_idx IF NOT EXISTS FOR (w:Work) ON (w.name)")
+            session.run(
+                "CREATE FULLTEXT INDEX entity_alias_ft IF NOT EXISTS "
+                "FOR (e:Entity) ON EACH [e.name, e.aliases]"
+            )
         logger.debug("Neo4j schema ensured")
 
 

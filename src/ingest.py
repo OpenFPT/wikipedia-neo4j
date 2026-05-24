@@ -19,6 +19,20 @@ from src.ner import extract_entities
 logger = get_logger(__name__)
 
 
+def _extract_aliases(text: str, entity_name: str) -> list[str]:
+    """Extract aliases for an entity from parenthetical patterns in text."""
+    aliases: list[str] = []
+    pattern = re.compile(
+        re.escape(entity_name) + r"\s*\(([^)]{2,60})\)",
+        re.IGNORECASE,
+    )
+    for match in pattern.finditer(text[:2000]):
+        candidate = match.group(1).strip()
+        if candidate and candidate.lower() != entity_name.lower():
+            aliases.append(candidate)
+    return aliases[:5]
+
+
 @dataclass
 class IngestResult:
     """Summary result of a single ingested page/document."""
@@ -97,13 +111,16 @@ def _upsert_page_from_text(
         for name, entity_type in entities:
             entity_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, name.lower()))
             label = entity_type if entity_type in ("Person", "Organization", "Location", "Work", "Event") else "Entity"
+            aliases = _extract_aliases(text, name)
             session.run(
                 f"""
                 MERGE (e:{label} {{id: $entity_id}})
-                SET e.name = $name
+                SET e.name = $name,
+                    e.aliases = $aliases
                 """,
                 entity_id=entity_id,
                 name=name,
+                aliases=aliases,
             )
             session.run(
                 """

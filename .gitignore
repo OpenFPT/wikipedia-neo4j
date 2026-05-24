@@ -15,6 +15,10 @@ knowledge-base/.obsidian
 knowledge-base/z-template
 .phonlp/
 data/
+models/checkpoints/
+models/text2cypher_adapter/
+models/text2cypher_dpo/
+models/react_adapter/
 
 # LaTeX build artifacts
 *.aux

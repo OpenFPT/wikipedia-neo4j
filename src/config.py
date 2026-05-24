@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     neo4j_uri: str = "bolt://localhost:7687"
     neo4j_username: str = "neo4j"
     neo4j_password: str = "please-change-me"
+    qdrant_url: str = "http://localhost:6333"
+    ner_backend: str = "simple"
     openai_api_key: str | None = None
 
     gemini_key_file: str = ".gemini_key.txt"
@@ -24,7 +26,6 @@ class Settings(BaseSettings):
     embedding_backend: str = "local"
     local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
-    ner_backend: str = "simple"
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
 

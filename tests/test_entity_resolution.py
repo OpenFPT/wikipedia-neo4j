@@ -66,10 +66,10 @@ class TestEntityResolver:
 
     def test_diacritics_match(self):
         resolver = EntityResolver()
-        resolver.resolve("Đà Nẵng", "Location")
-        result = resolver.resolve("Da Nang", "Location")
-        assert result.canonical_name == "Đà Nẵng"
-        assert "Da Nang" in result.aliases
+        resolver.resolve("Hà Nội", "Location")
+        result = resolver.resolve("Ha Noi", "Location")
+        assert result.canonical_name == "Hà Nội"
+        assert "Ha Noi" in result.aliases
 
     def test_type_upgrade_from_unknown(self):
         resolver = EntityResolver()

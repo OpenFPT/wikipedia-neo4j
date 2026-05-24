@@ -157,10 +157,10 @@ def text_search(
 
     # Deduplicate by paragraph_id, keep highest score
     seen: dict[str, dict[str, Any]] = {}
-    for r in results:
-        pid = str(r["paragraph_id"])
-        if pid not in seen or r["score"] > seen[pid]["score"]:
-            seen[pid] = r
+    for item in results:
+        pid = str(item["paragraph_id"])
+        if pid not in seen or item["score"] > seen[pid]["score"]:
+            seen[pid] = item
 
     final = sorted(seen.values(), key=lambda x: x["score"], reverse=True)[:top_k]
     return ToolResult(tool_name="text_search", success=True, data=final)

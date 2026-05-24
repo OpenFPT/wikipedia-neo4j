@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     embedding_backend: str = "local"
     local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
-    ner_backend: str = "simple"
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
 

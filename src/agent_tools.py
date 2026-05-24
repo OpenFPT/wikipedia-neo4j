@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from neo4j import GraphDatabase
 from qdrant_client import QdrantClient
@@ -90,7 +91,7 @@ def text_search(
     article_filter: str | None = None,
 ) -> ToolResult:
     """Hybrid search: fulltext in Neo4j + vector similarity in Qdrant."""
-    results: list[dict[str, object]] = []
+    results: list[dict[str, Any]] = []
 
     # Neo4j fulltext search
     driver = GraphDatabase.driver(
@@ -155,10 +156,10 @@ def text_search(
         logger.debug("Qdrant search skipped", extra={"error": str(e)})
 
     # Deduplicate by paragraph_id, keep highest score
-    seen: dict[str, dict[str, object]] = {}
+    seen: dict[str, dict[str, Any]] = {}
     for r in results:
         pid = str(r["paragraph_id"])
-        if pid not in seen or float(r.get("score", 0)) > float(seen[pid].get("score", 0)):  # type: ignore[arg-type]
+        if pid not in seen or r["score"] > seen[pid]["score"]:
             seen[pid] = r
 
     final = sorted(seen.values(), key=lambda x: x["score"], reverse=True)[:top_k]

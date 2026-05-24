@@ -22,6 +22,15 @@ class Settings(BaseSettings):
     gemini_key_file: str = ".gemini_key.txt"
     gemini_model_text: str = "gemini-2.0-flash"
     gemini_model_embedding: str = "gemini-embedding-001"
+    embedding_backend: str = "local"
+    local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+
+    ner_backend: str = "simple"
+    phonlp_model_dir: str = ".phonlp"
+    vncorenlp_dir: str = ".vncorenlp"
+
+    model_mode: str = "local"
+    local_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
 
     # Provider-explicit model configuration (preferred)
     orchestrator_provider: str = "google"
@@ -47,6 +56,41 @@ class Settings(BaseSettings):
         if value < 1:
             raise ValueError("rate_limit_per_minute must be >= 1")
         return value
+
+    @field_validator("embedding_backend")
+    @classmethod
+    def validate_embedding_backend(cls, value: str) -> str:
+        backend = (value or "").strip().lower()
+        if backend not in {"gemini", "local"}:
+            raise ValueError("embedding_backend must be 'gemini' or 'local'")
+        return backend
+
+    @field_validator("ner_backend")
+    @classmethod
+    def validate_ner_backend(cls, value: str) -> str:
+        backend = (value or "").strip().lower()
+        if backend not in {"simple", "underthesea", "phonlp"}:
+            raise ValueError("ner_backend must be 'simple', 'underthesea', or 'phonlp'")
+        return backend
+
+    @field_validator("model_mode")
+    @classmethod
+    def validate_model_mode(cls, value: str) -> str:
+        mode = (value or "").strip().lower()
+        if mode not in {"local", "api"}:
+            raise ValueError("model_mode must be 'local' or 'api'")
+        return mode
+
+    @field_validator("neo4j_uri", "neo4j_username", "neo4j_password", mode="before")
+    @classmethod
+    def _strip_surrounding_quotes(cls, value: str) -> str:
+        """Allow values in .env to be wrapped in quotes by stripping them."""
+        if not isinstance(value, str):
+            return value
+        s = value.strip()
+        if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+            return s[1:-1]
+        return s
 
 
 settings = Settings()

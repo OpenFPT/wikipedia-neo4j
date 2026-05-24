@@ -5,7 +5,7 @@
 ### Neo4j auth mismatch
 
 - Symptom: `Neo.ClientError.Security.Unauthorized`
-- Fix: ensure `.env` `NEO4J_PASSWORD` matches `docker-compose.yml` auth.
+- Fix: ensure `.env` `NEO4J_PASSWORD` matches the password configured in `/etc/neo4j/neo4j.conf`.
 
 ### Empty retrieval after ingestion
 
@@ -21,6 +21,18 @@
 
 - Jobs are persisted in `.hf_ingest_jobs.json`.
 - Jobs active during restart are marked `interrupted`.
+
+### Local model OOM
+
+- Symptom: CUDA out of memory when `MODEL_MODE=local`.
+- Fix: ensure GPU has at least 6GB VRAM for 4-bit quantized Qwen2.5-7B.
+- Alternative: reduce `max_new_tokens` or use API mode.
+
+### Agent not converging
+
+- The ReAct agent has a 6-iteration limit.
+- If answers are poor, check that fulltext indexes exist (`chunk_text_ft`, `page_title_ft`).
+- Verify graph has sufficient data ingested.
 
 ## Security controls
 

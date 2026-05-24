@@ -10,3 +10,17 @@ __pycache__/
 .coverage
 site/
 .hf_ingest_jobs.json
+knowledge-base/.customThemes
+knowledge-base/.obsidian
+knowledge-base/z-template
+.phonlp/
+data/
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb

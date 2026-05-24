@@ -8,11 +8,12 @@ from dataclasses import dataclass
 from typing import Callable
 
 import wikipedia
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 
 from src.llm import embed_texts
 from src.logging_utils import get_logger
 from src.neo4j_client import neo4j_client
+from src.ner import extract_entities
 
 
 logger = get_logger(__name__)
@@ -30,6 +31,24 @@ class IngestResult:
     entity_count: int
 
 
+def _chunk_text(text: str, chunk_size: int = 900, overlap: int = 120) -> list[str]:
+    """Split text into overlapping chunks for retrieval and embedding."""
+    cleaned = re.sub(r"\s+", " ", text).strip()
+    if not cleaned:
+        return []
+
+    chunks: list[str] = []
+    i = 0
+    n = len(cleaned)
+    while i < n:
+        j = min(i + chunk_size, n)
+        chunks.append(cleaned[i:j])
+        if j == n:
+            break
+        i = max(j - overlap, i + 1)
+    return chunks
+
+
 def _upsert_page_from_text(
     page_id: str,
     title: str,
@@ -39,10 +58,9 @@ def _upsert_page_from_text(
 ) -> IngestResult:
     """Upsert one page, chunks, entities, and mention edges into Neo4j."""
     chunks = _chunk_text(text)
-    entities = _extract_entities_simple(text)
+    entities = extract_entities(text)
     embeddings = embed_texts(chunks) if chunks else []
 
-    neo4j_client.setup_schema()
     with neo4j_client.session() as session:
         session.run(
             """
@@ -76,13 +94,13 @@ def _upsert_page_from_text(
                 embedding=embedding,
             )
 
-        for name in entities:
+        for name, entity_type in entities:
             entity_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, name.lower()))
+            label = entity_type if entity_type in ("Person", "Organization", "Location", "Work", "Event") else "Entity"
             session.run(
-                """
-                MERGE (e:Entity {id: $entity_id})
-                SET e.name = $name,
-                    e.type = coalesce(e.type, 'Unknown')
+                f"""
+                MERGE (e:{label} {{id: $entity_id}})
+                SET e.name = $name
                 """,
                 entity_id=entity_id,
                 name=name,
@@ -91,7 +109,7 @@ def _upsert_page_from_text(
                 """
                 MATCH (p:Page {id: $page_id})-[:HAS_CHUNK]->(c:Chunk)
                 WHERE toLower(c.text) CONTAINS toLower($name)
-                MATCH (e:Entity {id: $entity_id})
+                MATCH (e {id: $entity_id})
                 MERGE (c)-[:MENTIONS]->(e)
                 """,
                 page_id=page_id,
@@ -114,108 +132,9 @@ def _upsert_page_from_text(
     )
 
 
-def _chunk_text(text: str, chunk_size: int = 900, overlap: int = 120) -> list[str]:
-    """Split text into overlapping chunks for retrieval and embedding."""
-    cleaned = re.sub(r"\s+", " ", text).strip()
-    if not cleaned:
-        return []
-
-    chunks: list[str] = []
-    i = 0
-    n = len(cleaned)
-    while i < n:
-        j = min(i + chunk_size, n)
-        chunks.append(cleaned[i:j])
-        if j == n:
-            break
-        i = max(j - overlap, i + 1)
-    return chunks
-
-
-def _extract_entities_simple(text: str, max_entities: int = 25) -> list[str]:
-    """Extract simple title-cased entities using regex heuristic."""
-    candidates = re.findall(r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b", text)
-    deduped: list[str] = []
-    seen = set()
-    for c in candidates:
-        key = c.strip().lower()
-        if len(c) < 3 or key in seen:
-            continue
-        seen.add(key)
-        deduped.append(c.strip())
-        if len(deduped) >= max_entities:
-            break
-    return deduped
-
-
-def ingest_topic(topic: str) -> IngestResult:
-    """Ingest one topic from Wikipedia API into graph."""
-    page = wikipedia.page(topic, auto_suggest=False)
-    page_id = str(uuid.uuid5(uuid.NAMESPACE_URL, page.url))
-    summary = wikipedia.summary(topic, auto_suggest=False, sentences=3)
-    chunks = _chunk_text(page.content)
-    entities = _extract_entities_simple(page.content)
-    embeddings = embed_texts(chunks) if chunks else []
-    linked_titles = page.links[:50]
-
-    neo4j_client.setup_schema()
-
+def _write_page_links(page_id: str, linked_titles: list[str]) -> None:
+    """Write LINKS_TO edges from a page to linked Wikipedia pages."""
     with neo4j_client.session() as session:
-        session.run(
-            """
-            MERGE (p:Page {id: $id})
-            SET p.title = $title,
-                p.url = $url,
-                p.summary = $summary
-            """,
-            id=page_id,
-            title=page.title,
-            url=page.url,
-            summary=summary,
-        )
-
-        for idx, chunk in enumerate(chunks):
-            chunk_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{page_id}#chunk#{idx}"))
-            embedding = embeddings[idx] if idx < len(embeddings) else []
-            session.run(
-                """
-                MATCH (p:Page {id: $page_id})
-                MERGE (c:Chunk {id: $chunk_id})
-                SET c.text = $text,
-                    c.sequence_number = $seq,
-                    c.embedding = $embedding
-                MERGE (p)-[:HAS_CHUNK]->(c)
-                """,
-                page_id=page_id,
-                chunk_id=chunk_id,
-                text=chunk,
-                seq=idx,
-                embedding=embedding,
-            )
-
-        for name in entities:
-            entity_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, name.lower()))
-            session.run(
-                """
-                MERGE (e:Entity {id: $entity_id})
-                SET e.name = $name,
-                    e.type = coalesce(e.type, 'Unknown')
-                """,
-                entity_id=entity_id,
-                name=name,
-            )
-            session.run(
-                """
-                MATCH (p:Page {id: $page_id})-[:HAS_CHUNK]->(c:Chunk)
-                WHERE toLower(c.text) CONTAINS toLower($name)
-                MATCH (e:Entity {id: $entity_id})
-                MERGE (c)-[:MENTIONS]->(e)
-                """,
-                page_id=page_id,
-                entity_id=entity_id,
-                name=name,
-            )
-
         for linked_title in linked_titles:
             linked_url = f"https://en.wikipedia.org/wiki/{linked_title.replace(' ', '_')}"
             linked_page_id = str(uuid.uuid5(uuid.NAMESPACE_URL, linked_url))
@@ -234,6 +153,33 @@ def ingest_topic(topic: str) -> IngestResult:
                 target_url=linked_url,
             )
 
+
+def ingest_topic(topic: str) -> IngestResult:
+    """Ingest one topic from Wikipedia API into graph."""
+    try:
+        page = wikipedia.page(topic, auto_suggest=False)
+    except wikipedia.exceptions.DisambiguationError as exc:
+        raise ValueError(f"Ambiguous topic '{topic}': {exc.options[:5]}") from exc
+    except wikipedia.exceptions.PageError as exc:
+        raise ValueError(f"Wikipedia page not found: '{topic}'") from exc
+
+    page_id = str(uuid.uuid5(uuid.NAMESPACE_URL, page.url))
+
+    try:
+        summary = wikipedia.summary(topic, auto_suggest=False, sentences=3)
+    except Exception:
+        summary = page.content[:400]
+
+    result = _upsert_page_from_text(
+        page_id=page_id,
+        title=page.title,
+        url=page.url,
+        text=page.content,
+        summary=summary,
+    )
+
+    _write_page_links(page_id, page.links[:50])
+
     logger.info("Wikipedia topic ingested", extra={"topic": topic, "page_id": page_id})
 
     return IngestResult(
@@ -241,24 +187,34 @@ def ingest_topic(topic: str) -> IngestResult:
         page_id=page_id,
         title=page.title,
         url=page.url,
-        chunk_count=len(chunks),
-        entity_count=len(entities),
+        chunk_count=result.chunk_count,
+        entity_count=result.entity_count,
     )
 
 
 def ingest_from_hf(
-    config_name: str = "20231101.en",
+    config_name: str = "20231101.vi",
     split: str = "train",
     sample_size: int = 5,
     streaming: bool = True,
     on_progress: Callable[[int, int | None, str], None] | None = None,
     should_stop: Callable[[], bool] | None = None,
+    local_path: str | None = None,
 ) -> list[IngestResult]:
-    """Ingest sample records from `wikimedia/wikipedia` Hugging Face dataset."""
+    """Ingest records from a HuggingFace dataset (remote or local).
+
+    If *local_path* is provided, loads from a pre-downloaded Arrow dataset
+    directory (e.g. ``data/viet-wikipedia``). Otherwise falls back to
+    streaming from the remote ``wikimedia/wikipedia`` dataset.
+    """
     results: list[IngestResult] = []
     total: int | None = sample_size if streaming else None
 
-    if streaming:
+    if local_path:
+        ds = load_from_disk(local_path)
+        total = min(sample_size, len(ds))
+        iterable = ds.select(range(total))
+    elif streaming:
         iterable = load_dataset("wikimedia/wikipedia", config_name, split=split, streaming=True)
     else:
         ds = load_dataset("wikimedia/wikipedia", config_name, split=split)

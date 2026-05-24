@@ -1,0 +1,113 @@
+{
+  "total": 10,
+  "answerable_count": 8,
+  "impossible_count": 2,
+  "context_hit_rate": 0.0,
+  "mrr": 0.0,
+  "exact_match": 0.0,
+  "token_f1": 0.10671684966568083,
+  "abstain_accuracy": 0.0,
+  "avg_latency_ms": 184682.71724700026,
+  "details": [
+    {
+      "id": "0001-0001-0001",
+      "question": "Paris đạt được thành quả gì sau khoảng 4 thế kỷ tính từ ngày Cách mạng Pháp diễn",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.21645021645021645,
+      "latency_ms": 184716.1
+    },
+    {
+      "id": "0001-0001-0002",
+      "question": "Vị trí địa lý của Pháp có gì đặc biệt?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 185983.9
+    },
+    {
+      "id": "0001-0001-0003",
+      "question": "Kinh tế xung quanh kinh đô ánh sáng mạnh về gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.034632034632034625,
+      "latency_ms": 184168.1
+    },
+    {
+      "id": "0001-0001-0004",
+      "question": "Cuộc cách mạng Pháp diễn ra ở đâu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 184732.7
+    },
+    {
+      "id": "0001-0001-0005",
+      "question": "Kinh đô ánh sáng nổi tiếng về lĩnh vực gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.1217391304347826,
+      "latency_ms": 185095.3
+    },
+    {
+      "id": "0001-0001-0006",
+      "question": "Paris là một thành phố quan trọng của nước Pháp bắt đầu từ thời gian nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.03636363636363637,
+      "latency_ms": 185006.4
+    },
+    {
+      "id": "0001-0001-0007",
+      "question": "Vị trí địa lý của Paris có gì đặc biệt?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.21576763485477174,
+      "latency_ms": 184493.6
+    },
+    {
+      "id": "0001-0002-0001",
+      "question": "Điều gì đã nói lên Paris là thành phố lý tưởng để khách du lịch?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.09777777777777778,
+      "latency_ms": 184911.3
+    },
+    {
+      "id": "0001-0002-0002",
+      "question": "Người ta đến với Paris vì điều gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.13100436681222707,
+      "latency_ms": 183542.2
+    },
+    {
+      "id": "0001-0002-0003",
+      "question": "Điều gì đã nói lên New York là thành phố lý tưởng để khách du lịch?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 184177.6
+    }
+  ]
+}

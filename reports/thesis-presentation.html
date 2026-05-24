@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vietnamese GraphRAG — Thesis Defense</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+html, body { height: 100%; overflow-x: hidden; margin: 0; padding: 0; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+:root {
+    --title-size: clamp(1.6rem, 5vw, 3.5rem);
+    --h2-size: clamp(1.2rem, 3.5vw, 2.2rem);
+    --h3-size: clamp(0.95rem, 2.2vw, 1.4rem);
+    --body-size: clamp(0.72rem, 1.4vw, 1rem);
+    --small-size: clamp(0.62rem, 1vw, 0.82rem);
+    --code-size: clamp(0.6rem, 0.9vw, 0.78rem);
+    --slide-padding: clamp(1.5rem, 5vw, 5rem);
+    --content-gap: clamp(0.5rem, 2vw, 1.8rem);
+    --element-gap: clamp(0.25rem, 0.8vw, 0.7rem);
+
+    --bg: #0a0e1a;
+    --bg-card: #111827;
+    --bg-card-hover: #1a2332;
+    --fg: #e2e8f0;
+    --fg-muted: #94a3b8;
+    --accent: #06b6d4;
+    --accent2: #a855f7;
+    --accent3: #10b981;
+    --accent4: #f59e0b;
+    --border: #1e293b;
+    --glow: rgba(6, 182, 212, 0.15);
+}
+
+* { box-sizing: border-box; }
+body { font-family: 'Space Grotesk', sans-serif; color: var(--fg); background: var(--bg); }
+h1, h2, h3 { margin: 0; line-height: 1.2; font-weight: 700; }
+h1 { font-size: var(--title-size); }
+h2 { font-size: var(--h2-size); }
+h3 { font-size: var(--h3-size); font-weight: 600; }
+p, li { font-size: var(--body-size); line-height: 1.55; margin: 0; color: var(--fg-muted); }
+ul { padding-left: 1.2em; margin: 0; }
+li { margin-bottom: var(--element-gap); }
+li strong { color: var(--fg); }
+code { font-family: 'JetBrains Mono', monospace; font-size: var(--code-size); background: var(--bg-card); padding: 0.15em 0.4em; border-radius: 3px; color: var(--accent); }
+
+.slide {
+    width: 100vw; height: 100vh; height: 100dvh;
+    overflow: hidden; scroll-snap-align: start;
+    display: flex; flex-direction: column; position: relative;
+    background: var(--bg);
+}
+.slide-content {
+    flex: 1; display: flex; flex-direction: column;
+    justify-content: center; max-height: 100%; overflow: hidden;
+    padding: var(--slide-padding);
+}
+
+/* Grid backgrounds */
+.grid-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(6,182,212,0.05) 1px, transparent 0);
+    background-size: 40px 40px; pointer-events: none;
+}
+.glow-tl::after {
+    content: ''; position: absolute; top: -20%; left: -10%;
+    width: 50%; height: 50%; border-radius: 50%;
+    background: radial-gradient(circle, rgba(6,182,212,0.08), transparent 70%);
+    pointer-events: none;
+}
+.glow-br::after {
+    content: ''; position: absolute; bottom: -20%; right: -10%;
+    width: 50%; height: 50%; border-radius: 50%;
+    background: radial-gradient(circle, rgba(168,85,247,0.08), transparent 70%);
+    pointer-events: none;
+}
+
+.tag { display: inline-block; background: rgba(6,182,212,0.15); color: var(--accent); padding: 0.2em 0.7em; border-radius: 4px; font-size: var(--small-size); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; border: 1px solid rgba(6,182,212,0.3); }
+.tag-purple { background: rgba(168,85,247,0.15); color: var(--accent2); border-color: rgba(168,85,247,0.3); }
+.tag-green { background: rgba(16,185,129,0.15); color: var(--accent3); border-color: rgba(16,185,129,0.3); }
+.tag-amber { background: rgba(245,158,11,0.15); color: var(--accent4); border-color: rgba(245,158,11,0.3); }
+
+.card { background: var(--bg-card); border-radius: 10px; padding: clamp(0.8rem, 2vw, 1.4rem); border: 1px solid var(--border); transition: border-color 0.3s; }
+.card:hover { border-color: rgba(6,182,212,0.4); }
+.card h3 { color: var(--fg); margin-bottom: 0.4em; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--content-gap); align-items: start; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--content-gap); align-items: start; }
+
+.pipeline-step { display: flex; align-items: center; gap: 0.8em; padding: 0.6em 1em; background: var(--bg-card); border-radius: 8px; border-left: 3px solid var(--accent); margin-bottom: var(--element-gap); }
+.pipeline-step .step-num { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); font-size: var(--h3-size); min-width: 1.5em; }
+.pipeline-step p { color: var(--fg); font-size: var(--body-size); }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: var(--element-gap); }
+.stat-box { text-align: center; padding: 0.8em; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); }
+.stat-box .value { font-size: var(--h3-size); font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+.stat-box .label { font-size: var(--small-size); color: var(--fg-muted); margin-top: 0.2em; }
+
+table { width: 100%; border-collapse: collapse; font-size: var(--body-size); }
+th, td { padding: 0.5em 0.75em; text-align: left; border-bottom: 1px solid var(--border); }
+th { color: var(--accent); font-weight: 600; font-size: var(--small-size); text-transform: uppercase; letter-spacing: 0.05em; }
+td { color: var(--fg-muted); }
+
+.placeholder { background: rgba(168,85,247,0.08); border: 1px dashed rgba(168,85,247,0.4); border-radius: 8px; padding: 0.8em; text-align: center; color: var(--accent2); font-style: italic; font-size: var(--body-size); }
+
+.slide-number { position: absolute; bottom: clamp(0.5rem, 2vw, 1.2rem); right: clamp(0.5rem, 2vw, 1.5rem); font-size: var(--small-size); color: var(--fg-muted); font-family: 'JetBrains Mono', monospace; opacity: 0.6; }
+.section-label { position: absolute; top: clamp(0.5rem, 2vw, 1.2rem); left: var(--slide-padding); font-size: var(--small-size); color: var(--fg-muted); font-family: 'JetBrains Mono', monospace; opacity: 0.5; letter-spacing: 0.1em; text-transform: uppercase; }
+
+.cite { font-size: var(--small-size); color: var(--fg-muted); opacity: 0.7; font-style: italic; }
+
+/* Reveal */
+.reveal { opacity: 0; transform: translateY(15px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* Progress */
+#progress { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); z-index: 1000; transition: width 0.3s ease; }
+
+/* Nav dots */
+.nav-dots { position: fixed; right: clamp(0.4rem, 1vw, 0.8rem); top: 50%; transform: translateY(-50%); z-index: 999; display: flex; flex-direction: column; gap: 5px; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.3s; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 6px var(--accent); transform: scale(1.4); }
+
+@media (max-height: 700px) {
+    :root { --slide-padding: clamp(0.75rem, 3vw, 2rem); --content-gap: clamp(0.4rem, 1.5vw, 1rem); --title-size: clamp(1.25rem, 4.5vw, 2.5rem); --h2-size: clamp(1rem, 3vw, 1.75rem); }
+}
+@media (max-height: 600px) {
+    :root { --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem); --content-gap: clamp(0.3rem, 1vw, 0.75rem); --title-size: clamp(1.1rem, 4vw, 2rem); --body-size: clamp(0.68rem, 1.1vw, 0.9rem); }
+    .nav-dots, .section-label { display: none; }
+}
+@media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<nav class="nav-dots" aria-label="Slide navigation"></nav>
+
+<!-- SLIDE 1: Title -->
+<section class="slide grid-bg glow-tl">
+    <div class="slide-content" style="align-items: center; text-align: center; gap: var(--content-gap);">
+        <img src="../docs/logo/fpt_logo.png" alt="FPT University" style="height: clamp(36px, 5vh, 64px); opacity: 0.9; filter: brightness(1.2);">
+        <div style="margin-top: 1em;">
+            <p style="color: var(--accent); font-size: var(--small-size); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5em;">Capstone Project Defense</p>
+            <h1 style="background: linear-gradient(135deg, var(--fg) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Vietnamese GraphRAG<br>Knowledge Graph QA System</h1>
+            <p style="font-size: var(--h3-size); color: var(--fg-muted); margin-top: 0.6em;">Multi-hop Reasoning over Wikipedia with Local SLM + Neo4j</p>
+        </div>
+        <div style="margin-top: 1.5em; font-size: var(--body-size);">
+            <p style="color: var(--fg);"><strong>[Student Name]</strong> — [Student ID]</p>
+            <p>Advisor: <strong style="color: var(--fg);">[Advisor Name]</strong></p>
+            <p style="margin-top: 0.3em; color: var(--fg-muted);">FPT University — June 2026</p>
+        </div>
+    </div>
+</section>
+
+<!-- SLIDE 2: Agenda -->
+<section class="slide grid-bg">
+    <span class="section-label">Overview</span>
+    <div class="slide-content">
+        <h2>Agenda</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div>
+                <div class="pipeline-step"><span class="step-num">01</span><p>Problem & Research Gap</p></div>
+                <div class="pipeline-step"><span class="step-num">02</span><p>Objectives & Contributions</p></div>
+                <div class="pipeline-step"><span class="step-num">03</span><p>Related Work & Positioning</p></div>
+                <div class="pipeline-step"><span class="step-num">04</span><p>System Architecture</p></div>
+                <div class="pipeline-step"><span class="step-num">05</span><p>Knowledge Graph Construction</p></div>
+            </div>
+            <div>
+                <div class="pipeline-step" style="border-left-color: var(--accent2);"><span class="step-num" style="color: var(--accent2);">06</span><p>Retrieval & Reranking</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent2);"><span class="step-num" style="color: var(--accent2);">07</span><p>ReAct Agent & Tools</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent3);"><span class="step-num" style="color: var(--accent3);">08</span><p>Dataset: ViWiki-MHR + ViQuAD2</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent4);"><span class="step-num" style="color: var(--accent4);">09</span><p>Evaluation & Results</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent4);"><span class="step-num" style="color: var(--accent4);">10</span><p>Conclusion & Future Work</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">2 / 19</span>
+</section>
+
+<!-- SLIDE 3: Problem -->
+<section class="slide grid-bg glow-br">
+    <span class="section-label">Motivation</span>
+    <div class="slide-content">
+        <span class="tag">Problem Statement</span>
+        <h2 style="margin-top: 0.5em;">Research Gap in Vietnamese QA</h2>
+        <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+            <div class="card">
+                <h3 style="color: var(--accent);">Single-hop Limitation</h3>
+                <p>Existing Vietnamese QA (ViQuAD, PhoBERT) handles only extractive single-hop. No system supports multi-hop graph reasoning natively.</p>
+            </div>
+            <div class="card">
+                <h3 style="color: var(--accent2);">Hallucination Risk</h3>
+                <p>57% of LLM citations are unfaithful (Liu et al., 2024). Without passage-level grounding, answers lack verifiability.</p>
+            </div>
+            <div class="card">
+                <h3 style="color: var(--accent4);">Sovereignty Gap</h3>
+                <p>Current solutions depend on GPT-4/Claude APIs. No local Vietnamese KGQA exists for on-premise deployment.</p>
+            </div>
+        </div>
+        <p class="cite reveal" style="margin-top: 1em;">Key refs: ViMQA (gated), HisGraphRAG (PACLIC 2025), Citation Faithfulness (arXiv:2412.18004)</p>
+    </div>
+    <span class="slide-number">3 / 19</span>
+</section>
+
+<!-- SLIDE 4: Objectives -->
+<section class="slide grid-bg glow-tl">
+    <span class="section-label">Motivation</span>
+    <div class="slide-content">
+        <span class="tag">Objectives</span>
+        <h2 style="margin-top: 0.5em;">Research Objectives</h2>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <ul style="list-style: none; padding: 0;">
+                <li style="display: flex; gap: 0.8em; align-items: baseline; margin-bottom: 0.8em;"><span style="color: var(--accent); font-family: 'JetBrains Mono'; font-weight: 700;">O1</span><span><strong style="color: var(--fg);">Build a fully local GraphRAG system</strong> — multi-hop QA over Vietnamese Wikipedia without external APIs, running on consumer hardware (8GB VRAM)</span></li>
+                <li style="display: flex; gap: 0.8em; align-items: baseline; margin-bottom: 0.8em;"><span style="color: var(--accent2); font-family: 'JetBrains Mono'; font-weight: 700;">O2</span><span><strong style="color: var(--fg);">Produce an open multi-hop dataset</strong> — ViWiki-MHR with reasoning type annotations, gold passages, and adversarial unanswerables</span></li>
+                <li style="display: flex; gap: 0.8em; align-items: baseline; margin-bottom: 0.8em;"><span style="color: var(--accent3); font-family: 'JetBrains Mono'; font-weight: 700;">O3</span><span><strong style="color: var(--fg);">Ensure citation-based groundedness</strong> — every answer traceable to passage IDs, with deterministic validation preventing hallucination</span></li>
+                <li style="display: flex; gap: 0.8em; align-items: baseline; margin-bottom: 0.8em;"><span style="color: var(--accent4); font-family: 'JetBrains Mono'; font-weight: 700;">O4</span><span><strong style="color: var(--fg);">Evaluate on standard benchmarks</strong> — UIT-ViQuAD 2.0 for comparability + ViWiki-MHR for multi-hop retrieval</span></li>
+            </ul>
+        </div>
+    </div>
+    <span class="slide-number">4 / 19</span>
+</section>
+
+<!-- SLIDE 5: Related Work -->
+<section class="slide grid-bg">
+    <span class="section-label">Literature</span>
+    <div class="slide-content">
+        <span class="tag-purple tag">Related Work</span>
+        <h2 style="margin-top: 0.5em;">Positioning in the Literature</h2>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <table>
+                <thead><tr><th>System</th><th>Approach</th><th>Gap We Address</th></tr></thead>
+                <tbody>
+                    <tr><td style="color: var(--fg);">GraphRAG (Edge et al.)</td><td>Community summaries + global search</td><td>Enterprise-scale, not local-friendly</td></tr>
+                    <tr><td style="color: var(--fg);">StepChain (2025)</td><td>Question decomposition + BFS on KG</td><td>English-only, no Vietnamese NER</td></tr>
+                    <tr><td style="color: var(--fg);">HisGraphRAG (PACLIC 2025)</td><td>GraphRAG for Vietnamese history</td><td>Domain-specific, textbook only</td></tr>
+                    <tr><td style="color: var(--fg);">CyVerACT (2025)</td><td>Deterministic Cypher validation</td><td>No agent loop, no Vietnamese</td></tr>
+                    <tr><td style="color: var(--fg);">GFM-RAG (2025)</td><td>Graph Foundation Model 8M params</td><td>Requires pre-training, English KGs</td></tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 1em; color: var(--accent); font-size: var(--body-size);"><strong>Our position:</strong> Local SLM + typed Vietnamese KG + deterministic tool-calling + open dataset</p>
+        </div>
+    </div>
+    <span class="slide-number">5 / 19</span>
+</section>
+
+<!-- SLIDE 6: Contributions -->
+<section class="slide grid-bg glow-tl">
+    <span class="section-label">Contributions</span>
+    <div class="slide-content">
+        <span class="tag-green tag">Contributions</span>
+        <h2 style="margin-top: 0.5em;">Key Contributions</h2>
+        <div class="grid-3 reveal" style="margin-top: var(--content-gap);">
+            <div class="card" style="border-color: rgba(6,182,212,0.3);">
+                <h3 style="color: var(--accent);">GraphRAG System</h3>
+                <ul>
+                    <li>Typed Neo4j KG (Person, Org, Location, Work)</li>
+                    <li>3 pluggable NER backends</li>
+                    <li>Hybrid retrieval + cross-encoder reranking</li>
+                    <li>ReAct agent with 4 deterministic tools</li>
+                </ul>
+            </div>
+            <div class="card" style="border-color: rgba(168,85,247,0.3);">
+                <h3 style="color: var(--accent2);">ViWiki-MHR Dataset</h3>
+                <ul>
+                    <li>~36K multi-hop QA pairs (CC-BY-SA)</li>
+                    <li>6 reasoning types + hop annotations</li>
+                    <li>Adversarial unanswerables (BRINK-style)</li>
+                    <li>3-stage QC: grounding + NLI + dedup</li>
+                </ul>
+            </div>
+            <div class="card" style="border-color: rgba(16,185,129,0.3);">
+                <h3 style="color: var(--accent3);">Local SLM Pipeline</h3>
+                <ul>
+                    <li>Qwen2.5-7B-Instruct (4-bit NF4)</li>
+                    <li>Text2Cypher with schema linking</li>
+                    <li>Deterministic validation (CyVerACT-inspired)</li>
+                    <li>Runs on 8GB VRAM consumer GPU</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">6 / 19</span>
+</section>
+
+<!-- SLIDE 7: Architecture -->
+<section class="slide grid-bg glow-br">
+    <span class="section-label">Architecture</span>
+    <div class="slide-content">
+        <span class="tag">System Design</span>
+        <h2 style="margin-top: 0.5em;">End-to-End Architecture</h2>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <div style="display: flex; flex-direction: column; gap: 0.6em; align-items: center;">
+                <div style="display: flex; gap: 0.5em; align-items: center; flex-wrap: wrap; justify-content: center;">
+                    <div style="background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.4); padding: 0.4em 0.9em; border-radius: 6px; font-weight: 600; color: var(--accent); font-size: var(--body-size);">User Query</div>
+                    <span style="color: var(--fg-muted);">→</span>
+                    <div style="background: rgba(168,85,247,0.15); border: 1px solid rgba(168,85,247,0.4); padding: 0.4em 0.9em; border-radius: 6px; font-weight: 600; color: var(--accent2); font-size: var(--body-size);">SLM Orchestrator</div>
+                    <span style="color: var(--fg-muted);">→</span>
+                    <div style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); padding: 0.4em 0.9em; border-radius: 6px; font-weight: 600; color: var(--accent4); font-size: var(--body-size);">ReAct Loop ≤6</div>
+                    <span style="color: var(--fg-muted);">→</span>
+                    <div style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); padding: 0.4em 0.9em; border-radius: 6px; font-weight: 600; color: var(--accent3); font-size: var(--body-size);">Citation Verify</div>
+                    <span style="color: var(--fg-muted);">→</span>
+                    <div style="background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.4); padding: 0.4em 0.9em; border-radius: 6px; font-weight: 600; color: var(--accent); font-size: var(--body-size);">Answer</div>
+                </div>
+                <div style="width: 1px; height: 1.5em; background: var(--border);"></div>
+                <div class="stat-grid" style="width: 100%; max-width: 700px;">
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size);">Neo4j</div><div class="label">Typed KG + Cypher</div></div>
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size); color: var(--accent2);">Qwen2.5-7B</div><div class="label">4-bit NF4 local</div></div>
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size); color: var(--accent3);">BGE-M3</div><div class="label">Cross-encoder rerank</div></div>
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size); color: var(--accent4);">FastAPI</div><div class="label">Auth + Rate limit</div></div>
+                </div>
+            </div>
+            <p style="margin-top: 1em; text-align: center; font-size: var(--small-size); color: var(--fg-muted);">Fully local — no external API calls at inference. Hardware: 16GB RAM, 8GB VRAM (RTX 3060/4060)</p>
+        </div>
+    </div>
+    <span class="slide-number">7 / 19</span>
+</section>
+
+<!-- SLIDE 8: Knowledge Graph -->
+<section class="slide grid-bg glow-tl">
+    <span class="section-label">Architecture</span>
+    <div class="slide-content">
+        <span class="tag">Knowledge Graph</span>
+        <h2 style="margin-top: 0.5em;">Graph Construction & NER Pipeline</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 0.5em;">Typed Schema</h3>
+                <div style="background: var(--bg-card); padding: 0.8em 1em; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: var(--code-size); line-height: 2; border: 1px solid var(--border);">
+                    <span style="color: var(--accent);">(:Page)</span> -[:HAS_CHUNK]→ <span style="color: var(--accent2);">(:Chunk)</span><br>
+                    <span style="color: var(--accent2);">(:Chunk)</span> -[:MENTIONS_PERSON]→ <span style="color: var(--accent3);">(:Person)</span><br>
+                    <span style="color: var(--accent2);">(:Chunk)</span> -[:MENTIONS_ORG]→ <span style="color: var(--accent4);">(:Organization)</span><br>
+                    <span style="color: var(--accent2);">(:Chunk)</span> -[:MENTIONS_LOC]→ <span style="color: #f472b6;">(:Location)</span><br>
+                    <span style="color: var(--accent2);">(:Chunk)</span> -[:MENTIONS_WORK]→ <span style="color: #a78bfa;">(:Work)</span><br>
+                    <span style="color: var(--accent);">(:Page)</span> -[:LINKS_TO]→ <span style="color: var(--accent);">(:Page)</span>
+                </div>
+                <div class="stat-grid" style="margin-top: 0.8em;">
+                    <div class="stat-box"><div class="value">998</div><div class="label">Pages</div></div>
+                    <div class="stat-box"><div class="value">19K</div><div class="label">Chunks</div></div>
+                    <div class="stat-box"><div class="value">3.3K</div><div class="label">Entities</div></div>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: var(--accent2); margin-bottom: 0.5em;">Pluggable NER (3 backends)</h3>
+                <div class="card" style="margin-bottom: 0.5em;"><strong style="color: var(--accent);">Simple</strong><p>Regex heuristic + keyword type classification. Fast, no model dependency.</p></div>
+                <div class="card" style="margin-bottom: 0.5em;"><strong style="color: var(--accent2);">Underthesea</strong><p>BIO tagging with pre-trained Vietnamese NER. Offline, good accuracy.</p></div>
+                <div class="card"><strong style="color: var(--accent3);">PhoNLP</strong><p>VnCoreNLP word segmentation + PhoNLP NER. Best for formal text.</p></div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">8 / 19</span>
+</section>
+
+<!-- SLIDE 9: Retrieval Pipeline -->
+<section class="slide grid-bg">
+    <span class="section-label">Architecture</span>
+    <div class="slide-content">
+        <span class="tag">Retrieval</span>
+        <h2 style="margin-top: 0.5em;">Hybrid Retrieval with Cross-Encoder Reranking</h2>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <div style="display: flex; flex-direction: column; gap: var(--element-gap);">
+                <div class="pipeline-step" style="border-left-color: var(--accent);"><span class="step-num">1</span><p><strong>Schema Linking</strong> — BM25/TF-IDF prunes KG schema to relevant labels/relations</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent2);"><span class="step-num">2</span><p><strong>Cypher Generation</strong> — SLM produces read-only Cypher from query + pruned schema</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent4);"><span class="step-num">3</span><p><strong>Deterministic Validation</strong> — Syntax check, write-keyword blocklist, output alias verification</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent3);"><span class="step-num">4</span><p><strong>Fallback</strong> — On invalid Cypher → hybrid fulltext (BM25 + dense vector) retrieval</p></div>
+                <div class="pipeline-step" style="border-left-color: #f472b6;"><span class="step-num">5</span><p><strong>Reranking</strong> — BAAI/bge-reranker-v2-m3 cross-encoder scores top-k (+15.5% accuracy expected)</p></div>
+            </div>
+            <p class="cite" style="margin-top: 0.8em;">Inspired by CyVerACT (deterministic validation) and HybridRAG (graph+text outperforms graph-only)</p>
+        </div>
+    </div>
+    <span class="slide-number">9 / 19</span>
+</section>
+
+<!-- SLIDE 10: ReAct Agent -->
+<section class="slide grid-bg glow-br">
+    <span class="section-label">Architecture</span>
+    <div class="slide-content">
+        <span class="tag-purple tag">Agent</span>
+        <h2 style="margin-top: 0.5em;">Tool-Constrained ReAct Agent</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 0.5em;">4 Deterministic Tools</h3>
+                <div style="display: flex; flex-direction: column; gap: 0.4em;">
+                    <div class="card" style="padding: 0.5em 0.8em;"><code>kg_schema()</code> <span style="color: var(--fg-muted); font-size: var(--small-size);">— cached JSON schema (labels, rels, props)</span></div>
+                    <div class="card" style="padding: 0.5em 0.8em;"><code>kg_query(cypher)</code> <span style="color: var(--fg-muted); font-size: var(--small-size);">— execute & return rows or errors</span></div>
+                    <div class="card" style="padding: 0.5em 0.8em;"><code>text_search(q, k)</code> <span style="color: var(--fg-muted); font-size: var(--small-size);">— hybrid BM25 + dense retrieval</span></div>
+                    <div class="card" style="padding: 0.5em 0.8em;"><code>get_passage(id)</code> <span style="color: var(--fg-muted); font-size: var(--small-size);">— raw paragraph for verification</span></div>
+                </div>
+            </div>
+            <div>
+                <h3 style="color: var(--accent2); margin-bottom: 0.5em;">Design Principles</h3>
+                <ul>
+                    <li><strong>Capped at 6 iterations</strong> — prevents runaway loops (aligned with ReflectiveRAG findings)</li>
+                    <li><strong>Sufficiency gating</strong> — if KG evidence empty/inconsistent → route to text_search or abstain</li>
+                    <li><strong>Citation tracking</strong> — every observation linked to passage_id for groundedness</li>
+                    <li><strong>Error refinement</strong> — compiler errors fed back as observations within the loop</li>
+                </ul>
+            </div>
+        </div>
+        <p class="cite reveal" style="margin-top: 0.8em;">Refs: ReflectiveRAG (sufficiency checks), C2RAG (adaptive re-retrieval), Agentic RAG SoK (tool-use risks)</p>
+    </div>
+    <span class="slide-number">10 / 19</span>
+</section>
+
+<!-- SLIDE 11: Local SLM -->
+<section class="slide grid-bg glow-tl">
+    <span class="section-label">Model</span>
+    <div class="slide-content">
+        <span class="tag-green tag">Local SLM</span>
+        <h2 style="margin-top: 0.5em;">Qwen2.5-7B-Instruct — Text2Cypher</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div>
+                <h3 style="color: var(--accent3); margin-bottom: 0.5em;">Runtime Configuration</h3>
+                <table>
+                    <tr><td style="color: var(--fg);">Base Model</td><td>Qwen2.5-7B-Instruct</td></tr>
+                    <tr><td style="color: var(--fg);">Quantization</td><td>4-bit NF4 (bitsandbytes)</td></tr>
+                    <tr><td style="color: var(--fg);">Loading</td><td>Lazy-loaded, cached in memory</td></tr>
+                    <tr><td style="color: var(--fg);">Interfaces</td><td><code>generate()</code> + <code>chat()</code></td></tr>
+                    <tr><td style="color: var(--fg);">VRAM Usage</td><td>~5.5GB (fits 8GB GPU)</td></tr>
+                </table>
+            </div>
+            <div>
+                <h3 style="color: var(--accent4); margin-bottom: 0.5em;">Fine-tuning Plan</h3>
+                <div class="card" style="margin-bottom: 0.5em;">
+                    <strong style="color: var(--accent4);">QLoRA</strong>
+                    <p>NF4 + double quantization, LoRA on all linear layers. ~10-15K Text2Cypher pairs.</p>
+                </div>
+                <div class="card">
+                    <strong style="color: var(--accent2);">DPO Alignment</strong>
+                    <p>Preference-based alignment for JSON tool-call compliance and schema correctness.</p>
+                </div>
+                <p class="cite" style="margin-top: 0.5em;">Refs: QLoRA (Dettmers et al.), DPO (Rafailov et al.), TinyLLM benchmarks</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">11 / 19</span>
+</section>
+
+<!-- SLIDE 12: Data Sources -->
+<section class="slide grid-bg">
+    <span class="section-label">Dataset</span>
+    <div class="slide-content">
+        <span class="tag-amber tag">Dataset</span>
+        <h2 style="margin-top: 0.5em;">Data Sources & Benchmarks</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div class="card" style="border-color: rgba(6,182,212,0.3);">
+                <h3 style="color: var(--accent);">UIT-ViQuAD 2.0 <span class="tag" style="font-size: 0.6em; vertical-align: middle;">External</span></h3>
+                <ul style="margin-top: 0.5em;">
+                    <li><strong>39.5K</strong> QA pairs from 174 Wikipedia articles</li>
+                    <li>Standard Vietnamese MRC benchmark (peer-reviewed)</li>
+                    <li>~12K unanswerable questions (SQuAD 2.0 style)</li>
+                    <li>Enables comparison with published baselines</li>
+                </ul>
+                <div class="stat-grid" style="margin-top: 0.6em;">
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size);">28.5K</div><div class="label">Train</div></div>
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size);">3.8K</div><div class="label">Validation</div></div>
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size);">7.3K</div><div class="label">Test</div></div>
+                </div>
+            </div>
+            <div class="card" style="border-color: rgba(168,85,247,0.3);">
+                <h3 style="color: var(--accent2);">ViWiki-MHR (Ours) <span class="tag-purple tag" style="font-size: 0.6em; vertical-align: middle;">Novel</span></h3>
+                <ul style="margin-top: 0.5em;">
+                    <li><strong>~36K</strong> multi-hop QA (target, CC-BY-SA)</li>
+                    <li>6 reasoning types: lookup, bridge, comparison, intersection, temporal, fan-out</li>
+                    <li>Adversarial unanswerables via broken-link walks</li>
+                    <li>Gold passage IDs + Cypher query annotations</li>
+                </ul>
+                <div class="stat-grid" style="margin-top: 0.6em;">
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size);">~8K</div><div class="label">Synthetic</div></div>
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size);">~28K</div><div class="label">Reformatted</div></div>
+                    <div class="stat-box"><div class="value" style="font-size: var(--body-size);">~1K</div><div class="label">Adversarial</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">12 / 19</span>
+</section>
+
+<!-- SLIDE 13: Dataset Generation Pipeline -->
+<section class="slide grid-bg glow-tl">
+    <span class="section-label">Dataset</span>
+    <div class="slide-content">
+        <span class="tag-amber tag">Dataset</span>
+        <h2 style="margin-top: 0.5em;">ViWiki-MHR Generation Pipeline</h2>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <div style="display: flex; flex-direction: column; gap: var(--element-gap);">
+                <div class="pipeline-step" style="border-left-color: var(--accent);"><span class="step-num">1</span><p><strong>KG Walk Extraction</strong> — 2-hop and 3-hop paths through typed graph + broken-link walks for unanswerables (BRINK-inspired)</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent2);"><span class="step-num">2</span><p><strong>Template-based QA</strong> — Vietnamese question templates per entity type × hop count × reasoning type</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent3);"><span class="step-num">3</span><p><strong>LLM Rewrite</strong> — Local model rewrites template questions for naturalness (optional stage)</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent4);"><span class="step-num">4</span><p><strong>3-Stage QC</strong> — Well-formedness filter → Grounding match (passage verification) → Deduplication</p></div>
+            </div>
+            <div class="grid-2" style="margin-top: 1em;">
+                <div style="font-size: var(--small-size); color: var(--fg-muted);">
+                    <strong style="color: var(--fg);">Output schema:</strong> question, answer, num_hops, reasoning_type, answerable, gold_passage_ids, cypher_query, decomposition_annotations
+                </div>
+                <div style="font-size: var(--small-size); color: var(--fg-muted);">
+                    <strong style="color: var(--fg);">Quality target:</strong> Human spot-check on 1-2K samples for final validation split
+                </div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">13 / 19</span>
+</section>
+
+<!-- SLIDE 14: ViQuAD2 Integration -->
+<section class="slide grid-bg glow-br">
+    <span class="section-label">Dataset</span>
+    <div class="slide-content">
+        <span class="tag-amber tag">Evaluation</span>
+        <h2 style="margin-top: 0.5em;">ViQuAD 2.0 Integration Strategy</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 0.5em;">Integration Pipeline</h3>
+                <div class="pipeline-step" style="border-left-color: var(--accent);"><span class="step-num">1</span><p>Load from HuggingFace + format conversion</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent2);"><span class="step-num">2</span><p>Dedup by title + text hash</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent3);"><span class="step-num">3</span><p>Ingest new passages into KG</p></div>
+                <div class="pipeline-step" style="border-left-color: var(--accent4);"><span class="step-num">4</span><p>End-to-end eval on validation split</p></div>
+            </div>
+            <div>
+                <h3 style="color: var(--accent2); margin-bottom: 0.5em;">Why ViQuAD 2.0?</h3>
+                <ul>
+                    <li><strong>Objectivity</strong> — external benchmark, not self-generated</li>
+                    <li><strong>Comparability</strong> — published baselines (CafeBERT: 77.5% EM, PhoBERT: 73.1% EM)</li>
+                    <li><strong>Abstain testing</strong> — 12K impossible questions test system's ability to say "I don't know"</li>
+                    <li><strong>Generative gap</strong> — measures Token F1 for generative vs extractive mismatch</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">14 / 19</span>
+</section>
+
+<!-- SLIDE 15: Evaluation Framework -->
+<section class="slide grid-bg glow-tl">
+    <span class="section-label">Evaluation</span>
+    <div class="slide-content">
+        <span class="tag-amber tag">Metrics</span>
+        <h2 style="margin-top: 0.5em;">Evaluation Framework</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 0.5em;">Metrics Suite</h3>
+                <table>
+                    <thead><tr><th>Category</th><th>Metrics</th></tr></thead>
+                    <tbody>
+                        <tr><td style="color: var(--fg);">Retrieval</td><td>Context Hit Rate, MRR, NDCG</td></tr>
+                        <tr><td style="color: var(--fg);">Answer</td><td>Token F1, Exact Match</td></tr>
+                        <tr><td style="color: var(--fg);">Robustness</td><td>Abstain Accuracy</td></tr>
+                        <tr><td style="color: var(--fg);">Efficiency</td><td>Avg Latency (ms)</td></tr>
+                        <tr><td style="color: var(--fg);">Groundedness</td><td>Faithfulness (RAG Triad)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <h3 style="color: var(--accent2); margin-bottom: 0.5em;">Baselines</h3>
+                <div class="card" style="margin-bottom: 0.4em; padding: 0.5em 0.8em;"><strong style="color: var(--fg-muted);">B1</strong> Vector-only (dense retrieval)</div>
+                <div class="card" style="margin-bottom: 0.4em; padding: 0.5em 0.8em;"><strong style="color: var(--fg-muted);">B2</strong> BM25-only (sparse retrieval)</div>
+                <div class="card" style="margin-bottom: 0.4em; padding: 0.5em 0.8em;"><strong style="color: var(--fg-muted);">B3</strong> Graph-only (Cypher traversal)</div>
+                <div class="card" style="padding: 0.5em 0.8em;"><strong style="color: var(--accent);">Ours</strong> Hybrid (graph + text + reranking)</div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">15 / 19</span>
+</section>
+
+<!-- SLIDE 16: Results -->
+<section class="slide grid-bg">
+    <span class="section-label">Evaluation</span>
+    <div class="slide-content">
+        <span class="tag-amber tag">Results</span>
+        <h2 style="margin-top: 0.5em;">Experimental Results</h2>
+        <div class="reveal" style="margin-top: var(--content-gap);">
+            <table>
+                <thead><tr><th>Metric</th><th>Vector-only</th><th>BM25-only</th><th>Graph-only</th><th style="color: var(--accent);">Ours (Hybrid)</th><th>Target</th></tr></thead>
+                <tbody>
+                    <tr><td style="color: var(--fg);">Context Hit Rate</td><td colspan="4" class="placeholder" style="border: none; padding: 0.3em; text-align: center;">Awaiting full evaluation run</td><td>&gt; 0.60</td></tr>
+                    <tr><td style="color: var(--fg);">MRR</td><td colspan="4" class="placeholder" style="border: none; padding: 0.3em; text-align: center;">—</td><td>&gt; 0.50</td></tr>
+                    <tr><td style="color: var(--fg);">Token F1 (ViQuAD2)</td><td colspan="4" class="placeholder" style="border: none; padding: 0.3em; text-align: center;">—</td><td>&gt; 0.40</td></tr>
+                    <tr><td style="color: var(--fg);">Abstain Accuracy</td><td colspan="4" class="placeholder" style="border: none; padding: 0.3em; text-align: center;">—</td><td>&gt; 0.60</td></tr>
+                    <tr><td style="color: var(--fg);">Avg Latency</td><td colspan="4" class="placeholder" style="border: none; padding: 0.3em; text-align: center;">—</td><td>&lt; 3s</td></tr>
+                </tbody>
+            </table>
+            <div class="grid-3" style="margin-top: 1em;">
+                <div class="placeholder" style="padding: 0.6em;">Reranking ablation<br><span style="font-size: var(--small-size);">±cross-encoder</span></div>
+                <div class="placeholder" style="padding: 0.6em;">NER comparison<br><span style="font-size: var(--small-size);">simple vs underthesea vs phonlp</span></div>
+                <div class="placeholder" style="padding: 0.6em;">Error analysis<br><span style="font-size: var(--small-size);">failure categories</span></div>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">16 / 19</span>
+</section>
+
+<!-- SLIDE 17: Demo -->
+<section class="slide grid-bg glow-br">
+    <span class="section-label">Demo</span>
+    <div class="slide-content" style="align-items: center; text-align: center;">
+        <span class="tag-green tag">Live Demo</span>
+        <h2 style="margin-top: 0.5em;">System Demonstration</h2>
+        <div class="reveal" style="margin-top: var(--content-gap); width: 100%; max-width: 750px;">
+            <div class="card" style="padding: 1.5em; text-align: left;">
+                <p style="color: var(--accent); font-family: 'JetBrains Mono'; font-size: var(--small-size); margin-bottom: 0.5em;">QUERY</p>
+                <p style="color: var(--fg); font-size: var(--h3-size); font-weight: 600;">"Ai sáng lập tổ chức có trụ sở tại Hà Nội?"</p>
+                <div style="margin: 1em 0; border-top: 1px solid var(--border);"></div>
+                <p style="color: var(--accent2); font-family: 'JetBrains Mono'; font-size: var(--small-size); margin-bottom: 0.5em;">REASONING PATH</p>
+                <p style="font-size: var(--body-size);">Location(Hà Nội) ←[:TRỤ_SỞ]— Organization(X) ←[:SÁNG_TÁC]— Person(?)</p>
+                <div style="margin: 1em 0; border-top: 1px solid var(--border);"></div>
+                <p style="color: var(--accent3); font-family: 'JetBrains Mono'; font-size: var(--small-size); margin-bottom: 0.3em;">ANSWER + CITATION</p>
+                <p style="font-size: var(--small-size); color: var(--fg-muted);">Insert live demo screenshot or API response here</p>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">17 / 19</span>
+</section>
+
+<!-- SLIDE 18: Conclusion -->
+<section class="slide grid-bg glow-tl">
+    <span class="section-label">Conclusion</span>
+    <div class="slide-content">
+        <span class="tag">Summary</span>
+        <h2 style="margin-top: 0.5em;">Conclusion & Future Work</h2>
+        <div class="grid-2 reveal" style="margin-top: var(--content-gap);">
+            <div>
+                <h3 style="color: var(--accent3); margin-bottom: 0.5em;">Achieved</h3>
+                <ul>
+                    <li><strong>End-to-end local GraphRAG</strong> — no external API dependency</li>
+                    <li><strong>Typed Vietnamese KG</strong> — 998 pages, 19K chunks, 3.3K entities</li>
+                    <li><strong>ReAct agent</strong> — 4 tools, citation tracking, sufficiency gating</li>
+                    <li><strong>Dataset pipeline</strong> — KG walks + QC + ViQuAD2 integration</li>
+                    <li><strong>Evaluation framework</strong> — multi-metric, multi-baseline</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: var(--accent4); margin-bottom: 0.5em;">Future Directions</h3>
+                <ul>
+                    <li><strong>QLoRA fine-tuning</strong> — Text2Cypher adapter + DPO alignment</li>
+                    <li><strong>Community detection</strong> — Louvain/Leiden for global search</li>
+                    <li><strong>Query decomposition</strong> — StepChain-style BFS for complex multi-hop</li>
+                    <li><strong>Scale</strong> — 5000+ pages, full ViWiki-MHR (~36K)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <span class="slide-number">18 / 19</span>
+</section>
+
+<!-- SLIDE 19: Q&A -->
+<section class="slide grid-bg glow-br" style="background: linear-gradient(135deg, #0a0e1a 0%, #0f172a 50%, #0a0e1a 100%);">
+    <div class="slide-content" style="align-items: center; text-align: center; gap: var(--content-gap);">
+        <h1 style="background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Thank You</h1>
+        <p style="font-size: var(--h3-size); color: var(--fg-muted);">Questions & Discussion</p>
+        <div style="margin-top: 1.5em;">
+            <div class="stat-grid" style="max-width: 500px; margin: 0 auto;">
+                <div class="stat-box"><div class="value" style="font-size: var(--body-size);">Local-first</div><div class="label">No external APIs</div></div>
+                <div class="stat-box"><div class="value" style="font-size: var(--body-size); color: var(--accent2);">Multi-hop</div><div class="label">Graph reasoning</div></div>
+                <div class="stat-box"><div class="value" style="font-size: var(--body-size); color: var(--accent3);">Grounded</div><div class="label">Citation-based</div></div>
+            </div>
+        </div>
+        <p style="margin-top: 1.5em; font-size: var(--small-size); color: var(--fg-muted);">Vietnamese GraphRAG over Wikipedia + Neo4j</p>
+    </div>
+</section>
+
+<script>
+class PresentationController {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentSlide = 0;
+        this.isScrolling = false;
+        this.init();
+    }
+    init() {
+        this.createNavDots();
+        this.setupKeyboard();
+        this.setupWheel();
+        this.setupTouch();
+        this.setupIntersectionObserver();
+        this.updateProgress();
+    }
+    createNavDots() {
+        const nav = document.querySelector('.nav-dots');
+        this.slides.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', () => this.goTo(i));
+            dot.setAttribute('aria-label', `Slide ${i + 1}`);
+            nav.appendChild(dot);
+        });
+    }
+    goTo(index) {
+        if (index < 0 || index >= this.slides.length) return;
+        this.currentSlide = index;
+        this.slides[index].scrollIntoView({ behavior: 'smooth' });
+        this.updateDots();
+        this.updateProgress();
+    }
+    next() { this.goTo(this.currentSlide + 1); }
+    prev() { this.goTo(this.currentSlide - 1); }
+    updateDots() {
+        document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === this.currentSlide);
+        });
+    }
+    updateProgress() {
+        const pct = (this.currentSlide / (this.slides.length - 1)) * 100;
+        document.getElementById('progress').style.width = pct + '%';
+    }
+    setupKeyboard() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); this.next(); }
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); this.prev(); }
+            else if (e.key === 'Home') { e.preventDefault(); this.goTo(0); }
+            else if (e.key === 'End') { e.preventDefault(); this.goTo(this.slides.length - 1); }
+        });
+    }
+    setupWheel() {
+        let timeout;
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (this.isScrolling) return;
+            this.isScrolling = true;
+            if (e.deltaY > 0) this.next(); else this.prev();
+            clearTimeout(timeout);
+            timeout = setTimeout(() => { this.isScrolling = false; }, 800);
+        }, { passive: false });
+    }
+    setupTouch() {
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; });
+        document.addEventListener('touchend', (e) => {
+            const diff = startY - e.changedTouches[0].clientY;
+            if (Math.abs(diff) > 50) { if (diff > 0) this.next(); else this.prev(); }
+        });
+    }
+    setupIntersectionObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const index = Array.from(this.slides).indexOf(entry.target);
+                    this.currentSlide = index;
+                    this.updateDots();
+                    this.updateProgress();
+                    entry.target.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+                }
+            });
+        }, { threshold: 0.5 });
+        this.slides.forEach(slide => observer.observe(slide));
+    }
+}
+document.addEventListener('DOMContentLoaded', () => new PresentationController());
+</script>
+</body>
+</html>

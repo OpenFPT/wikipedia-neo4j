@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import src.ingest as ingest
+import src.ner as ner
 
 
 def test_chunk_text_empty() -> None:
@@ -16,5 +17,5 @@ def test_chunk_text_overlap_behavior() -> None:
 
 def test_extract_entities_simple() -> None:
     text = "Neo4j is used with New York teams at Google Cloud."
-    entities = ingest._extract_entities_simple(text)
+    entities = ner._extract_entities_simple(text)
     assert "New York" in entities or "Google Cloud" in entities

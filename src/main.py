@@ -553,7 +553,7 @@ def stop_hf_ingest_job(job_id: str) -> dict[str, object]:
         return {"job_id": job_id, "status": job.status}
 
 
-@app.get("/export", dependencies=[Depends(_guard)])
+@app.get("/export", dependencies=[Depends(_guard)], response_model=None)
 def export_graph(request: Request, format: str = "jsonl") -> StreamingResponse | JSONResponse:
     """Export Page/Chunk/Entity nodes and relationships."""
     _request_id_value, token = _with_request_context(request)

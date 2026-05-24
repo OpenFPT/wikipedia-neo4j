@@ -122,12 +122,15 @@ Logs are written to `logs/{task}_{timestamp}.log`.
 ## ClaudeVibeCodeKit
 
 ### Planning
+
 When planning complex tasks:
+
 1. Read `.claude/docs/plan-execution-guide.md` for format guide
 2. Use planning-agent for parallel execution optimization
 3. Output plan according to `.claude/schemas/plan-schema.json`
 
 ### Available Commands
+
 - `/research <topic>` - Deep web research
 - `/meeting-notes <name>` - Live meeting notes
 - `/changelog` - Generate changelog

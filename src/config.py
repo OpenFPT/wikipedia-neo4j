@@ -41,6 +41,14 @@ class Settings(BaseSettings):
     multi_hop_expansion: bool = True
     rerank_min_score: float = 0.1
 
+    min_text_length: int = 200
+    ingest_batch_size: int = 100
+    embed_batch_size: int = 50
+    neo4j_page_batch: int = 5000
+    neo4j_chunk_batch: int = 2000
+    neo4j_entity_batch: int = 1000
+    log_dir: str = "logs"
+
     @field_validator("rate_limit_per_minute")
     @classmethod
     def validate_rate_limit_per_minute(cls, value: int) -> int:

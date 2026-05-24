@@ -210,19 +210,20 @@ def ingest_topic(topic: str) -> IngestResult:
 
 
 def ingest_from_hf(
-    config_name: str = "20231101.vi",
+    config_name: str = "cleaned",
     split: str = "train",
     sample_size: int = 5,
     streaming: bool = True,
     on_progress: Callable[[int, int | None, str], None] | None = None,
     should_stop: Callable[[], bool] | None = None,
     local_path: str | None = None,
+    dataset_id: str = "Keithsel/viwiki-20260523",
 ) -> list[IngestResult]:
     """Ingest records from a HuggingFace dataset (remote or local).
 
     If *local_path* is provided, loads from a pre-downloaded Arrow dataset
-    directory (e.g. ``data/viet-wikipedia``). Otherwise falls back to
-    streaming from the remote ``wikimedia/wikipedia`` dataset.
+    directory (e.g. ``data/viet-wikipedia``). Otherwise loads from the
+    specified HuggingFace dataset (default: Keithsel/viwiki-20260523).
     """
     results: list[IngestResult] = []
     total: int | None = sample_size if streaming else None
@@ -232,9 +233,9 @@ def ingest_from_hf(
         total = min(sample_size, len(ds))
         iterable = ds.select(range(total))
     elif streaming:
-        iterable = load_dataset("wikimedia/wikipedia", config_name, split=split, streaming=True)
+        iterable = load_dataset(dataset_id, config_name, split=split, streaming=True)
     else:
-        ds = load_dataset("wikimedia/wikipedia", config_name, split=split)
+        ds = load_dataset(dataset_id, config_name, split=split)
         total = min(sample_size, len(ds))
         iterable = ds.select(range(total))
 

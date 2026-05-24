@@ -76,5 +76,15 @@ class Neo4jClient:
             )
         logger.debug("Neo4j schema ensured")
 
+    def run_batch(self, cypher: str, rows: list[dict], batch_size: int = 1000) -> int:
+        """Execute UNWIND Cypher in batches, return total rows processed."""
+        total = 0
+        for i in range(0, len(rows), batch_size):
+            chunk = rows[i : i + batch_size]
+            with self.session() as session:
+                session.run(cypher, rows=chunk)
+            total += len(chunk)
+        return total
+
 
 neo4j_client = Neo4jClient()

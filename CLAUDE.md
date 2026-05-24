@@ -29,9 +29,13 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
 ### Data Flow
 
 1. **Ingestion** (`src/ingest.py`): Wikipedia API or HF dataset → chunk text → extract entities via NER (`src/ner.py`) → generate embeddings → write to Neo4j
-2. **Query — API mode** (`src/retrieve.py`): Question → Gemini generates read-only Cypher → validate safety → execute → fallback to hybrid fulltext if generation fails
-3. **Query — Local mode** (`src/agent.py`): Question → ReAct agent loop (up to 6 iterations) → graph tools (kg_schema, kg_query, text_search, get_passage) → final answer with citations
-4. **Dataset generation** (`src/dataset_gen.py`): KG walk extraction → template QA → optional LLM rewrite → QC pipeline → JSONL output
+2. **Bulk Ingestion** (3-step pipeline):
+   - `scripts/export_dataset.py`: Arrow dataset → filter stubs → Unicode normalize → chunk → NER → JSONL/CSV files
+   - `scripts/embed_chunks.py`: chunks.jsonl → batch embeddings → chunk_embeddings.jsonl
+   - `scripts/load_neo4j.py`: JSONL/CSV → batched UNWIND → Neo4j
+3. **Query — API mode** (`src/retrieve.py`): Question → Gemini generates read-only Cypher → validate safety → execute → fallback to hybrid fulltext if generation fails
+4. **Query — Local mode** (`src/agent.py`): Question → ReAct agent loop (up to 6 iterations) → graph tools (kg_schema, kg_query, text_search, get_passage) → final answer with citations
+5. **Dataset generation** (`src/dataset_gen.py`): KG walk extraction → template QA → optional LLM rewrite → QC pipeline → JSONL output
 
 ### Graph Schema
 
@@ -58,13 +62,14 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
 - `src/ner.py` — Pluggable NER backends, BIO tag accumulation, entity type classification
 - `src/retrieve.py` — Cypher-based retrieval with hybrid fulltext fallback
 - `src/agent.py` — ReAct agent loop with 4 graph tools for multi-hop QA
-- `src/llm.py` — Gemini client pool, embedding generation, Cypher generation + validation
+- `src/llm.py` — Gemini client pool, embedding generation (single + batch), Cypher generation + validation
 - `src/local_llm.py` — Local SLM wrapper (Qwen2.5-7B-Instruct, 4-bit NF4, lazy-loaded)
 - `src/dataset_gen.py` — KG walk extraction, question templates, LLM rewrite, QC pipeline
-- `src/neo4j_client.py` — Driver singleton, schema/index/constraint setup
+- `src/neo4j_client.py` — Driver singleton, schema/index/constraint setup, batch UNWIND writes
 - `src/job_store.py` — Thread-safe JSON file persistence for job state
 - `src/config.py` — Pydantic Settings from `.env`, Gemini key loading, runtime validation
-- `src/logging_utils.py` — Structured logging with request-ID context
+- `src/logging_utils.py` — Structured logging with request-ID context and file-based log output
+- `src/text_utils.py` — Vietnamese Unicode normalization and text chunking utilities
 - `src/reranker.py` — Cross-encoder reranking (BAAI/bge-reranker-v2-m3)
 - `src/evaluation.py` — Evaluation pipeline: context hit rate, MRR, latency on ViWiki-MHR
 
@@ -84,16 +89,48 @@ Key environment variables:
 | `RATE_LIMIT_PER_MINUTE` | `120` | Per-client rate limit |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |
 | `JSON_LOGS` | `false` | Structured JSON log output |
+| `LOG_DIR` | `logs` | Directory for file-based log output |
+| `MIN_TEXT_LENGTH` | `200` | Minimum article length for bulk ingestion |
+| `INGEST_BATCH_SIZE` | `100` | Articles per processing batch |
+| `EMBED_BATCH_SIZE` | `50` | Chunks per embedding API call |
+
+## Bulk Ingestion Pipeline
+
+For large-scale ingestion of the ViWiki dataset (1.6M articles, ~590K useful):
+
+```bash
+# 1. Download dataset (one-time)
+uv run python scripts/download_dataset.py
+
+# 2. Export to JSONL/CSV (filters stubs, runs NER, ~2-4h for full dataset)
+uv run python scripts/export_dataset.py
+
+# 3. Generate embeddings (optional, resumable)
+uv run python scripts/embed_chunks.py --backend local
+
+# 4. Load into Neo4j (batched UNWIND, ~30-60 min)
+uv run python scripts/load_neo4j.py --drop-indexes
+
+# 5. Verify integrity
+uv run python scripts/verify_ingestion.py
+```
+
+Intermediate files are stored in `data/export/` (JSONL/CSV, inspectable with jq/head).
+All scripts support `--limit N` for testing, checkpoint-based resumability, and SIGINT.
+Logs are written to `logs/{task}_{timestamp}.log`.
 
 ## ClaudeVibeCodeKit
 
 ### Planning
+
 When planning complex tasks:
+
 1. Read `.claude/docs/plan-execution-guide.md` for format guide
 2. Use planning-agent for parallel execution optimization
 3. Output plan according to `.claude/schemas/plan-schema.json`
 
 ### Available Commands
+
 - `/research <topic>` - Deep web research
 - `/meeting-notes <name>` - Live meeting notes
 - `/changelog` - Generate changelog

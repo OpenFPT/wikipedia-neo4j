@@ -89,6 +89,29 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     raise RuntimeError(f"All Gemini keys failed for embedding generation: {last_error}")
 
 
+def embed_texts_batch(
+    texts: list[str],
+    batch_size: int | None = None,
+    pause_between_batches: float = 1.0,
+) -> list[list[float]]:
+    """Generate embeddings in batches with pauses to respect rate limits.
+
+    Returns a flat list of embeddings aligned with input texts.
+    Failed batches raise; caller should handle resumability.
+    """
+    if batch_size is None:
+        batch_size = settings.embed_batch_size
+
+    all_embeddings: list[list[float]] = []
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i : i + batch_size]
+        embeddings = embed_texts(batch)
+        all_embeddings.extend(embeddings)
+        if i + batch_size < len(texts) and settings.embedding_backend != "local":
+            time.sleep(pause_between_batches)
+    return all_embeddings
+
+
 def _strip_code_fence(s: str) -> str:
     """Strip markdown code fences from model output."""
     s = s.strip()

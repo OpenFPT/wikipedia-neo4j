@@ -99,17 +99,21 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
             citations=[],
         )
 
+    from src.reranker import rerank
+
+    reranked = rerank(question, rows, text_key="chunk_text", top_k=top_k)
+
     citations = [
         {
             "page_title": r["page_title"],
             "page_url": r["page_url"],
             "chunk_id": r["chunk_id"],
         }
-        for r in rows
+        for r in reranked
     ]
 
     snippets = []
-    for r in rows:
+    for r in reranked:
         txt = (r["chunk_text"] or "").strip().replace("\n", " ")
         snippets.append(txt[:220])
 

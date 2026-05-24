@@ -2,24 +2,32 @@
 
 [![CI](https://github.com/Chunporo/wikipedia-neo4j/actions/workflows/ci.yml/badge.svg)](https://github.com/Chunporo/wikipedia-neo4j/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.12%2B-blue) ![Coverage](https://img.shields.io/badge/coverage-75%25%2B-brightgreen)
 
-Backend demo that ingests Wikipedia content into Neo4j and answers questions with citations.
-
-## Highlights
+GraphRAG system that ingests Vietnamese Wikipedia content into a Neo4j knowledge graph, answers multi-hop questions using graph-based retrieval, and generates QA datasets.
 
 ## Modes
 
 - **Ingest mode**: build graph context from Wikipedia topics or HF dataset (`/ingest`, `/ingest/hf`, async jobs).
-- **Query mode**: answer user questions with validated Cypher and hybrid fallback retrieval (`/query`).
-- **Export mode**: planned endpoint for graph snapshot export.
+- **Query mode (API)**: Gemini generates validated read-only Cypher with hybrid fulltext fallback (`/query`).
+- **Query mode (Local)**: ReAct agent loop with graph tools using Qwen2.5-7B-Instruct (`/query`).
+- **Dataset generation**: extract KG walks and produce multi-hop QA pairs (ViWiki-MHR).
 - **Ops mode**: health/readiness/metrics/logging for deployment safety.
+
+## Features
 
 - Ingestion sources:
   - Wikipedia API (`POST /ingest`)
   - Hugging Face dataset (`POST /ingest/hf`)
   - Async HF jobs (`POST /ingest/hf/jobs`)
-- Query pipeline:
-  - Gemini-generated read-only Cypher (validated)
-  - Safe hybrid fallback retrieval (chunk + page fulltext)
+- Pluggable NER: `simple` (regex), `underthesea`, or `phonlp` (Vietnamese NLP)
+- Pluggable embeddings: `gemini` (multi-key rotation) or `local` (sentence-transformers)
+- Dual query engine:
+  - API mode: Gemini Cypher generation + safety validation + hybrid fallback
+  - Local mode: ReAct agent with kg_schema, kg_query, text_search, get_passage tools
+- Dataset generation pipeline:
+  - 2-hop and 3-hop KG walk extraction
+  - Vietnamese question templates per entity type
+  - LLM rewrite for naturalness (optional)
+  - 3-stage QC: well-formedness, grounding, deduplication
 - Reliability:
   - Persistent HF job state in `.hf_ingest_jobs.json`
   - Startup restore marks stale running jobs as `interrupted`
@@ -37,6 +45,15 @@ cp .env.example .env
 printf "%s" "YOUR_GEMINI_API_KEY" > .gemini_key.txt
 chmod 600 .gemini_key.txt
 ```
+
+Key environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NER_BACKEND` | `simple` | `simple`, `underthesea`, or `phonlp` |
+| `EMBEDDING_BACKEND` | `gemini` | `gemini` or `local` |
+| `MODEL_MODE` | `api` | `api` (Gemini) or `local` (Qwen2.5-7B) |
+| `LOCAL_MODEL_ID` | `Qwen/Qwen2.5-7B-Instruct` | HuggingFace model for local mode |
 
 ### 2) Start Neo4j
 
@@ -73,7 +90,7 @@ curl -X POST "http://localhost:8000/ingest" \
 ```bash
 curl -X POST "http://localhost:8000/ingest/hf" \
   -H "Content-Type: application/json" \
-  -d '{"config_name":"20231101.simple","split":"train","sample_size":2,"streaming":true}'
+  -d '{"config_name":"20231101.vi","split":"train","sample_size":2,"streaming":true}'
 ```
 
 ### Start async HF job
@@ -81,7 +98,7 @@ curl -X POST "http://localhost:8000/ingest/hf" \
 ```bash
 curl -X POST "http://localhost:8000/ingest/hf/jobs" \
   -H "Content-Type: application/json" \
-  -d '{"config_name":"20231101.simple","split":"train","sample_size":3,"streaming":true}'
+  -d '{"config_name":"20231101.vi","split":"train","sample_size":3,"streaming":true}'
 ```
 
 ### Query
@@ -89,7 +106,7 @@ curl -X POST "http://localhost:8000/ingest/hf/jobs" \
 ```bash
 curl -X POST "http://localhost:8000/query" \
   -H "Content-Type: application/json" \
-  -d '{"question":"How are graph databases used?","top_k":4}'
+  -d '{"question":"Neo4j được sử dụng như thế nào?","top_k":4}'
 ```
 
 ### Health/Readiness/Metrics
@@ -98,6 +115,23 @@ curl -X POST "http://localhost:8000/query" \
 curl "http://localhost:8000/health"
 curl "http://localhost:8000/ready"
 curl "http://localhost:8000/metrics"
+```
+
+## Dataset generation
+
+After ingesting data, generate the ViWiki-MHR multi-hop QA dataset:
+
+```python
+from src.dataset_gen import generate_dataset
+
+stats = generate_dataset(
+    two_hop_limit=5000,
+    three_hop_limit=3000,
+    broken_limit=1000,
+    output_path="data/viwiki_mhr.jsonl",
+    rewrite=True,
+    qc=True,
+)
 ```
 
 ## Development

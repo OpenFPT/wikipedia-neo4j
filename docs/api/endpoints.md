@@ -36,6 +36,10 @@ Request:
 }
 ```
 
+Pipeline: fetch page → chunk text → NER extraction → embeddings → write to Neo4j.
+
+NER backend is controlled by `NER_BACKEND` env (simple/underthesea/phonlp).
+
 ## Hugging Face ingestion
 
 ### `POST /ingest/hf`
@@ -44,7 +48,7 @@ Request:
 
 ```json
 {
-  "config_name": "20231101.en",
+  "config_name": "20231101.vi",
   "split": "train",
   "sample_size": 2,
   "streaming": true
@@ -63,6 +67,11 @@ Request:
   "top_k": 5
 }
 ```
+
+Behavior depends on `MODEL_MODE`:
+
+- **`api`** (default): Gemini generates read-only Cypher, validated and executed. Falls back to hybrid fulltext on failure.
+- **`local`**: ReAct agent loop using local Qwen2.5-7B model with graph tools (kg_schema, kg_query, text_search, get_passage). Up to 6 iterations.
 
 Response contains:
 

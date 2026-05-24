@@ -22,35 +22,91 @@ _NER_TYPE_MAP = {
 _ORG_KEYWORDS = [
     "company", "co.", "corporation", "corp", "inc", "ltd",
     "university", "college", "bank", "ministry", "department",
-    "tập đoàn", "công ty", "ngân hàng", "đại học",
-    "trường ", "học viện", "bộ ", "sở ", "ủy ban",
+    "institute", "foundation", "association", "organization",
+    "committee", "council", "agency", "bureau", "commission",
+    "force", "society", "league", "federation", "union", "party",
+    "group", "team", "club",
+    # Vietnamese
+    "tập đoàn", "công ty", "ngân hàng", "đại học", "viện",
+    "trường", "học viện", "bộ", "sở", "ủy ban",
+    "hội", "đảng", "liên đoàn", "hiệp hội", "tổ chức",
+    "quỹ", "ban", "cục", "vụ", "tổng cục",
+    "đoàn", "đội", "câu lạc bộ", "liên minh",
+    "quốc hội", "chính phủ", "nhà nước",
 ]
 
 _LOCATION_KEYWORDS = [
     "city", "province", "district", "county", "state",
     "river", "mount", "mountain", "lake", "sea", "island", "bay",
-    "thành phố", "tỉnh", "quận", "huyện", "xã",
+    "country", "continent", "region", "area", "village", "town",
+    # Vietnamese
+    "thành phố", "tỉnh", "quận", "huyện", "xã", "phường",
     "sông", "núi", "hồ", "biển", "đảo", "vịnh",
+    "miền", "vùng", "châu", "lục địa",
+    "thị xã", "thị trấn", "đường", "phố",
+    "bán đảo", "cao nguyên", "đồng bằng", "dãy núi",
 ]
 
 _WORK_KEYWORDS = [
     "film", "movie", "novel", "book", "album", "song",
+    "series", "show", "opera", "symphony", "painting",
+    # Vietnamese
     "phim", "tiểu thuyết", "tác phẩm", "bài hát",
+    "truyện", "kịch", "vở", "bản giao hưởng",
+    "cuốn sách", "album", "ca khúc",
 ]
+
+_VN_FAMILY_NAMES = {
+    "nguyễn", "trần", "lê", "phạm", "hoàng", "huỳnh",
+    "phan", "vũ", "võ", "đặng", "bùi", "đỗ", "hồ",
+    "ngô", "dương", "lý", "lương", "trương", "đinh",
+    "tô", "mai", "tạ", "triệu", "đào", "lâm", "cao",
+    "hà", "tăng", "châu", "quách", "thái", "diệp",
+}
 
 
 def classify_entity_type(name: str) -> str:
-    """Classify an entity name into Person/Organization/Location/Work/Unknown."""
+    """Classify an entity name into Person/Organization/Location/Work/Unknown.
+
+    Uses word-boundary-aware matching to avoid false positives from substrings.
+    """
     lowered = name.lower()
-    if any(kw in lowered for kw in _ORG_KEYWORDS):
-        return "Organization"
-    if any(kw in lowered for kw in _LOCATION_KEYWORDS):
-        return "Location"
-    if any(kw in lowered for kw in _WORK_KEYWORDS):
-        return "Work"
-    word_count = len(name.split())
-    if 1 < word_count <= 4:
+    words = lowered.split()
+
+    # Check org keywords (prefix/contains for multi-word keywords)
+    for kw in _ORG_KEYWORDS:
+        if " " in kw:
+            if kw in lowered:
+                return "Organization"
+        elif lowered.startswith(kw + " ") or lowered.startswith(kw + "_"):
+            return "Organization"
+        elif any(w == kw for w in words):
+            return "Organization"
+
+    # Check location keywords
+    for kw in _LOCATION_KEYWORDS:
+        if " " in kw:
+            if kw in lowered:
+                return "Location"
+        elif lowered.startswith(kw + " ") or lowered.startswith(kw + "_"):
+            return "Location"
+        elif any(w == kw for w in words[1:]):
+            # Only match non-first word to avoid "Hồ Chí Minh" matching "hồ"
+            return "Location"
+
+    # Check work keywords
+    for kw in _WORK_KEYWORDS:
+        if kw in lowered:
+            return "Work"
+
+    # Vietnamese person: first word is a known family name AND has 2-4 words
+    if len(words) >= 2 and words[0] in _VN_FAMILY_NAMES:
         return "Person"
+
+    # Western person: 2-4 capitalized words, no keyword match
+    if 2 <= len(words) <= 4 and all(w[0].isupper() for w in name.split() if w):
+        return "Person"
+
     return "Unknown"
 
 
@@ -129,7 +185,20 @@ def _extract_entities_underthesea(text: str, max_entities: int = 25) -> list[tup
 
     tags = under_ner(text)
     tagged_tokens = [(token, ner_tag) for token, _pos, _chunk, ner_tag in tags]
-    return _collect_bio_entities(tagged_tokens, max_entities)
+    entities = _collect_bio_entities(tagged_tokens, max_entities)
+    refined = []
+    for name, bio_type in entities:
+        if bio_type == "Unknown":
+            refined.append((name, classify_entity_type(name)))
+        else:
+            kw_type = classify_entity_type(name)
+            if kw_type == "Organization":
+                refined.append((name, "Organization"))
+            elif kw_type == "Person" and len(name.split()) >= 3 and name.lower().split()[0] in _VN_FAMILY_NAMES:
+                refined.append((name, "Person"))
+            else:
+                refined.append((name, bio_type))
+    return refined
 
 
 def _get_phonlp():

@@ -184,7 +184,7 @@ This is planned work — the base model already functions for the agent loop, fi
 **Say:**
 We use two datasets. UIT-ViQuAD 2.0 is the external benchmark — 39.5K QA pairs from 174 Wikipedia articles, peer-reviewed, with 12K unanswerable questions in SQuAD 2.0 style. This gives us comparability with published results.
 
-ViWiki-MHR is our contribution — approximately 36K multi-hop QA pairs with 6 reasoning types, broken-link adversarial unanswerables, and gold passage IDs with executable Cypher queries.
+ViWiki-MHR is our contribution — approximately 36K multi-hop QA pairs with 6 reasoning types, broken-link adversarial unanswerables, and gold passage IDs with executable Cypher queries. The underlying Vietnamese Wikipedia corpus is now pinned and published as `Keithsel/viwiki-20260523` on Hugging Face, produced from the raw 2026-05-23 MediaWiki XML dump.
 
 The breakdown: 23K single-hop from ViQuAD, 5K unanswerable, 7K multi-hop from KG walks with LLM rewrite, and about 1K adversarial multi-hop using broken links. This last category is the first Vietnamese benchmark for multi-hop unanswerability.
 
@@ -197,7 +197,7 @@ The breakdown: 23K single-hop from ViQuAD, 5K unanswerable, 7K multi-hop from KG
 **Key message:** KG walks to templates to optional LLM rewrite to 3-stage QC.
 
 **Say:**
-The generation pipeline has four stages. First, we extract KG walks — 2-hop, 3-hop, and broken-link paths from the graph. Second, we apply Vietnamese question templates per entity type and hop count. Third, optionally, an LLM rewrites the template question for naturalness. Fourth, 3-stage quality control: well-formedness check, grounding match against the graph, and deduplication.
+The generation pipeline starts with corpus preparation: raw Vietnamese Wikipedia XML is streamed, cleaned into article text, and exported to cleaned and raw Parquet shards. This processed corpus is published as `Keithsel/viwiki-20260523`. From the ingested graph, we then extract KG walks — 2-hop, 3-hop, and broken-link paths. Next, we apply Vietnamese question templates per entity type and hop count. Third, optionally, an LLM rewrites the template question for naturalness. Fourth, 3-stage quality control: well-formedness check, grounding match against the graph, and deduplication.
 
 We cover six reasoning types: lookup, bridge, comparison, intersection, temporal, and fan-out.
 

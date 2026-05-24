@@ -6,7 +6,7 @@ GraphRAG system that ingests Vietnamese Wikipedia content into a Neo4j knowledge
 
 ## Modes
 
-- **Ingest mode**: build graph context from Wikipedia topics or HF dataset (`/ingest`, `/ingest/hf`, async jobs).
+- **Ingest mode**: build graph context from Wikipedia topics, raw XML-derived Parquet, or HF dataset (`/ingest`, `/ingest/hf`, async jobs).
 - **Query mode (API)**: Gemini generates validated read-only Cypher with hybrid fulltext fallback (`/query`).
 - **Query mode (Local)**: ReAct agent loop with graph tools using Qwen2.5-7B-Instruct (`/query`).
 - **Dataset generation**: extract KG walks and produce multi-hop QA pairs (ViWiki-MHR).
@@ -18,6 +18,7 @@ GraphRAG system that ingests Vietnamese Wikipedia content into a Neo4j knowledge
   - Wikipedia API (`POST /ingest`)
   - Hugging Face dataset (`POST /ingest/hf`)
   - Async HF jobs (`POST /ingest/hf/jobs`)
+  - Raw Vietnamese Wikipedia XML conversion (`scripts/viwiki_processing/`) to cleaned/raw Parquet
 - Pluggable NER: `simple` (regex), `underthesea`, or `phonlp` (Vietnamese NLP)
 - Pluggable embeddings: `gemini` (multi-key rotation) or `local` (sentence-transformers)
 - Dual query engine:
@@ -118,6 +119,14 @@ curl "http://localhost:8000/metrics"
 ```
 
 ## Dataset generation
+
+For reproducible Vietnamese Wikipedia inputs, use the processed HF snapshot
+[`Keithsel/viwiki-20260523`](https://huggingface.co/datasets/Keithsel/viwiki-20260523).
+It is produced from raw MediaWiki XML by `scripts/viwiki_processing/`, which
+exports both cleaned article text and raw wikitext Parquet shards.
+
+Install XML processing dependencies with `uv sync --group xml-processing` before
+running the raw dump converter.
 
 After ingesting data, generate the ViWiki-MHR multi-hop QA dataset:
 

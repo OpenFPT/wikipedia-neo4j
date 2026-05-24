@@ -211,6 +211,11 @@ Dynamic Reasoning and Inference with Flexible Traversal:
 - Đã có sẵn ground truth (answer từ graph)
 - Thêm human validation cho 50-100 câu
 
+**Nguồn corpus:** dùng snapshot Vietnamese Wikipedia đã publish trên Hugging Face:
+`Keithsel/viwiki-20260523`. Snapshot này được tạo từ raw MediaWiki XML bằng
+`scripts/viwiki_processing/`, xuất cả `articles_cleaned/` cho ingestion/retrieval
+và `articles_raw/` để giữ wikitext phục vụ link/template extraction.
+
 **Nguồn 3:** Tự tạo multi-hop questions:
 - 2-hop: "Ai sáng lập tổ chức X?" (cần traverse 2 edges)
 - 3-hop: "Thành phố nào là nơi sinh của người sáng lập X?" (3 edges)
@@ -218,6 +223,7 @@ Dynamic Reasoning and Inference with Flexible Traversal:
 
 ### 4.5 Sources
 - [UIT-ViQuAD 2.0](https://huggingface.co/datasets/taidng/UIT-ViQuAD2.0)
+- [ViWiki 2026-05-23 snapshot](https://huggingface.co/datasets/Keithsel/viwiki-20260523)
 - [VLUE Benchmark](https://uitnlpgroup.github.io/VLUE/)
 - [RAGAS Framework](https://arxiv.org/html/2309.15217v1)
 - [DeepEval RAG Evaluation](https://deepeval.com/guides-rag-evaluation)

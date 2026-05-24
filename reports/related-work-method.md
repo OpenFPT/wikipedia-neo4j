@@ -24,7 +24,7 @@ Vietnamese baselines such as **ViWiQA** validate hybrid sparse+dense retrieval, 
 We propose a fully local Vietnamese KGQA system that combines a typed Neo4j knowledge graph with a tool-constrained SLM orchestrator. The system answers multi-hop questions by translating natural language into Cypher, executing deterministic graph queries, and validating groundedness with explicit citations. The architecture runs on consumer hardware (16GB RAM, 8GB VRAM) without external APIs.
 
 ## Knowledge Graph Construction
-We build a typed KG from a pinned Vietnamese Wikipedia snapshot. Nodes include typed entities (e.g., `Person`, `Place`, `Organization`, `Event`, `TácPhẩm`) with temporal/numeric attributes; relations are typed and directed (e.g., `:SÁNG_TÁC`, `:GIA_NHẬP`, `:TRỤ_SỞ`). Each entity is linked to passage nodes containing the source paragraph, enabling passage-level citation tracing.
+We build a typed KG from a pinned Vietnamese Wikipedia snapshot published as `Keithsel/viwiki-20260523` on Hugging Face. The snapshot is produced from the raw 2026-05-23 MediaWiki XML dump using `scripts/viwiki_processing/`: XML is streamed with `lxml`, main-namespace articles are retained, wikitext is cleaned with `mwparserfromhell`, and both cleaned text and raw wikitext are exported as Parquet shards. Nodes include typed entities (e.g., `Person`, `Place`, `Organization`, `Event`, `TácPhẩm`) with temporal/numeric attributes; relations are typed and directed (e.g., `:SÁNG_TÁC`, `:GIA_NHẬP`, `:TRỤ_SỞ`). Each entity is linked to passage nodes containing the source paragraph, enabling passage-level citation tracing.
 
 ## Tool-Constrained Orchestrator
 We restrict the orchestrator to four deterministic tools:
@@ -45,7 +45,7 @@ We implement a four-stage pipeline:
 This replaces vector-only retrieval with executable graph traversal, enabling precise multi-hop reasoning.
 
 ## Dataset: ViWiki-MHR
-We introduce **ViWiki-MHR** (~36K), an open, multi-hop Vietnamese QA dataset grounded to `gold_passage_ids`. It combines:
+We introduce **ViWiki-MHR** (~36K), an open, multi-hop Vietnamese QA dataset grounded to `gold_passage_ids`. It is generated on top of the reproducible `Keithsel/viwiki-20260523` corpus and combines:
 - UIT-ViQuAD 2.0 single-hop answerable/unanswerable subsets.
 - Synthetic multi-hop answerable and adversarial unanswerable questions generated via KG walks.
 

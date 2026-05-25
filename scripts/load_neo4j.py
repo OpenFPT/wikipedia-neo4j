@@ -27,7 +27,7 @@ CYPHER_CHUNKS = """
 UNWIND $rows AS row
 MATCH (p:Page {id: row.page_id})
 MERGE (c:Chunk {id: row.chunk_id})
-SET c.text = row.text, c.sequence_number = row.seq
+SET c.text = row.text, c.sequence_number = row.seq, c.section = row.section
 MERGE (p)-[:HAS_CHUNK]->(c)
 """
 
@@ -86,6 +86,23 @@ def _load_in_batches(cypher: str, data_iter, batch_size: int, label: str) -> int
     return total
 
 
+def _clean_graph() -> None:
+    """Delete all nodes and relationships in batches to avoid OOM."""
+    print("Cleaning graph (deleting all nodes and relationships)...")
+    total = 0
+    while True:
+        with neo4j_client.session() as session:
+            result = session.run(
+                "MATCH (n) WITH n LIMIT 10000 DETACH DELETE n RETURN count(*) AS deleted"
+            )
+            deleted = result.single()["deleted"]
+        if deleted == 0:
+            break
+        total += deleted
+        print(f"  Deleted {total:,} nodes so far...")
+    print(f"  Graph cleaned: {total:,} nodes removed")
+
+
 def _drop_indexes() -> None:
     print("Dropping indexes for faster bulk load...")
     with neo4j_client.session() as session:
@@ -124,12 +141,16 @@ def load_neo4j(
     input_dir: str,
     limit: int | None,
     drop_indexes: bool,
+    clean: bool,
     skip_embeddings: bool,
     page_batch: int,
     chunk_batch: int,
     entity_batch: int,
 ) -> None:
     inp = Path(input_dir)
+
+    if clean:
+        _clean_graph()
 
     if drop_indexes:
         _drop_indexes()
@@ -165,6 +186,7 @@ def main() -> None:
     parser.add_argument("--input-dir", default="data/export", help="Directory with exported files")
     parser.add_argument("--limit", type=int, default=None, help="Limit pages to load (for testing)")
     parser.add_argument("--drop-indexes", action="store_true", help="Drop indexes before load, recreate after")
+    parser.add_argument("--clean", action="store_true", help="Delete all nodes/relationships before loading")
     parser.add_argument("--skip-embeddings", action="store_true", help="Skip loading embeddings")
     parser.add_argument("--page-batch", type=int, default=settings.neo4j_page_batch, help="Page batch size")
     parser.add_argument("--chunk-batch", type=int, default=settings.neo4j_chunk_batch, help="Chunk batch size")
@@ -175,6 +197,7 @@ def main() -> None:
         input_dir=args.input_dir,
         limit=args.limit,
         drop_indexes=args.drop_indexes,
+        clean=args.clean,
         skip_embeddings=args.skip_embeddings,
         page_batch=args.page_batch,
         chunk_batch=args.chunk_batch,

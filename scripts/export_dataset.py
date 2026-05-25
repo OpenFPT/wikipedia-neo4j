@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import signal
 import sys
@@ -11,12 +12,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from datasets import load_from_disk
+from datasets import Dataset, load_from_disk
 
 from src.config import settings
 from src.logging_utils import configure_logging, get_logger
 from src.ner import extract_entities
-from src.text_utils import chunk_text, normalize_vietnamese
+from src.text_utils import chunk_text_v2, normalize_vietnamese
 
 configure_logging(settings.log_level, settings.json_logs, log_dir=settings.log_dir, task_name="export")
 logger = get_logger(__name__)
@@ -43,6 +44,36 @@ def _save_checkpoint(checkpoint_path: Path, last_index: int, stats: dict) -> Non
     tmp.rename(checkpoint_path)
 
 
+def _load_input(path: str) -> Dataset:
+    """Load dataset from Arrow directory, JSONL, CSV, or JSON file."""
+    p = Path(path)
+
+    if p.is_file() and p.suffix == ".jsonl":
+        rows = []
+        with open(p, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    rows.append(json.loads(line))
+        return Dataset.from_list(rows)
+
+    if p.is_file() and p.suffix == ".csv":
+        rows = []
+        with open(p, encoding="utf-8", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                rows.append(row)
+        return Dataset.from_list(rows)
+
+    if p.is_file() and p.suffix == ".json":
+        data = json.loads(p.read_text(encoding="utf-8"))
+        if isinstance(data, list):
+            return Dataset.from_list(data)
+        raise ValueError(f"JSON file must contain a list of objects: {p}")
+
+    return load_from_disk(path)
+
+
 def export_dataset(
     path: str,
     output_dir: str,
@@ -53,7 +84,7 @@ def export_dataset(
     skip_ner: bool,
     checkpoint_every: int,
 ) -> None:
-    ds = load_from_disk(path)
+    ds = _load_input(path)
     total = len(ds)
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -113,13 +144,14 @@ def export_dataset(
             ) + "\n")
             stats["pages"] += 1
 
-            chunks = chunk_text(text)
+            chunks = chunk_text_v2(text, title=title)
             chunk_ids = []
-            for seq, chunk in enumerate(chunks):
-                chunk_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{page_id}#chunk#{seq}"))
+            for chunk in chunks:
+                chunk_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{page_id}#chunk#{chunk.seq}"))
                 chunk_ids.append(chunk_id)
                 fp_chunks.write(json.dumps(
-                    {"chunk_id": chunk_id, "page_id": page_id, "text": chunk, "seq": seq},
+                    {"chunk_id": chunk_id, "page_id": page_id, "text": chunk.text,
+                     "seq": chunk.seq, "section": chunk.section},
                     ensure_ascii=False,
                 ) + "\n")
                 stats["chunks"] += 1
@@ -168,15 +200,20 @@ def main() -> None:
     signal.signal(signal.SIGINT, _handle_sigint)
 
     parser = argparse.ArgumentParser(description="Export ViWiki dataset to JSONL/CSV")
-    parser.add_argument("--path", default="data/viwiki-cleaned", help="Path to Arrow dataset")
+    parser.add_argument("--path", default="data/viwiki-cleaned", help="Path to Arrow dataset dir, JSONL, CSV, or JSON file")
     parser.add_argument("--output-dir", default="data/export", help="Output directory")
     parser.add_argument("--limit", type=int, default=None, help="Max articles to process")
     parser.add_argument("--start", type=int, default=0, help="Start index")
     parser.add_argument("--min-length", type=int, default=settings.min_text_length, help="Min text length filter")
     parser.add_argument("--batch-size", type=int, default=settings.ingest_batch_size, help="Log progress every N")
     parser.add_argument("--skip-ner", action="store_true", help="Skip NER extraction")
+    parser.add_argument("--ner-backend", choices=["simple", "underthesea", "phonlp"], default=None,
+                        help="NER backend (overrides NER_BACKEND env var)")
     parser.add_argument("--checkpoint-every", type=int, default=1000, help="Save checkpoint every N pages")
     args = parser.parse_args()
+
+    if args.ner_backend:
+        settings.ner_backend = args.ner_backend
 
     export_dataset(
         path=args.path,

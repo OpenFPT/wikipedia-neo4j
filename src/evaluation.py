@@ -15,6 +15,18 @@ from src.retrieve import _run_fallback_query, _run_generated_query
 
 logger = get_logger(__name__)
 
+try:
+    from ragas import evaluate
+    from ragas.metrics import (
+        answer_relevancy,
+        context_precision,
+        context_recall,
+        faithfulness,
+    )
+    RAGAS_AVAILABLE = True
+except ImportError:
+    RAGAS_AVAILABLE = False
+
 DATASET_PATH = Path("data/viwiki_mhr.jsonl")
 
 
@@ -28,6 +40,18 @@ class EvalMetrics:
     avg_latency_ms: float = 0.0
     rerank_context_hit_rate: float = 0.0
     rerank_mrr: float = 0.0
+    details: list[dict] = field(default_factory=list)
+
+
+@dataclass
+class RAGASMetrics:
+    """RAGAS evaluation metrics for answer quality."""
+
+    total: int = 0
+    context_precision: float = 0.0
+    context_recall: float = 0.0
+    faithfulness: float = 0.0
+    answer_relevancy: float = 0.0
     details: list[dict] = field(default_factory=list)
 
 
@@ -187,7 +211,148 @@ def save_results(metrics: EvalMetrics, output_path: str = "reports/eval_results.
     logger.info(f"Results saved to {out}")
 
 
-# --- ViQuAD2.0 Evaluation ---
+# --- RAGAS Evaluation ---
+
+
+def compute_ragas_metrics(
+    questions: list[str],
+    contexts: list[list[str]],
+    answers: list[str],
+    ground_truths: list[str] | None = None,
+) -> RAGASMetrics:
+    """Compute RAGAS metrics for QA pairs with retrieved contexts.
+
+    Args:
+        questions: List of questions
+        contexts: List of context lists (one per question)
+        answers: List of generated answers
+        ground_truths: Optional list of ground truth answers
+
+    Returns:
+        RAGASMetrics with computed scores
+    """
+    # Validate inputs first
+    if not (len(questions) == len(contexts) == len(answers)):
+        raise ValueError("questions, contexts, and answers must have same length")
+
+    if ground_truths and len(ground_truths) != len(questions):
+        raise ValueError("ground_truths must match length of questions")
+
+    if not RAGAS_AVAILABLE:  # pragma: no cover
+        logger.warning("RAGAS not available, skipping RAGAS metrics")
+        return RAGASMetrics(total=len(questions))
+
+    try:  # pragma: no cover
+        from datasets import Dataset
+
+        # Build dataset in RAGAS format
+        data = {
+            "question": questions,
+            "contexts": contexts,
+            "answer": answers,
+        }
+        if ground_truths:
+            data["ground_truth"] = ground_truths
+
+        dataset = Dataset.from_dict(data)
+
+        # Compute metrics
+        logger.info(f"Computing RAGAS metrics for {len(questions)} samples...")
+        result = evaluate(
+            dataset,
+            metrics=[
+                context_precision,
+                context_recall,
+                faithfulness,
+                answer_relevancy,
+            ],
+        )
+
+        metrics = RAGASMetrics(total=len(questions))
+
+        # Extract aggregated scores
+        if "context_precision" in result:
+            metrics.context_precision = float(result["context_precision"].mean())
+        if "context_recall" in result:
+            metrics.context_recall = float(result["context_recall"].mean())
+        if "faithfulness" in result:
+            metrics.faithfulness = float(result["faithfulness"].mean())
+        if "answer_relevancy" in result:
+            metrics.answer_relevancy = float(result["answer_relevancy"].mean())
+
+        # Store per-sample details
+        for i in range(len(questions)):
+            detail = {
+                "question": questions[i][:80],
+                "context_precision": (
+                    float(result["context_precision"][i])
+                    if "context_precision" in result
+                    else None
+                ),
+                "context_recall": (
+                    float(result["context_recall"][i])
+                    if "context_recall" in result
+                    else None
+                ),
+                "faithfulness": (
+                    float(result["faithfulness"][i]) if "faithfulness" in result else None
+                ),
+                "answer_relevancy": (
+                    float(result["answer_relevancy"][i])
+                    if "answer_relevancy" in result
+                    else None
+                ),
+            }
+            metrics.details.append(detail)
+
+        logger.info(
+            f"RAGAS metrics computed: "
+            f"context_precision={metrics.context_precision:.3f}, "
+            f"context_recall={metrics.context_recall:.3f}, "
+            f"faithfulness={metrics.faithfulness:.3f}, "
+            f"answer_relevancy={metrics.answer_relevancy:.3f}"
+        )
+        return metrics
+
+    except Exception as e:  # pragma: no cover
+        logger.error(f"Error computing RAGAS metrics: {e}")
+        return RAGASMetrics(total=len(questions))
+
+
+def print_ragas_report(metrics: RAGASMetrics) -> str:
+    """Format RAGAS evaluation results as a readable report."""
+    report = f"""
+=== RAGAS Evaluation Report ===
+Total samples: {metrics.total}
+
+--- Context Quality ---
+  Context Precision: {metrics.context_precision:.3f}
+  Context Recall:    {metrics.context_recall:.3f}
+
+--- Answer Quality ---
+  Faithfulness:      {metrics.faithfulness:.3f}
+  Answer Relevancy:  {metrics.answer_relevancy:.3f}
+"""
+    return report
+
+
+def save_ragas_results(
+    metrics: RAGASMetrics, output_path: str = "reports/eval_ragas_results.json"
+) -> None:
+    """Save RAGAS evaluation results to JSON."""
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    data = {
+        "total": metrics.total,
+        "context_precision": metrics.context_precision,
+        "context_recall": metrics.context_recall,
+        "faithfulness": metrics.faithfulness,
+        "answer_relevancy": metrics.answer_relevancy,
+        "details": metrics.details,
+    }
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    logger.info(f"RAGAS results saved to {out}")
 
 _PUNCT_RE = re.compile(f"[{re.escape(string.punctuation)}]")
 

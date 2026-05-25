@@ -92,6 +92,21 @@ ORDER BY similarity DESC
 LIMIT $top_k
 """
 
+_VECTOR_SEARCH_CYPHER25 = """
+SEARCH chunk_embedding_idx
+FOR VECTOR NEAREST (c:Chunk) TO $query_embedding
+YIELD c, score
+MATCH (p:Page)-[:HAS_CHUNK]->(c)
+RETURN p.title AS page_title,
+       p.url AS page_url,
+       p.id AS page_id,
+       c.id AS chunk_id,
+       c.text AS chunk_text,
+       score AS vector_score
+ORDER BY score DESC
+LIMIT $top_k
+"""
+
 _GRAPH_CYPHER = """
 MATCH (p:Page)-[:HAS_CHUNK]->(c:Chunk)-[:MENTIONS]->(e:Entity)
 WHERE e.alias CONTAINS $q
@@ -134,6 +149,8 @@ def _run_bm25_query(question: str, top_k: int) -> list[dict]:  # pragma: no cove
 
 def _run_vector_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
     """Execute vector similarity search."""
+    if settings.neo4j_use_search_clause:
+        return _run_vector_query_cypher25(question, top_k)
     try:
         embeddings = embed_texts([question])
         embedding = embeddings[0] if embeddings else None
@@ -150,6 +167,28 @@ def _run_vector_query(question: str, top_k: int) -> list[dict]:  # pragma: no co
         return []
 
 
+def _run_vector_query_cypher25(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+    """Vector search using Neo4j Cypher 25 SEARCH clause (requires Neo4j 2026.02+)."""
+    try:
+        embeddings = embed_texts([question])
+        embedding = embeddings[0] if embeddings else None
+        if not embedding:
+            return []
+
+        with neo4j_client.session() as session:
+            records = session.run(
+                _VECTOR_SEARCH_CYPHER25,
+                query_embedding=embedding,
+                top_k=top_k,
+            )
+            rows = [dict(r) for r in records]
+        logger.info("Vector retrieval (Cypher 25 SEARCH) executed", extra={"rows": len(rows)})
+        return rows
+    except Exception as e:
+        logger.warning(f"Cypher 25 SEARCH vector query failed: {e}")
+        return []
+
+
 def _run_graph_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
     """Execute graph-based entity search."""
     try:
@@ -160,6 +199,41 @@ def _run_graph_query(question: str, top_k: int) -> list[dict]:  # pragma: no cov
         return rows
     except Exception as e:
         logger.warning(f"Graph search failed: {e}")
+        return []
+
+
+def _community_search(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+    """Search community summaries for broad/global questions."""
+    try:
+        query_embedding = embed_texts([question])[0]
+    except Exception as e:
+        logger.warning(f"Community search embedding failed: {e}")
+        return []
+
+    try:
+        with neo4j_client.session() as session:
+            records = session.run(
+                """
+                MATCH (cm:Community)
+                WHERE cm.embedding IS NOT NULL
+                WITH cm, vector.similarity.cosine(cm.embedding, $query_embedding) AS score
+                ORDER BY score DESC
+                LIMIT $top_k
+                MATCH (cm)-[:HAS_MEMBER]->(e:Entity)<-[:MENTIONS]-(c:Chunk)<-[:HAS_CHUNK]-(p:Page)
+                WITH p, c, score, cm
+                RETURN DISTINCT p.title AS page_title, p.url AS page_url, p.id AS page_id,
+                       c.id AS chunk_id, c.text AS chunk_text, score
+                ORDER BY score DESC
+                LIMIT $top_k
+                """,
+                query_embedding=query_embedding,
+                top_k=top_k,
+            )
+            rows = [dict(r) for r in records]
+        logger.info("Community search executed", extra={"rows": len(rows)})
+        return rows
+    except Exception as e:
+        logger.warning(f"Community search failed: {e}")
         return []
 
 
@@ -229,21 +303,29 @@ def _wrrf_fusion(
 def _run_fallback_query(question: str, top_k: int) -> list[dict]:
     """Execute WRRF hybrid search as fallback when LLM-generated Cypher fails.
 
-    Combines BM25, vector, and graph signals via Weighted Reciprocal Rank Fusion.
-    Falls back to legacy hybrid Cypher if all three signals fail.
+    Combines BM25, vector, graph, and community signals via Weighted Reciprocal Rank Fusion.
+    Falls back to legacy hybrid Cypher if all signals fail.
     """
     bm25_results = _run_bm25_query(question, top_k * 3)
     vector_results = _run_vector_query(question, top_k * 3)
     graph_results = _run_graph_query(question, top_k * 3)
+    community_results = _community_search(question, top_k * 2)
 
-    if not (bm25_results or vector_results or graph_results):
+    all_results = [bm25_results, vector_results, graph_results]
+    all_weights = [settings.wrrf_weight_bm25, settings.wrrf_weight_vector, settings.wrrf_weight_graph]
+
+    if community_results:
+        all_results.append(community_results)
+        all_weights.append(settings.wrrf_weight_community)
+
+    if not any(all_results):
         # All signals failed; fall back to legacy single-query hybrid
         logger.warning("WRRF signals all empty, using legacy hybrid fallback")
         return _run_legacy_fallback_query(question, top_k)
 
     fused = _wrrf_fusion(
-        [bm25_results, vector_results, graph_results],
-        [settings.wrrf_weight_bm25, settings.wrrf_weight_vector, settings.wrrf_weight_graph],
+        all_results,
+        all_weights,
         k=settings.wrrf_k,
     )
     return fused[:top_k]

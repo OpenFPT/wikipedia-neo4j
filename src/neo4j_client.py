@@ -81,7 +81,27 @@ class Neo4jClient:
                 "`vector.similarity_function`: 'cosine'}}",
                 dim=settings.embedding_dim,
             )
+            session.run(
+                "CREATE CONSTRAINT community_id IF NOT EXISTS "
+                "FOR (cm:Community) REQUIRE cm.id IS UNIQUE"
+            )
+            session.run(
+                "CREATE VECTOR INDEX community_embedding_idx IF NOT EXISTS "
+                "FOR (cm:Community) ON (cm.embedding) "
+                "OPTIONS {indexConfig: {`vector.dimensions`: $dim, "
+                "`vector.similarity_function`: 'cosine'}}",
+                dim=settings.embedding_dim,
+            )
         logger.debug("Neo4j schema ensured")
+
+    def get_server_version(self) -> str:
+        """Get Neo4j server version string."""
+        with self.session() as session:
+            result = session.run(
+                "CALL dbms.components() YIELD versions RETURN versions[0] AS version"
+            )
+            record = result.single()
+            return record["version"] if record else "unknown"
 
     def run_batch(self, cypher: str, rows: list[dict], batch_size: int = 1000) -> int:
         """Execute UNWIND Cypher in batches, return total rows processed."""

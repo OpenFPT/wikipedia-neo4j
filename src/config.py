@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     wrrf_weight_graph: float = 0.2
     wrrf_k: int = 60
 
+    neo4j_use_search_clause: bool = False
+
     min_text_length: int = 200
     ingest_batch_size: int = 100
     embed_batch_size: int = 50

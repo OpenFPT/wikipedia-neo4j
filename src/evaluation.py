@@ -15,6 +15,18 @@ from src.retrieve import _run_fallback_query, _run_generated_query
 
 logger = get_logger(__name__)
 
+try:
+    from ragas import evaluate as ragas_evaluate
+    from ragas.metrics import (
+        answer_relevancy,
+        context_precision,
+        context_recall,
+        faithfulness,
+    )
+    RAGAS_AVAILABLE = True
+except ImportError:
+    RAGAS_AVAILABLE = False
+
 DATASET_PATH = Path("data/viwiki_mhr.jsonl")
 
 
@@ -28,6 +40,18 @@ class EvalMetrics:
     avg_latency_ms: float = 0.0
     rerank_context_hit_rate: float = 0.0
     rerank_mrr: float = 0.0
+    details: list[dict] = field(default_factory=list)
+
+
+@dataclass
+class RAGASMetrics:
+    """RAGAS evaluation metrics for answer quality."""
+
+    total: int = 0
+    context_precision: float = 0.0
+    context_recall: float = 0.0
+    faithfulness: float = 0.0
+    answer_relevancy: float = 0.0
     details: list[dict] = field(default_factory=list)
 
 
@@ -187,7 +211,289 @@ def save_results(metrics: EvalMetrics, output_path: str = "reports/eval_results.
     logger.info(f"Results saved to {out}")
 
 
-# --- ViQuAD2.0 Evaluation ---
+# --- RAGAS Evaluation ---
+
+
+def compute_ragas_metrics(
+    questions: list[str],
+    contexts: list[list[str]],
+    answers: list[str],
+    ground_truths: list[str] | None = None,
+) -> RAGASMetrics:
+    """Compute RAGAS metrics for QA pairs with retrieved contexts.
+
+    Args:
+        questions: List of questions
+        contexts: List of context lists (one per question)
+        answers: List of generated answers
+        ground_truths: Optional list of ground truth answers
+
+    Returns:
+        RAGASMetrics with computed scores
+    """
+    # Validate inputs first
+    if not (len(questions) == len(contexts) == len(answers)):
+        raise ValueError("questions, contexts, and answers must have same length")
+
+    if ground_truths and len(ground_truths) != len(questions):
+        raise ValueError("ground_truths must match length of questions")
+
+    if not RAGAS_AVAILABLE:  # pragma: no cover
+        logger.warning("RAGAS not available, skipping RAGAS metrics")
+        return RAGASMetrics(total=len(questions))
+
+    try:  # pragma: no cover
+        from typing import Any
+
+        from datasets import Dataset
+
+        # Build dataset in RAGAS format
+        data: dict[str, Any] = {
+            "question": questions,
+            "contexts": contexts,
+            "answer": answers,
+        }
+        if ground_truths:
+            data["ground_truth"] = ground_truths
+
+        dataset = Dataset.from_dict(data)
+
+        # Compute metrics
+        logger.info(f"Computing RAGAS metrics for {len(questions)} samples...")
+        result: Any = ragas_evaluate(
+            dataset,
+            metrics=[
+                context_precision,
+                context_recall,
+                faithfulness,
+                answer_relevancy,
+            ],
+        )
+
+        metrics = RAGASMetrics(total=len(questions))
+
+        # Extract aggregated scores
+        if "context_precision" in result:
+            metrics.context_precision = float(result["context_precision"].mean())
+        if "context_recall" in result:
+            metrics.context_recall = float(result["context_recall"].mean())
+        if "faithfulness" in result:
+            metrics.faithfulness = float(result["faithfulness"].mean())
+        if "answer_relevancy" in result:
+            metrics.answer_relevancy = float(result["answer_relevancy"].mean())
+
+        # Store per-sample details
+        for i in range(len(questions)):
+            detail = {
+                "question": questions[i][:80],
+                "context_precision": (
+                    float(result["context_precision"][i])
+                    if "context_precision" in result
+                    else None
+                ),
+                "context_recall": (
+                    float(result["context_recall"][i])
+                    if "context_recall" in result
+                    else None
+                ),
+                "faithfulness": (
+                    float(result["faithfulness"][i]) if "faithfulness" in result else None
+                ),
+                "answer_relevancy": (
+                    float(result["answer_relevancy"][i])
+                    if "answer_relevancy" in result
+                    else None
+                ),
+            }
+            metrics.details.append(detail)
+
+        logger.info(
+            f"RAGAS metrics computed: "
+            f"context_precision={metrics.context_precision:.3f}, "
+            f"context_recall={metrics.context_recall:.3f}, "
+            f"faithfulness={metrics.faithfulness:.3f}, "
+            f"answer_relevancy={metrics.answer_relevancy:.3f}"
+        )
+        return metrics
+
+    except Exception as e:  # pragma: no cover
+        logger.error(f"Error computing RAGAS metrics: {e}")
+        return RAGASMetrics(total=len(questions))
+
+
+def print_ragas_report(metrics: RAGASMetrics) -> str:
+    """Format RAGAS evaluation results as a readable report."""
+    report = f"""
+=== RAGAS Evaluation Report ===
+Total samples: {metrics.total}
+
+--- Context Quality ---
+  Context Precision: {metrics.context_precision:.3f}
+  Context Recall:    {metrics.context_recall:.3f}
+
+--- Answer Quality ---
+  Faithfulness:      {metrics.faithfulness:.3f}
+  Answer Relevancy:  {metrics.answer_relevancy:.3f}
+"""
+    return report
+
+
+def save_ragas_results(
+    metrics: RAGASMetrics, output_path: str = "reports/eval_ragas_results.json"
+) -> None:
+    """Save RAGAS evaluation results to JSON."""
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    data = {
+        "total": metrics.total,
+        "context_precision": metrics.context_precision,
+        "context_recall": metrics.context_recall,
+        "faithfulness": metrics.faithfulness,
+        "answer_relevancy": metrics.answer_relevancy,
+        "details": metrics.details,
+    }
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    logger.info(f"RAGAS results saved to {out}")
+
+# --- Ablation Study ---
+
+ABLATION_MODES = ("full_hybrid", "graph_only", "text_only", "no_reranking", "no_multi_hop")
+
+_TEXT_ONLY_CYPHER = """
+CALL db.index.fulltext.queryNodes('chunk_text_ft', $q) YIELD node, score
+MATCH (p:Page)-[:HAS_CHUNK]->(node)
+RETURN p.title AS page_title, p.url AS page_url, p.id AS page_id,
+       node.id AS chunk_id, node.text AS chunk_text, score
+ORDER BY score DESC
+LIMIT $top_k
+"""
+
+_GRAPH_ONLY_CYPHER = """
+CALL db.index.fulltext.queryNodes('entity_alias_ft', $q) YIELD node, score
+MATCH (c:Chunk)-[:MENTIONS]->(node)
+MATCH (p:Page)-[:HAS_CHUNK]->(c)
+RETURN p.title AS page_title, p.url AS page_url, p.id AS page_id,
+       c.id AS chunk_id, c.text AS chunk_text, score
+ORDER BY score DESC
+LIMIT $top_k
+"""
+
+
+def _retrieve_for_ablation(question: str, mode: str, top_k: int) -> list[dict]:
+    """Retrieve chunks using the specified ablation mode.
+
+    Modes:
+        full_hybrid — normal hybrid fallback query
+        graph_only — only entity-based retrieval via MENTIONS edges
+        text_only — only fulltext search on chunk text
+        no_reranking — full hybrid (reranking skipped at caller level)
+        no_multi_hop — full hybrid (multi-hop skipped at caller level)
+    """
+    from src.neo4j_client import neo4j_client
+
+    if mode == "text_only":
+        with neo4j_client.session() as session:
+            records = session.run(_TEXT_ONLY_CYPHER, q=question, top_k=top_k)
+            return [dict(r) for r in records]
+    elif mode == "graph_only":
+        with neo4j_client.session() as session:
+            records = session.run(_GRAPH_ONLY_CYPHER, q=question, top_k=top_k)
+            return [dict(r) for r in records]
+    else:
+        # full_hybrid, no_reranking, no_multi_hop all use the same base query
+        return _run_fallback_query(question, top_k)
+
+
+def evaluate_ablation(
+    mode: str,
+    limit: int = 50,
+    top_k_retrieve: int = 20,
+    top_k_rerank: int = 5,
+    dataset_path: Path | None = None,
+) -> EvalMetrics:
+    """Run evaluation with a specific ablation mode.
+
+    Args:
+        mode: One of ABLATION_MODES controlling which components are active.
+        limit: Number of test samples to evaluate.
+        top_k_retrieve: Number of chunks to retrieve.
+        top_k_rerank: Number of chunks after reranking.
+        dataset_path: Optional path to dataset file.
+
+    Returns:
+        EvalMetrics with hit rate, MRR, and latency.
+    """
+    if mode not in ABLATION_MODES:
+        raise ValueError(f"Unknown ablation mode: {mode!r}. Must be one of {ABLATION_MODES}")
+
+    samples = load_test_set(dataset_path, limit=limit)
+    metrics = EvalMetrics(total=len(samples))
+
+    hit_rates: list[float] = []
+    mrrs: list[float] = []
+    latencies: list[float] = []
+
+    for i, sample in enumerate(samples):
+        question = sample["question"]
+        metadata = sample.get("metadata", {})
+        gold_chunk_ids = metadata.get("evidence_chunk_ids", [])
+
+        if not gold_chunk_ids:
+            continue
+
+        t0 = time.perf_counter()
+        rows = _retrieve_for_ablation(question, mode, top_k=top_k_retrieve)
+
+        # Apply reranking unless mode disables it
+        if mode not in ("no_reranking", "text_only", "graph_only"):
+            rows = rerank(question, rows, text_key="chunk_text", top_k=top_k_rerank)
+
+        # Apply multi-hop expansion unless mode disables it
+        if mode not in ("no_multi_hop", "text_only", "graph_only", "no_reranking") and rows:
+            from src.retrieve import _expand_via_links
+
+            page_ids: list[str] = [
+                r["page_id"] for r in rows if r.get("page_id")
+            ]
+            page_ids = list(set(page_ids))
+            expanded = _expand_via_links(page_ids, question, top_k_retrieve)
+            if expanded:
+                seen_chunks = {r["chunk_id"] for r in rows}
+                new_rows = [r for r in expanded if r["chunk_id"] not in seen_chunks]
+                if new_rows:
+                    combined = rows + new_rows
+                    rows = rerank(question, combined, text_key="chunk_text", top_k=top_k_rerank)
+
+        latency = (time.perf_counter() - t0) * 1000
+        latencies.append(latency)
+
+        retrieved_ids = [r.get("chunk_id", "") for r in rows]
+
+        hr = _compute_hit_rate(retrieved_ids, gold_chunk_ids)
+        rr = _compute_mrr(retrieved_ids, gold_chunk_ids)
+        hit_rates.append(hr)
+        mrrs.append(rr)
+
+        metrics.details.append({
+            "id": sample.get("id", i),
+            "question": question[:80],
+            "hit": hr,
+            "mrr": rr,
+            "latency_ms": round(latency, 1),
+        })
+
+        if (i + 1) % 10 == 0:
+            logger.info(f"Ablation [{mode}]: {i + 1}/{len(samples)}")
+
+    if hit_rates:
+        metrics.context_hit_rate = sum(hit_rates) / len(hit_rates)
+        metrics.mrr = sum(mrrs) / len(mrrs)
+    if latencies:
+        metrics.avg_latency_ms = sum(latencies) / len(latencies)
+
+    return metrics
+
 
 _PUNCT_RE = re.compile(f"[{re.escape(string.punctuation)}]")
 

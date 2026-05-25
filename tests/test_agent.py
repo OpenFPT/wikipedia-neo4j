@@ -177,12 +177,17 @@ class TestAgentQuery:
 
         def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
             call_count[0] += 1
+            # Call 1: complexity detection (returns low complexity)
             if call_count[0] == 1:
+                return json.dumps({"complexity": 1})
+            # Call 2: agent loop - tool action
+            if call_count[0] == 2:
                 return json.dumps({
                     "thought": "Let me search for the answer",
                     "action": "text_search",
                     "action_input": {"query": "Việt Nam thủ đô"},
                 })
+            # Call 3+: agent loop - final answer
             return json.dumps({
                 "thought": "I found the answer",
                 "final_answer": "Hà Nội là thủ đô của Việt Nam.",
@@ -215,7 +220,13 @@ class TestAgentQuery:
         assert result.citations[0]["chunk_id"] == "c1"
 
     def test_fallback_on_unparseable(self, monkeypatch) -> None:
+        call_count = [0]
+
         def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
+            call_count[0] += 1
+            # Call 1: complexity detection
+            if call_count[0] == 1:
+                return json.dumps({"complexity": 1})
             return "I don't know how to respond in JSON"
 
         import src.local_llm
@@ -229,7 +240,11 @@ class TestAgentQuery:
 
         def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
             call_count[0] += 1
+            # Call 1: complexity detection
             if call_count[0] == 1:
+                return json.dumps({"complexity": 1})
+            # Call 2: agent loop - bad tool
+            if call_count[0] == 2:
                 return json.dumps({
                     "thought": "try bad tool",
                     "action": "bad_tool",

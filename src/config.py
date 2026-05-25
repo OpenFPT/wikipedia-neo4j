@@ -24,13 +24,14 @@ class Settings(BaseSettings):
     gemini_model_text: str = "gemini-2.0-flash"
     gemini_model_embedding: str = "gemini-embedding-001"
     embedding_backend: str = "local"
-    local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    local_embedding_model: str = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
+    embedding_dim: int = 1024
 
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
 
     model_mode: str = "local"
-    local_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
+    local_model_id: str = "AITeamVN/Vi-Qwen2-7B-RAG"
 
     app_api_key: str | None = None
     rate_limit_per_minute: int = 120
@@ -40,6 +41,23 @@ class Settings(BaseSettings):
 
     multi_hop_expansion: bool = True
     rerank_min_score: float = 0.1
+    wrrf_weight_bm25: float = 0.4
+    wrrf_weight_vector: float = 0.4
+    wrrf_weight_graph: float = 0.2
+    wrrf_weight_community: float = 0.15
+    wrrf_k: int = 60
+
+    neo4j_use_search_clause: bool = False
+
+    lora_adapter_path: str | None = None
+
+    min_text_length: int = 200
+    ingest_batch_size: int = 100
+    embed_batch_size: int = 50
+    neo4j_page_batch: int = 5000
+    neo4j_chunk_batch: int = 2000
+    neo4j_entity_batch: int = 1000
+    log_dir: str = "logs"
 
     min_text_length: int = 200
     ingest_batch_size: int = 100

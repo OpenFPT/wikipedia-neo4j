@@ -39,6 +39,13 @@ def _load_model():
         torch_dtype=torch.float16,
     )
 
+    # Load LoRA adapter if configured
+    if settings.lora_adapter_path:
+        from peft import PeftModel
+
+        logger.info("Loading LoRA adapter", extra={"path": settings.lora_adapter_path})
+        _model = PeftModel.from_pretrained(_model, settings.lora_adapter_path)  # type: ignore[assignment]
+
     logger.info("Local model loaded", extra={"model": model_id})
     return _model, _tokenizer
 

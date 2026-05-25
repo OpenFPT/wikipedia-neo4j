@@ -74,7 +74,59 @@ class Neo4jClient:
                 "CREATE FULLTEXT INDEX entity_alias_ft IF NOT EXISTS "
                 "FOR (e:Entity) ON EACH [e.name, e.aliases]"
             )
+            session.run(
+                "CREATE VECTOR INDEX chunk_embedding_idx IF NOT EXISTS "
+                "FOR (c:Chunk) ON (c.embedding) "
+                "OPTIONS {indexConfig: {`vector.dimensions`: $dim, "
+                "`vector.similarity_function`: 'cosine'}}",
+                dim=settings.embedding_dim,
+            )
+            # Relation extraction edge indexes
+            session.run(
+                "CREATE INDEX founded_by_idx IF NOT EXISTS "
+                "FOR ()-[r:FOUNDED_BY]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX located_in_idx IF NOT EXISTS "
+                "FOR ()-[r:LOCATED_IN]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX born_in_idx IF NOT EXISTS "
+                "FOR ()-[r:BORN_IN]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX member_of_idx IF NOT EXISTS "
+                "FOR ()-[r:MEMBER_OF]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX part_of_idx IF NOT EXISTS "
+                "FOR ()-[r:PART_OF]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX created_by_idx IF NOT EXISTS "
+                "FOR ()-[r:CREATED_BY]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE CONSTRAINT community_id IF NOT EXISTS "
+                "FOR (cm:Community) REQUIRE cm.id IS UNIQUE"
+            )
+            session.run(
+                "CREATE VECTOR INDEX community_embedding_idx IF NOT EXISTS "
+                "FOR (cm:Community) ON (cm.embedding) "
+                "OPTIONS {indexConfig: {`vector.dimensions`: $dim, "
+                "`vector.similarity_function`: 'cosine'}}",
+                dim=settings.embedding_dim,
+            )
         logger.debug("Neo4j schema ensured")
+
+    def get_server_version(self) -> str:
+        """Get Neo4j server version string."""
+        with self.session() as session:
+            result = session.run(
+                "CALL dbms.components() YIELD versions RETURN versions[0] AS version"
+            )
+            record = result.single()
+            return record["version"] if record else "unknown"
 
     def run_batch(self, cypher: str, rows: list[dict], batch_size: int = 1000) -> int:
         """Execute UNWIND Cypher in batches, return total rows processed."""

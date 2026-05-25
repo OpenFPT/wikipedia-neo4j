@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from scripts.run_ablation import _print_comparison_table, main
+from scripts.run_ablation import _print_comparison_table
 from src.evaluation import (
     ABLATION_MODES,
     EvalMetrics,
@@ -42,13 +42,13 @@ class TestRetrieveForAblation:
     @patch("src.evaluation._run_fallback_query")
     def test_no_reranking_uses_fallback(self, mock_fallback):
         mock_fallback.return_value = [{"chunk_id": "c1", "chunk_text": "text"}]
-        result = _retrieve_for_ablation("q", "no_reranking", top_k=5)
+        _retrieve_for_ablation("q", "no_reranking", top_k=5)
         mock_fallback.assert_called_once_with("q", 5)
 
     @patch("src.evaluation._run_fallback_query")
     def test_no_multi_hop_uses_fallback(self, mock_fallback):
         mock_fallback.return_value = []
-        result = _retrieve_for_ablation("q", "no_multi_hop", top_k=5)
+        _retrieve_for_ablation("q", "no_multi_hop", top_k=5)
         mock_fallback.assert_called_once_with("q", 5)
 
     @patch("src.neo4j_client.neo4j_client")

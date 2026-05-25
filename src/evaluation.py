@@ -16,7 +16,7 @@ from src.retrieve import _run_fallback_query, _run_generated_query
 logger = get_logger(__name__)
 
 try:
-    from ragas import evaluate
+    from ragas import evaluate as ragas_evaluate
     from ragas.metrics import (
         answer_relevancy,
         context_precision,
@@ -243,10 +243,12 @@ def compute_ragas_metrics(
         return RAGASMetrics(total=len(questions))
 
     try:  # pragma: no cover
+        from typing import Any
+
         from datasets import Dataset
 
         # Build dataset in RAGAS format
-        data = {
+        data: dict[str, Any] = {
             "question": questions,
             "contexts": contexts,
             "answer": answers,
@@ -258,7 +260,7 @@ def compute_ragas_metrics(
 
         # Compute metrics
         logger.info(f"Computing RAGAS metrics for {len(questions)} samples...")
-        result = evaluate(
+        result: Any = ragas_evaluate(
             dataset,
             metrics=[
                 context_precision,

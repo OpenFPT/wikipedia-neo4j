@@ -356,6 +356,145 @@ def save_ragas_results(
         json.dump(data, f, ensure_ascii=False, indent=2)
     logger.info(f"RAGAS results saved to {out}")
 
+# --- Ablation Study ---
+
+ABLATION_MODES = ("full_hybrid", "graph_only", "text_only", "no_reranking", "no_multi_hop")
+
+_TEXT_ONLY_CYPHER = """
+CALL db.index.fulltext.queryNodes('chunk_text_ft', $q) YIELD node, score
+MATCH (p:Page)-[:HAS_CHUNK]->(node)
+RETURN p.title AS page_title, p.url AS page_url, p.id AS page_id,
+       node.id AS chunk_id, node.text AS chunk_text, score
+ORDER BY score DESC
+LIMIT $top_k
+"""
+
+_GRAPH_ONLY_CYPHER = """
+CALL db.index.fulltext.queryNodes('entity_alias_ft', $q) YIELD node, score
+MATCH (c:Chunk)-[:MENTIONS]->(node)
+MATCH (p:Page)-[:HAS_CHUNK]->(c)
+RETURN p.title AS page_title, p.url AS page_url, p.id AS page_id,
+       c.id AS chunk_id, c.text AS chunk_text, score
+ORDER BY score DESC
+LIMIT $top_k
+"""
+
+
+def _retrieve_for_ablation(question: str, mode: str, top_k: int) -> list[dict]:
+    """Retrieve chunks using the specified ablation mode.
+
+    Modes:
+        full_hybrid — normal hybrid fallback query
+        graph_only — only entity-based retrieval via MENTIONS edges
+        text_only — only fulltext search on chunk text
+        no_reranking — full hybrid (reranking skipped at caller level)
+        no_multi_hop — full hybrid (multi-hop skipped at caller level)
+    """
+    from src.neo4j_client import neo4j_client
+
+    if mode == "text_only":
+        with neo4j_client.session() as session:
+            records = session.run(_TEXT_ONLY_CYPHER, q=question, top_k=top_k)
+            return [dict(r) for r in records]
+    elif mode == "graph_only":
+        with neo4j_client.session() as session:
+            records = session.run(_GRAPH_ONLY_CYPHER, q=question, top_k=top_k)
+            return [dict(r) for r in records]
+    else:
+        # full_hybrid, no_reranking, no_multi_hop all use the same base query
+        return _run_fallback_query(question, top_k)
+
+
+def evaluate_ablation(
+    mode: str,
+    limit: int = 50,
+    top_k_retrieve: int = 20,
+    top_k_rerank: int = 5,
+    dataset_path: Path | None = None,
+) -> EvalMetrics:
+    """Run evaluation with a specific ablation mode.
+
+    Args:
+        mode: One of ABLATION_MODES controlling which components are active.
+        limit: Number of test samples to evaluate.
+        top_k_retrieve: Number of chunks to retrieve.
+        top_k_rerank: Number of chunks after reranking.
+        dataset_path: Optional path to dataset file.
+
+    Returns:
+        EvalMetrics with hit rate, MRR, and latency.
+    """
+    if mode not in ABLATION_MODES:
+        raise ValueError(f"Unknown ablation mode: {mode!r}. Must be one of {ABLATION_MODES}")
+
+    samples = load_test_set(dataset_path, limit=limit)
+    metrics = EvalMetrics(total=len(samples))
+
+    hit_rates: list[float] = []
+    mrrs: list[float] = []
+    latencies: list[float] = []
+
+    for i, sample in enumerate(samples):
+        question = sample["question"]
+        metadata = sample.get("metadata", {})
+        gold_chunk_ids = metadata.get("evidence_chunk_ids", [])
+
+        if not gold_chunk_ids:
+            continue
+
+        t0 = time.perf_counter()
+        rows = _retrieve_for_ablation(question, mode, top_k=top_k_retrieve)
+
+        # Apply reranking unless mode disables it
+        if mode not in ("no_reranking", "text_only", "graph_only"):
+            rows = rerank(question, rows, text_key="chunk_text", top_k=top_k_rerank)
+
+        # Apply multi-hop expansion unless mode disables it
+        if mode not in ("no_multi_hop", "text_only", "graph_only", "no_reranking") and rows:
+            from src.retrieve import _expand_via_links
+
+            page_ids: list[str] = [
+                r["page_id"] for r in rows if r.get("page_id")
+            ]
+            page_ids = list(set(page_ids))
+            expanded = _expand_via_links(page_ids, question, top_k_retrieve)
+            if expanded:
+                seen_chunks = {r["chunk_id"] for r in rows}
+                new_rows = [r for r in expanded if r["chunk_id"] not in seen_chunks]
+                if new_rows:
+                    combined = rows + new_rows
+                    rows = rerank(question, combined, text_key="chunk_text", top_k=top_k_rerank)
+
+        latency = (time.perf_counter() - t0) * 1000
+        latencies.append(latency)
+
+        retrieved_ids = [r.get("chunk_id", "") for r in rows]
+
+        hr = _compute_hit_rate(retrieved_ids, gold_chunk_ids)
+        rr = _compute_mrr(retrieved_ids, gold_chunk_ids)
+        hit_rates.append(hr)
+        mrrs.append(rr)
+
+        metrics.details.append({
+            "id": sample.get("id", i),
+            "question": question[:80],
+            "hit": hr,
+            "mrr": rr,
+            "latency_ms": round(latency, 1),
+        })
+
+        if (i + 1) % 10 == 0:
+            logger.info(f"Ablation [{mode}]: {i + 1}/{len(samples)}")
+
+    if hit_rates:
+        metrics.context_hit_rate = sum(hit_rates) / len(hit_rates)
+        metrics.mrr = sum(mrrs) / len(mrrs)
+    if latencies:
+        metrics.avg_latency_ms = sum(latencies) / len(latencies)
+
+    return metrics
+
+
 _PUNCT_RE = re.compile(f"[{re.escape(string.punctuation)}]")
 
 

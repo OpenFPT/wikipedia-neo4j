@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     vncorenlp_dir: str = ".vncorenlp"
 
     model_mode: str = "local"
-    local_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
+    local_model_id: str = "AITeamVN/Vi-Qwen2-7B-RAG"
 
     app_api_key: str | None = None
     rate_limit_per_minute: int = 120

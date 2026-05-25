@@ -12,7 +12,7 @@ Build a fully local, sovereignty‑preserving Vietnamese KGQA system that answer
 ## 2) Scope
 **In‑scope**
 - Local single‑process pipeline (no external APIs).
-- Vietnamese Wikipedia ingestion (20231101.vi).
+- Vietnamese Wikipedia ingestion from the pinned `Keithsel/viwiki-20260523` snapshot, generated from raw MediaWiki XML.
 - Typed KG schema + Cypher execution.
 - Hybrid retrieval (graph + text fallback).
 - Text2Cypher fine‑tuning with deterministic validation.
@@ -35,7 +35,7 @@ Build a fully local, sovereignty‑preserving Vietnamese KGQA system that answer
 **Storage:**
 - **Neo4j** for KG (typed entities/relations, provenance).
 - **Qdrant/FAISS** + **BM25** for fallback text retrieval.
-- Wikipedia paragraph dump as passage corpus.
+- Processed Vietnamese Wikipedia Parquet corpus (`Keithsel/viwiki-20260523`) as the passage source.
 
 ## 4) Knowledge Graph Design
 **Node types:** `Person`, `Place`, `Organization`, `Event`, `TácPhẩm`, plus `Chunk`/`Page` for provenance.
@@ -62,7 +62,9 @@ Build a fully local, sovereignty‑preserving Vietnamese KGQA system that answer
 
 ## 7) Dataset: ViWiki‑MHR
 **Size:** ~36K examples, open license (CC‑BY‑SA).
-**Sources:** UIT‑ViQuAD 2.0 + synthetic multi‑hop KG walks.
+**Sources:** UIT‑ViQuAD 2.0 + synthetic multi‑hop KG walks grounded in the raw XML-derived Vietnamese Wikipedia snapshot published at `Keithsel/viwiki-20260523`.
+
+**Corpus preparation:** `scripts/viwiki_processing/` streams the 2026-05-23 Vietnamese Wikipedia MediaWiki XML dump, filters main-namespace articles, cleans wikitext into plain text, and exports both cleaned and raw Parquet shards. The Hugging Face dataset repo is the reproducible distribution point for downstream ingestion, QA generation, and evaluation.
 
 **Schema fields:**
 - `question`, `answer`, `num_hops`, `reasoning_type`, `answerable`.

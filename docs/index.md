@@ -5,7 +5,8 @@ Backend service for ingesting Vietnamese Wikipedia content into a Neo4j knowledg
 ## Key capabilities
 
 - Topic ingestion via Wikipedia API
-- Dataset ingestion via Hugging Face (`wikimedia/wikipedia`)
+- Dataset ingestion via Hugging Face (`wikimedia/wikipedia` or `Keithsel/viwiki-20260523`)
+- Raw Vietnamese Wikipedia XML dump conversion to cleaned/raw Parquet datasets
 - Async background HF ingestion jobs with persistent state
 - Pluggable NER: simple regex, Underthesea, or PhoNLP (Vietnamese)
 - Pluggable embeddings: Gemini API (with multi-key rotation) or local sentence-transformers
@@ -38,7 +39,7 @@ Backend service for ingesting Vietnamese Wikipedia content into a Neo4j knowledg
 
 ## Operating modes
 
-- **Ingest**: populate graph data from Wikipedia API and HF datasets.
+- **Ingest**: populate graph data from Wikipedia API, raw XML dumps, and HF datasets.
 - **Query (API mode)**: Gemini generates Cypher, with hybrid fulltext fallback.
 - **Query (Local mode)**: ReAct agent iterates over graph tools using a local LLM.
 - **Dataset generation**: extract KG walks and produce multi-hop QA pairs.

@@ -66,6 +66,19 @@ python -m compileall -q src tests
 
 ## 6) Dataset generation (optional)
 
+For reproducible Vietnamese Wikipedia inputs, use the processed HF snapshot
+`Keithsel/viwiki-20260523`. It is generated from raw MediaWiki XML with
+`scripts/viwiki_processing/`, which exports cleaned and raw Parquet shards.
+
+```bash
+uv sync --group xml-processing
+python -m scripts.viwiki_processing.cli convert \
+  --xml dumps/viwiki-20260523-pages-articles.xml \
+  --output articles_cleaned \
+  --raw-output articles_raw \
+  --limit 1000  # optional smoke-test limit
+```
+
 After ingesting data, generate the ViWiki-MHR QA dataset:
 
 ```python

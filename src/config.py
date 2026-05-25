@@ -41,6 +41,10 @@ class Settings(BaseSettings):
 
     multi_hop_expansion: bool = True
     rerank_min_score: float = 0.1
+    wrrf_weight_bm25: float = 0.4
+    wrrf_weight_vector: float = 0.4
+    wrrf_weight_graph: float = 0.2
+    wrrf_k: int = 60
 
     min_text_length: int = 200
     ingest_batch_size: int = 100

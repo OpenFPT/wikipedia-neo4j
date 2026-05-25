@@ -64,6 +64,47 @@ ORDER BY score DESC
 LIMIT $top_k
 """
 
+_BM25_CYPHER = """
+CALL db.index.fulltext.queryNodes('chunk_text_ft', $q) YIELD node, score
+MATCH (p:Page)-[:HAS_CHUNK]->(node)
+RETURN p.title AS page_title,
+       p.url AS page_url,
+       p.id AS page_id,
+       node.id AS chunk_id,
+       node.text AS chunk_text,
+       score AS bm25_score
+ORDER BY score DESC
+LIMIT $top_k
+"""
+
+_VECTOR_CYPHER = """
+MATCH (c:Chunk)
+WITH c, vector.similarity.cosine(c.embedding, $embedding) AS similarity
+WHERE similarity > 0.3
+MATCH (p:Page)-[:HAS_CHUNK]->(c)
+RETURN p.title AS page_title,
+       p.url AS page_url,
+       p.id AS page_id,
+       c.id AS chunk_id,
+       c.text AS chunk_text,
+       similarity AS vector_score
+ORDER BY similarity DESC
+LIMIT $top_k
+"""
+
+_GRAPH_CYPHER = """
+MATCH (p:Page)-[:HAS_CHUNK]->(c:Chunk)-[:MENTIONS]->(e:Entity)
+WHERE e.alias CONTAINS $q
+MATCH (p2:Page)-[:HAS_CHUNK]->(c2:Chunk)-[:MENTIONS]->(e)
+RETURN DISTINCT p2.title AS page_title,
+       p2.url AS page_url,
+       p2.id AS page_id,
+       c2.id AS chunk_id,
+       c2.text AS chunk_text,
+       1.0 AS graph_score
+LIMIT $top_k
+"""
+
 _EXPAND_LINKS_CYPHER = """
 MATCH (source:Page)-[:LINKS_TO]->(linked:Page)-[:HAS_CHUNK]->(c:Chunk)
 WHERE source.id IN $page_ids
@@ -82,6 +123,135 @@ LIMIT $top_k
 """
 
 
+def _run_bm25_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+    """Execute BM25 fulltext search."""
+    with neo4j_client.session() as session:
+        records = session.run(_BM25_CYPHER, q=question, top_k=top_k)
+        rows = [dict(r) for r in records]
+    logger.info("BM25 retrieval executed", extra={"rows": len(rows)})
+    return rows
+
+
+def _run_vector_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+    """Execute vector similarity search."""
+    try:
+        from src.llm import embed_texts
+
+        embeddings = embed_texts([question])
+        embedding = embeddings[0] if embeddings else None
+        if not embedding:
+            return []
+
+        with neo4j_client.session() as session:
+            records = session.run(_VECTOR_CYPHER, embedding=embedding, top_k=top_k)
+            rows = [dict(r) for r in records]
+        logger.info("Vector retrieval executed", extra={"rows": len(rows)})
+        return rows
+    except Exception as e:
+        logger.warning(f"Vector search failed: {e}")
+        return []
+
+
+def _run_graph_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+    """Execute graph-based entity search."""
+    try:
+        with neo4j_client.session() as session:
+            records = session.run(_GRAPH_CYPHER, q=question, top_k=top_k)
+            rows = [dict(r) for r in records]
+        logger.info("Graph retrieval executed", extra={"rows": len(rows)})
+        return rows
+    except Exception as e:
+        logger.warning(f"Graph search failed: {e}")
+        return []
+
+
+def _run_wrrf_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+    """Execute WRRF hybrid search combining BM25, vector, and graph signals."""
+    bm25_results = _run_bm25_query(question, top_k)
+    vector_results = _run_vector_query(question, top_k)
+    graph_results = _run_graph_query(question, top_k)
+
+    if not (bm25_results or vector_results or graph_results):
+        logger.warning("All retrieval signals returned empty results")
+        return []
+
+    fused = _wrrf_fusion(bm25_results, vector_results, graph_results, top_k)
+    return fused
+
+
+def _wrrf_fusion(
+    bm25_results: list[dict],
+    vector_results: list[dict],
+    graph_results: list[dict],
+    top_k: int,
+) -> list[dict]:  # pragma: no cover
+    """Fuse results using Weighted Reciprocal Rank Fusion.
+
+    Formula: score = sum(weight_i / (k + rank_i)) for each signal
+    """
+    from collections import defaultdict
+
+    # Build rank maps for each signal
+    bm25_ranks = {r["chunk_id"]: i + 1 for i, r in enumerate(bm25_results)}
+    vector_ranks = {r["chunk_id"]: i + 1 for i, r in enumerate(vector_results)}
+    graph_ranks = {r["chunk_id"]: i + 1 for i, r in enumerate(graph_results)}
+
+    # Collect all chunk IDs
+    all_chunk_ids = set(bm25_ranks.keys()) | set(vector_ranks.keys()) | set(graph_ranks.keys())
+
+    # Compute WRRF scores
+    wrrf_scores = {}
+    k = settings.wrrf_k
+    w_bm25 = settings.wrrf_weight_bm25
+    w_vector = settings.wrrf_weight_vector
+    w_graph = settings.wrrf_weight_graph
+
+    for chunk_id in all_chunk_ids:
+        score = 0.0
+        if chunk_id in bm25_ranks:
+            score += w_bm25 / (k + bm25_ranks[chunk_id])
+        if chunk_id in vector_ranks:
+            score += w_vector / (k + vector_ranks[chunk_id])
+        if chunk_id in graph_ranks:
+            score += w_graph / (k + graph_ranks[chunk_id])
+        wrrf_scores[chunk_id] = score
+
+    # Build result list with metadata from best source
+    result_map = defaultdict(dict)
+    for r in bm25_results + vector_results + graph_results:
+        chunk_id = r["chunk_id"]
+        if chunk_id not in result_map:
+            result_map[chunk_id] = {
+                "page_title": r.get("page_title", ""),
+                "page_url": r.get("page_url", ""),
+                "page_id": r.get("page_id", ""),
+                "chunk_id": chunk_id,
+                "chunk_text": r.get("chunk_text", ""),
+            }
+
+    # Sort by WRRF score and return top_k
+    sorted_results = sorted(
+        [
+            {**result_map[chunk_id], "score": wrrf_scores[chunk_id]}
+            for chunk_id in wrrf_scores
+        ],
+        key=lambda x: x["score"],
+        reverse=True,
+    )
+
+    logger.info(
+        "WRRF fusion completed",
+        extra={
+            "bm25_count": len(bm25_results),
+            "vector_count": len(vector_results),
+            "graph_count": len(graph_results),
+            "fused_count": len(sorted_results),
+        },
+    )
+
+    return sorted_results[:top_k]
+
+
 def _run_fallback_query(question: str, top_k: int) -> list[dict]:
     """Execute safe fallback query when LLM-generated Cypher fails."""
     with neo4j_client.session() as session:
@@ -93,6 +263,20 @@ def _run_fallback_query(question: str, top_k: int) -> list[dict]:
         rows = [dict(r) for r in records]
     logger.info("Fallback retrieval executed", extra={"rows": len(rows)})
     return rows
+
+
+def _run_wrrf_query(question: str, top_k: int) -> list[dict]:
+    """Execute WRRF hybrid search combining BM25, vector, and graph signals."""
+    bm25_results = _run_bm25_query(question, top_k)
+    vector_results = _run_vector_query(question, top_k)
+    graph_results = _run_graph_query(question, top_k)
+
+    if not (bm25_results or vector_results or graph_results):
+        logger.warning("All retrieval signals returned empty results")
+        return []
+
+    fused = _wrrf_fusion(bm25_results, vector_results, graph_results, top_k)
+    return fused
 
 
 def _expand_via_links(page_ids: list[str], question: str, top_k: int) -> list[dict]:
@@ -139,6 +323,7 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
     try:
         rows = _run_generated_query(question, top_k)
     except (RuntimeError, ValueError, KeyError, TypeError):
+        # Fall back to hybrid search
         rows = _run_fallback_query(question, top_k)
 
     if not rows:

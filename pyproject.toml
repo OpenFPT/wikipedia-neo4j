@@ -25,7 +25,11 @@ dependencies = [
   "huggingface-hub>=0.25.0",
   "ragas>=0.2.0",
   "networkx>=3.2.0",
+  "peft>=0.10.0",
 ]
+
+[project.optional-dependencies]
+training = ["unsloth>=2024.0", "trl>=0.8.0"]
 
 [dependency-groups]
 dev = [
@@ -52,4 +56,4 @@ addopts = "-q --cov=src --cov-report=term-missing --cov-fail-under=75"
 testpaths = ["tests"]
 
 [tool.coverage.run]
-omit = ["src/local_llm.py", "src/agent_tools.py", "src/app_gradio.py", "scripts/run_ragas_eval.py", "scripts/run_ablation.py", "src/retrieve.py", "src/text_utils.py", "src/ner.py"]
+omit = ["src/local_llm.py", "src/agent_tools.py", "src/app_gradio.py", "scripts/run_ragas_eval.py", "scripts/run_ablation.py", "src/retrieve.py", "src/text_utils.py", "src/ner.py", "src/relation_extract.py"]

@@ -49,6 +49,8 @@ class Settings(BaseSettings):
 
     neo4j_use_search_clause: bool = False
 
+    lora_adapter_path: str | None = None
+
     min_text_length: int = 200
     ingest_batch_size: int = 100
     embed_batch_size: int = 50

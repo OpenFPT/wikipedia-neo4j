@@ -78,9 +78,8 @@ LIMIT $top_k
 """
 
 _VECTOR_CYPHER = """
-MATCH (c:Chunk)
-WITH c, vector.similarity.cosine(c.embedding, $embedding) AS similarity
-WHERE similarity > 0.3
+CALL db.index.vector.queryNodes('chunk_embedding_idx', $top_k, $embedding)
+YIELD node AS c, score AS similarity
 MATCH (p:Page)-[:HAS_CHUNK]->(c)
 RETURN p.title AS page_title,
        p.url AS page_url,
@@ -88,8 +87,6 @@ RETURN p.title AS page_title,
        c.id AS chunk_id,
        c.text AS chunk_text,
        similarity AS vector_score
-ORDER BY similarity DESC
-LIMIT $top_k
 """
 
 _VECTOR_SEARCH_CYPHER25 = """
@@ -108,15 +105,16 @@ LIMIT $top_k
 """
 
 _GRAPH_CYPHER = """
-MATCH (p:Page)-[:HAS_CHUNK]->(c:Chunk)-[:MENTIONS]->(e:Entity)
-WHERE e.alias CONTAINS $q
-MATCH (p2:Page)-[:HAS_CHUNK]->(c2:Chunk)-[:MENTIONS]->(e)
-RETURN DISTINCT p2.title AS page_title,
-       p2.url AS page_url,
-       p2.id AS page_id,
-       c2.id AS chunk_id,
-       c2.text AS chunk_text,
-       1.0 AS graph_score
+CALL db.index.fulltext.queryNodes('entity_alias_ft', $q) YIELD node AS e, score
+MATCH (c:Chunk)-[:MENTIONS]->(e)
+MATCH (p:Page)-[:HAS_CHUNK]->(c)
+RETURN DISTINCT p.title AS page_title,
+       p.url AS page_url,
+       p.id AS page_id,
+       c.id AS chunk_id,
+       c.text AS chunk_text,
+       score AS graph_score
+ORDER BY score DESC
 LIMIT $top_k
 """
 
@@ -147,15 +145,14 @@ def _run_bm25_query(question: str, top_k: int) -> list[dict]:  # pragma: no cove
     return rows
 
 
-def _run_vector_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+def _run_vector_query(
+    question: str, top_k: int, *, query_embedding: list[float] | None = None
+) -> list[dict]:  # pragma: no cover
     """Execute vector similarity search."""
     if settings.neo4j_use_search_clause:
-        return _run_vector_query_cypher25(question, top_k)
+        return _run_vector_query_cypher25(question, top_k, query_embedding=query_embedding)
     try:
-        embeddings = embed_texts([question])
-        embedding = embeddings[0] if embeddings else None
-        if not embedding:
-            return []
+        embedding = query_embedding or embed_texts([question])[0]
 
         with neo4j_client.session() as session:
             records = session.run(_VECTOR_CYPHER, embedding=embedding, top_k=top_k)
@@ -167,13 +164,12 @@ def _run_vector_query(question: str, top_k: int) -> list[dict]:  # pragma: no co
         return []
 
 
-def _run_vector_query_cypher25(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+def _run_vector_query_cypher25(
+    question: str, top_k: int, *, query_embedding: list[float] | None = None
+) -> list[dict]:  # pragma: no cover
     """Vector search using Neo4j Cypher 25 SEARCH clause (requires Neo4j 2026.02+)."""
     try:
-        embeddings = embed_texts([question])
-        embedding = embeddings[0] if embeddings else None
-        if not embedding:
-            return []
+        embedding = query_embedding or embed_texts([question])[0]
 
         with neo4j_client.session() as session:
             records = session.run(
@@ -202,10 +198,12 @@ def _run_graph_query(question: str, top_k: int) -> list[dict]:  # pragma: no cov
         return []
 
 
-def _community_search(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+def _community_search(
+    question: str, top_k: int, *, query_embedding: list[float] | None = None
+) -> list[dict]:  # pragma: no cover
     """Search community summaries for broad/global questions."""
     try:
-        query_embedding = embed_texts([question])[0]
+        embedding = query_embedding or embed_texts([question])[0]
     except Exception as e:
         logger.warning(f"Community search embedding failed: {e}")
         return []
@@ -226,7 +224,7 @@ def _community_search(question: str, top_k: int) -> list[dict]:  # pragma: no co
                 ORDER BY score DESC
                 LIMIT $top_k
                 """,
-                query_embedding=query_embedding,
+                query_embedding=embedding,
                 top_k=top_k,
             )
             rows = [dict(r) for r in records]
@@ -306,10 +304,24 @@ def _run_fallback_query(question: str, top_k: int) -> list[dict]:
     Combines BM25, vector, graph, and community signals via Weighted Reciprocal Rank Fusion.
     Falls back to legacy hybrid Cypher if all signals fail.
     """
+    # Embed question once for vector and community signals
+    try:
+        query_embedding = embed_texts([question])[0]
+    except Exception:
+        query_embedding = None
+
     bm25_results = _run_bm25_query(question, top_k * 3)
-    vector_results = _run_vector_query(question, top_k * 3)
+    vector_results = (
+        _run_vector_query(question, top_k * 3, query_embedding=query_embedding)
+        if query_embedding
+        else []
+    )
     graph_results = _run_graph_query(question, top_k * 3)
-    community_results = _community_search(question, top_k * 2)
+    community_results = (
+        _community_search(question, top_k * 2, query_embedding=query_embedding)
+        if query_embedding
+        else []
+    )
 
     all_results = [bm25_results, vector_results, graph_results]
     all_weights = [settings.wrrf_weight_bm25, settings.wrrf_weight_vector, settings.wrrf_weight_graph]

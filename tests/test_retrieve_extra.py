@@ -48,9 +48,10 @@ class TestRunFallbackQuery:
     def test_returns_fused_rows(self, monkeypatch) -> None:
         rows = [_make_row()]
         monkeypatch.setattr(retrieve, "_run_bm25_query", lambda q, k: rows)
-        monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k, **kw: [])
         monkeypatch.setattr(retrieve, "_run_graph_query", lambda q, k: [])
-        monkeypatch.setattr(retrieve, "_community_search", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_community_search", lambda q, k, **kw: [])
+        monkeypatch.setattr(retrieve, "embed_texts", lambda texts: [[0.1] * 1024])
 
         result = retrieve._run_fallback_query("test question", top_k=5)
         assert len(result) == 1
@@ -58,9 +59,10 @@ class TestRunFallbackQuery:
 
     def test_falls_back_to_legacy_when_all_empty(self, monkeypatch) -> None:
         monkeypatch.setattr(retrieve, "_run_bm25_query", lambda q, k: [])
-        monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k, **kw: [])
         monkeypatch.setattr(retrieve, "_run_graph_query", lambda q, k: [])
-        monkeypatch.setattr(retrieve, "_community_search", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_community_search", lambda q, k, **kw: [])
+        monkeypatch.setattr(retrieve, "embed_texts", lambda texts: [[0.1] * 1024])
 
         legacy_rows = [_make_row(title="Legacy")]
         monkeypatch.setattr(retrieve, "neo4j_client", _FakeNeo4jClient(legacy_rows))
@@ -126,9 +128,10 @@ class TestQueryGraph:
         monkeypatch.setattr(retrieve, "generate_readonly_cypher", _fail_generate)
         # WRRF fallback path: mock individual signal queries
         monkeypatch.setattr(retrieve, "_run_bm25_query", lambda q, k: fallback_rows)
-        monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k, **kw: [])
         monkeypatch.setattr(retrieve, "_run_graph_query", lambda q, k: [])
-        monkeypatch.setattr(retrieve, "_community_search", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_community_search", lambda q, k, **kw: [])
+        monkeypatch.setattr(retrieve, "embed_texts", lambda texts: [[0.1] * 1024])
 
         result = retrieve.query_graph("test", top_k=3)
         assert result.citations[0]["page_title"] == "Fallback"

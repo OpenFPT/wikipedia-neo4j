@@ -74,6 +74,13 @@ class Neo4jClient:
                 "CREATE FULLTEXT INDEX entity_alias_ft IF NOT EXISTS "
                 "FOR (e:Entity) ON EACH [e.name, e.aliases]"
             )
+            session.run(
+                "CREATE VECTOR INDEX chunk_embedding_idx IF NOT EXISTS "
+                "FOR (c:Chunk) ON (c.embedding) "
+                "OPTIONS {indexConfig: {`vector.dimensions`: $dim, "
+                "`vector.similarity_function`: 'cosine'}}",
+                dim=settings.embedding_dim,
+            )
         logger.debug("Neo4j schema ensured")
 
     def run_batch(self, cypher: str, rows: list[dict], batch_size: int = 1000) -> int:

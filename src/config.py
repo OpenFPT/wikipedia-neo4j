@@ -24,7 +24,8 @@ class Settings(BaseSettings):
     gemini_model_text: str = "gemini-2.0-flash"
     gemini_model_embedding: str = "gemini-embedding-001"
     embedding_backend: str = "local"
-    local_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    local_embedding_model: str = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
+    embedding_dim: int = 1024
 
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"

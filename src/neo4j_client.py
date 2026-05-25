@@ -81,6 +81,31 @@ class Neo4jClient:
                 "`vector.similarity_function`: 'cosine'}}",
                 dim=settings.embedding_dim,
             )
+            # Relation extraction edge indexes
+            session.run(
+                "CREATE INDEX founded_by_idx IF NOT EXISTS "
+                "FOR ()-[r:FOUNDED_BY]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX located_in_idx IF NOT EXISTS "
+                "FOR ()-[r:LOCATED_IN]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX born_in_idx IF NOT EXISTS "
+                "FOR ()-[r:BORN_IN]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX member_of_idx IF NOT EXISTS "
+                "FOR ()-[r:MEMBER_OF]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX part_of_idx IF NOT EXISTS "
+                "FOR ()-[r:PART_OF]-() ON (r.source)"
+            )
+            session.run(
+                "CREATE INDEX created_by_idx IF NOT EXISTS "
+                "FOR ()-[r:CREATED_BY]-() ON (r.source)"
+            )
             session.run(
                 "CREATE CONSTRAINT community_id IF NOT EXISTS "
                 "FOR (cm:Community) REQUIRE cm.id IS UNIQUE"

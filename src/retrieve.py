@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from src.config import settings
-from src.llm import assert_readonly_cypher, generate_readonly_cypher
+from src.llm import assert_readonly_cypher, embed_texts, generate_readonly_cypher
 from src.logging_utils import get_logger
 from src.neo4j_client import neo4j_client
 
@@ -21,7 +21,7 @@ class QueryResult:
     citations: list[dict]
 
 
-_HYBRID_FALLBACK_CYPHER = """
+_LEGACY_HYBRID_CYPHER = """
 CALL {
   CALL db.index.fulltext.queryNodes('chunk_text_ft', $q) YIELD node, score
   MATCH (p:Page)-[:HAS_CHUNK]->(node)
@@ -135,8 +135,6 @@ def _run_bm25_query(question: str, top_k: int) -> list[dict]:  # pragma: no cove
 def _run_vector_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
     """Execute vector similarity search."""
     try:
-        from src.llm import embed_texts
-
         embeddings = embed_texts([question])
         embedding = embeddings[0] if embeddings else None
         if not embedding:
@@ -165,76 +163,53 @@ def _run_graph_query(question: str, top_k: int) -> list[dict]:  # pragma: no cov
         return []
 
 
-def _run_wrrf_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
-    """Execute WRRF hybrid search combining BM25, vector, and graph signals."""
-    bm25_results = _run_bm25_query(question, top_k)
-    vector_results = _run_vector_query(question, top_k)
-    graph_results = _run_graph_query(question, top_k)
-
-    if not (bm25_results or vector_results or graph_results):
-        logger.warning("All retrieval signals returned empty results")
-        return []
-
-    fused = _wrrf_fusion(bm25_results, vector_results, graph_results, top_k)
-    return fused
-
-
 def _wrrf_fusion(
-    bm25_results: list[dict],
-    vector_results: list[dict],
-    graph_results: list[dict],
-    top_k: int,
-) -> list[dict]:  # pragma: no cover
-    """Fuse results using Weighted Reciprocal Rank Fusion.
+    results_list: list[list[dict]],
+    weights: list[float],
+    k: int = 60,
+) -> list[dict]:
+    """Weighted Reciprocal Rank Fusion.
 
-    Formula: score = sum(weight_i / (k + rank_i)) for each signal
+    Formula: score(d) = sum(weight_i / (k + rank_i(d))) for each signal i
+    Deduplicates by chunk_id, keeps highest fused score.
     """
-    from collections import defaultdict
+    # Build rank maps for each signal (1-based ranks)
+    rank_maps: list[dict[str, int]] = []
+    for results in results_list:
+        ranks = {r["chunk_id"]: i + 1 for i, r in enumerate(results)}
+        rank_maps.append(ranks)
 
-    # Build rank maps for each signal
-    bm25_ranks = {r["chunk_id"]: i + 1 for i, r in enumerate(bm25_results)}
-    vector_ranks = {r["chunk_id"]: i + 1 for i, r in enumerate(vector_results)}
-    graph_ranks = {r["chunk_id"]: i + 1 for i, r in enumerate(graph_results)}
-
-    # Collect all chunk IDs
-    all_chunk_ids = set(bm25_ranks.keys()) | set(vector_ranks.keys()) | set(graph_ranks.keys())
+    # Collect all chunk IDs across all signals
+    all_chunk_ids: set[str] = set()
+    for rm in rank_maps:
+        all_chunk_ids.update(rm.keys())
 
     # Compute WRRF scores
-    wrrf_scores = {}
-    k = settings.wrrf_k
-    w_bm25 = settings.wrrf_weight_bm25
-    w_vector = settings.wrrf_weight_vector
-    w_graph = settings.wrrf_weight_graph
-
+    wrrf_scores: dict[str, float] = {}
     for chunk_id in all_chunk_ids:
         score = 0.0
-        if chunk_id in bm25_ranks:
-            score += w_bm25 / (k + bm25_ranks[chunk_id])
-        if chunk_id in vector_ranks:
-            score += w_vector / (k + vector_ranks[chunk_id])
-        if chunk_id in graph_ranks:
-            score += w_graph / (k + graph_ranks[chunk_id])
+        for weight, rm in zip(weights, rank_maps):
+            if chunk_id in rm:
+                score += weight / (k + rm[chunk_id])
         wrrf_scores[chunk_id] = score
 
-    # Build result list with metadata from best source
-    result_map = defaultdict(dict)
-    for r in bm25_results + vector_results + graph_results:
-        chunk_id = r["chunk_id"]
-        if chunk_id not in result_map:
-            result_map[chunk_id] = {
-                "page_title": r.get("page_title", ""),
-                "page_url": r.get("page_url", ""),
-                "page_id": r.get("page_id", ""),
-                "chunk_id": chunk_id,
-                "chunk_text": r.get("chunk_text", ""),
-            }
+    # Build result metadata map (first occurrence wins)
+    result_map: dict[str, dict] = {}
+    for results in results_list:
+        for r in results:
+            chunk_id = r["chunk_id"]
+            if chunk_id not in result_map:
+                result_map[chunk_id] = {
+                    "page_title": r.get("page_title", ""),
+                    "page_url": r.get("page_url", ""),
+                    "page_id": r.get("page_id", ""),
+                    "chunk_id": chunk_id,
+                    "chunk_text": r.get("chunk_text", ""),
+                }
 
-    # Sort by WRRF score and return top_k
+    # Sort by WRRF score descending
     sorted_results = sorted(
-        [
-            {**result_map[chunk_id], "score": wrrf_scores[chunk_id]}
-            for chunk_id in wrrf_scores
-        ],
+        [{**result_map[cid], "score": wrrf_scores[cid]} for cid in wrrf_scores],
         key=lambda x: x["score"],
         reverse=True,
     )
@@ -242,41 +217,49 @@ def _wrrf_fusion(
     logger.info(
         "WRRF fusion completed",
         extra={
-            "bm25_count": len(bm25_results),
-            "vector_count": len(vector_results),
-            "graph_count": len(graph_results),
-            "fused_count": len(sorted_results),
+            "signals": len(results_list),
+            "candidates": len(all_chunk_ids),
+            "output": len(sorted_results),
         },
     )
 
-    return sorted_results[:top_k]
+    return sorted_results
 
 
 def _run_fallback_query(question: str, top_k: int) -> list[dict]:
-    """Execute safe fallback query when LLM-generated Cypher fails."""
+    """Execute WRRF hybrid search as fallback when LLM-generated Cypher fails.
+
+    Combines BM25, vector, and graph signals via Weighted Reciprocal Rank Fusion.
+    Falls back to legacy hybrid Cypher if all three signals fail.
+    """
+    bm25_results = _run_bm25_query(question, top_k * 3)
+    vector_results = _run_vector_query(question, top_k * 3)
+    graph_results = _run_graph_query(question, top_k * 3)
+
+    if not (bm25_results or vector_results or graph_results):
+        # All signals failed; fall back to legacy single-query hybrid
+        logger.warning("WRRF signals all empty, using legacy hybrid fallback")
+        return _run_legacy_fallback_query(question, top_k)
+
+    fused = _wrrf_fusion(
+        [bm25_results, vector_results, graph_results],
+        [settings.wrrf_weight_bm25, settings.wrrf_weight_vector, settings.wrrf_weight_graph],
+        k=settings.wrrf_k,
+    )
+    return fused[:top_k]
+
+
+def _run_legacy_fallback_query(question: str, top_k: int) -> list[dict]:
+    """Execute legacy hybrid UNION query as last-resort fallback."""
     with neo4j_client.session() as session:
         records = session.run(
-            _HYBRID_FALLBACK_CYPHER,
+            _LEGACY_HYBRID_CYPHER,
             q=question,
             top_k=top_k,
         )
         rows = [dict(r) for r in records]
-    logger.info("Fallback retrieval executed", extra={"rows": len(rows)})
+    logger.info("Legacy fallback retrieval executed", extra={"rows": len(rows)})
     return rows
-
-
-def _run_wrrf_query(question: str, top_k: int) -> list[dict]:
-    """Execute WRRF hybrid search combining BM25, vector, and graph signals."""
-    bm25_results = _run_bm25_query(question, top_k)
-    vector_results = _run_vector_query(question, top_k)
-    graph_results = _run_graph_query(question, top_k)
-
-    if not (bm25_results or vector_results or graph_results):
-        logger.warning("All retrieval signals returned empty results")
-        return []
-
-    fused = _wrrf_fusion(bm25_results, vector_results, graph_results, top_k)
-    return fused
 
 
 def _expand_via_links(page_ids: list[str], question: str, top_k: int) -> list[dict]:

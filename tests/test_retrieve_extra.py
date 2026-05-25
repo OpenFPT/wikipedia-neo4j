@@ -50,6 +50,7 @@ class TestRunFallbackQuery:
         monkeypatch.setattr(retrieve, "_run_bm25_query", lambda q, k: rows)
         monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k: [])
         monkeypatch.setattr(retrieve, "_run_graph_query", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_community_search", lambda q, k: [])
 
         result = retrieve._run_fallback_query("test question", top_k=5)
         assert len(result) == 1
@@ -59,6 +60,7 @@ class TestRunFallbackQuery:
         monkeypatch.setattr(retrieve, "_run_bm25_query", lambda q, k: [])
         monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k: [])
         monkeypatch.setattr(retrieve, "_run_graph_query", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_community_search", lambda q, k: [])
 
         legacy_rows = [_make_row(title="Legacy")]
         monkeypatch.setattr(retrieve, "neo4j_client", _FakeNeo4jClient(legacy_rows))
@@ -126,6 +128,7 @@ class TestQueryGraph:
         monkeypatch.setattr(retrieve, "_run_bm25_query", lambda q, k: fallback_rows)
         monkeypatch.setattr(retrieve, "_run_vector_query", lambda q, k: [])
         monkeypatch.setattr(retrieve, "_run_graph_query", lambda q, k: [])
+        monkeypatch.setattr(retrieve, "_community_search", lambda q, k: [])
 
         result = retrieve.query_graph("test", top_k=3)
         assert result.citations[0]["page_title"] == "Fallback"

@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     wrrf_weight_bm25: float = 0.4
     wrrf_weight_vector: float = 0.4
     wrrf_weight_graph: float = 0.2
+    wrrf_weight_community: float = 0.15
     wrrf_k: int = 60
 
     neo4j_use_search_clause: bool = False

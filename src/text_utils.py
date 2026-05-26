@@ -231,3 +231,113 @@ def chunk_text_v2(
             seq += 1
 
     return chunks
+
+
+# ---------------------------------------------------------------------------
+# Wiki link extraction
+# ---------------------------------------------------------------------------
+
+_WIKILINK_RE = re.compile(r"\[\[([^\[\]]+?)\]\]")
+
+_SKIP_PREFIXES = (
+    "File:", "Image:", "Category:", "Template:", "Wikipedia:",
+    "Tập tin:", "Hình:", "Thể loại:", "Bản mẫu:",
+    "wikt:", "s:", "q:", "b:", "n:", "v:", "commons:",
+)
+
+
+def extract_wikilinks(raw_text: str) -> list[tuple[str, str]]:
+    """Extract wiki links from raw Wikipedia markup.
+
+    Returns deduplicated list of (target_title, display_text) tuples.
+    Skips File/Category/Template links and strips anchor fragments.
+    """
+    seen: set[str] = set()
+    results: list[tuple[str, str]] = []
+
+    for match in _WIKILINK_RE.finditer(raw_text):
+        content = match.group(1).strip()
+        if not content:
+            continue
+
+        if "|" in content:
+            target, display = content.split("|", 1)
+        else:
+            target = content
+            display = content
+
+        target = target.strip()
+        display = display.strip()
+
+        if not target or not display:
+            continue
+
+        if any(target.startswith(p) or target.lower().startswith(p.lower()) for p in _SKIP_PREFIXES):
+            continue
+
+        if "#" in target:
+            target = target.split("#", 1)[0].strip()
+        if not target:
+            continue
+
+        target = target[0].upper() + target[1:] if target else target
+        target = target.replace("_", " ")
+
+        key = target.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        results.append((target, display))
+
+    return results
+
+
+def entity_grounded_in_text(
+    entity_name: str,
+    display_text: str,
+    chunk_text: str,
+) -> bool:
+    """Check if an entity (or its display form) actually appears in chunk text.
+
+    Handles exact match, display text match, partial name match for
+    multi-word entities, and word-boundary checks for short names.
+    """
+    import unicodedata
+
+    def _norm(s: str) -> str:
+        return unicodedata.normalize("NFKC", s).lower().strip()
+
+    chunk_lower = _norm(chunk_text)
+    name_lower = _norm(entity_name)
+    display_lower = _norm(display_text) if display_text else name_lower
+
+    if not name_lower:
+        return False
+
+    # Exact match of full entity name
+    if name_lower in chunk_lower:
+        return True
+
+    # Display text match (wikilink [[target|display]] form)
+    if display_lower != name_lower and display_lower in chunk_lower:
+        return True
+
+    # Multi-word: check if last 2 tokens appear together
+    tokens = name_lower.split()
+    if len(tokens) >= 2:
+        last_two = " ".join(tokens[-2:])
+        if last_two in chunk_lower:
+            return True
+        # Also check first+last for Vietnamese names (Họ + Tên)
+        first_last = f"{tokens[0]} {tokens[-1]}"
+        if len(tokens) >= 3 and first_last in chunk_lower:
+            return True
+
+    # Single-token: require word boundary match to avoid "Năm" in "năm 2017"
+    if len(tokens) == 1 and len(name_lower) >= 3:
+        import re
+        pattern = r"(?<!\w)" + re.escape(name_lower) + r"(?!\w)"
+        if re.search(pattern, chunk_lower):
+            return True
+
+    return False

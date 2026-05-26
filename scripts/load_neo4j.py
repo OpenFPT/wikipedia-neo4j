@@ -50,6 +50,13 @@ MATCH (e:Entity {id: row.entity_id})
 MERGE (c)-[:MENTIONS]->(e)
 """
 
+CYPHER_LINKS = """
+UNWIND $rows AS row
+MATCH (source:Page {title: row.source_title})
+MATCH (target:Page {title: row.target_title})
+MERGE (source)-[:LINKS_TO]->(target)
+"""
+
 
 def _read_jsonl(path: Path, limit: int | None = None):
     with open(path, "r", encoding="utf-8") as f:
@@ -173,6 +180,10 @@ def load_neo4j(
 
     print("Loading mentions...")
     _load_in_batches(CYPHER_MENTIONS, _read_csv(inp / "mentions.csv"), entity_batch, "Mentions")
+
+    if (inp / "links.csv").exists():
+        print("Loading page links...")
+        _load_in_batches(CYPHER_LINKS, _read_csv(inp / "links.csv"), entity_batch, "Links")
 
     if drop_indexes:
         print("Rebuilding schema (indexes + constraints)...")

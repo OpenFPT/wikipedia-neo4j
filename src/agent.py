@@ -302,10 +302,20 @@ def _agent_query_standard(question: str, top_k: int = 4) -> QueryResult:
     seen_chunk_ids: set[str] = set()
 
     for iteration in range(MAX_ITERATIONS):
-        try:
-            raw = chat(messages, max_new_tokens=512, temperature=0.1)
-        except Exception as e:
-            logger.warning("Agent LLM call failed", extra={"iteration": iteration, "error": str(e)})
+        llm_attempts = 0
+        raw = None
+        while llm_attempts < 2:
+            try:
+                raw = chat(messages, max_new_tokens=512, temperature=0.1)
+                break
+            except Exception as e:
+                llm_attempts += 1
+                if llm_attempts >= 2:
+                    logger.warning("Agent LLM call failed after retry", extra={"iteration": iteration, "error": str(e)})
+                else:
+                    logger.debug("Agent LLM call failed, retrying", extra={"iteration": iteration, "error": str(e)})
+
+        if raw is None:
             break
 
         parsed = _parse_agent_response(raw)
@@ -316,6 +326,10 @@ def _agent_query_standard(question: str, top_k: int = 4) -> QueryResult:
             continue
 
         if "final_answer" in parsed:
+            if not actions_taken:
+                messages.append({"role": "assistant", "content": raw})
+                messages.append({"role": "user", "content": "You must use at least one tool before providing a final answer. Use kg_query or text_search to find evidence first."})
+                continue
             answer = parsed["final_answer"]
             logger.info("Agent converged", extra={"iterations": iteration + 1})
             return QueryResult(answer=answer, citations=citations)

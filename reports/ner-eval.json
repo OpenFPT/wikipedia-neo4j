@@ -1,0 +1,722 @@
+{
+  "total_entities": 1482,
+  "type_distribution": {
+    "Location": 1019,
+    "Person": 305,
+    "Organization": 147,
+    "Work": 11
+  },
+  "noise_count": 318,
+  "noise_rate": 0.2145748987854251,
+  "noise_examples": [
+    {
+      "name": ", Savannakhet",
+      "type": "Location"
+    },
+    {
+      "name": "Năm",
+      "type": "Person"
+    },
+    {
+      "name": "mùa giải 2017",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2017",
+      "type": "Location"
+    },
+    {
+      "name": "vòng loại giải vô địch U-19",
+      "type": "Location"
+    },
+    {
+      "name": "áo số 25",
+      "type": "Location"
+    },
+    {
+      "name": "trước UAE.",
+      "type": "Location"
+    },
+    {
+      "name": "sự kiện Tất-đạt-đa Cồ-đàm",
+      "type": "Location"
+    },
+    {
+      "name": "thế kỷ 5",
+      "type": "Location"
+    },
+    {
+      "name": "chứng Niết Bàn",
+      "type": "Location"
+    },
+    {
+      "name": "khoảnh khắc Thích-ca Mâu-ni",
+      "type": "Location"
+    },
+    {
+      "name": "trực chứng Tứ Diệu Đế",
+      "type": "Location"
+    },
+    {
+      "name": "khai mở Bát Thánh Đạo",
+      "type": "Location"
+    },
+    {
+      "name": "kinh điển Pali",
+      "type": "Location"
+    },
+    {
+      "name": "việc Đức Phật",
+      "type": "Location"
+    },
+    {
+      "name": "bối cảnh Phật giáo Việt Nam",
+      "type": "Location"
+    },
+    {
+      "name": "bên cạnh Phật đản và Phật nhập Niết Bàn",
+      "type": "Location"
+    },
+    {
+      "name": "ngày Đức Phật",
+      "type": "Location"
+    },
+    {
+      "name": "ngày 30",
+      "type": "Location"
+    },
+    {
+      "name": "tháng 9",
+      "type": "Location"
+    },
+    {
+      "name": "năm 1989",
+      "type": "Location"
+    },
+    {
+      "name": "Năm 2014",
+      "type": "Location"
+    },
+    {
+      "name": "ngày 23",
+      "type": "Location"
+    },
+    {
+      "name": "năm 1972",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2020",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2025",
+      "type": "Location"
+    },
+    {
+      "name": "thủ tướng thứ 18",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2016",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2018",
+      "type": "Location"
+    },
+    {
+      "name": ", Embaló",
+      "type": "Location"
+    },
+    {
+      "name": ", Israel",
+      "type": "Location"
+    },
+    {
+      "name": ", Nauka",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2007",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2010",
+      "type": "Location"
+    },
+    {
+      "name": "vòng rưỡi",
+      "type": "Location"
+    },
+    {
+      "name": "ngày 17 tháng 2",
+      "type": "Location"
+    },
+    {
+      "name": "vị trí tiền đạo",
+      "type": "Location"
+    },
+    {
+      "name": "năm 1996",
+      "type": "Location"
+    },
+    {
+      "name": "năm 1995",
+      "type": "Location"
+    },
+    {
+      "name": "lần thứ hai",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2018",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2026",
+      "type": "Location"
+    },
+    {
+      "name": "Thế kỷ 20",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2025",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2022",
+      "type": "Location"
+    },
+    {
+      "name": "năm 1941",
+      "type": "Location"
+    },
+    {
+      "name": "năm 2023",
+      "type": "Location"
+    },
+    {
+      "name": "lần thứ 1",
+      "type": "Location"
+    },
+    {
+      "name": ", Vientiane Prefecture",
+      "type": "Location"
+    },
+    {
+      "name": "lần thứ 2",
+      "type": "Location"
+    }
+  ],
+  "type_errors": [
+    {
+      "name": "Ezra F.C.",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "Ezra FC",
+      "current_type": "Location",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "Lanexang United",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "Buriram United",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "Kalasin F.C.",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "Banbueng F.C.",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "SC Imana",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "Ngee Ann City",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "Santutxu FC",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "AFC.",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    },
+    {
+      "name": "AFC.",
+      "current_type": "Person",
+      "suggested_type": "Organization",
+      "reason": "surface pattern: \\b(F\\.?C\\.?|United|City|FC|SC|CF|AFC|SFC)\\b"
+    }
+  ],
+  "type_error_count": 11,
+  "type_accuracy": 0.0,
+  "wikidata_checked": 0,
+  "wikidata_matched": 0,
+  "duplicates": [
+    {
+      "canonical": "( UTC",
+      "variants": [
+        "( UTC",
+        "( UTC"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "2023 Mister Universe Laos",
+      "variants": [
+        "2023 Mister Universe Laos",
+        "2024 Mister Universe Laos",
+        "2025 Mister Universe Laos"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "31 GMT",
+      "variants": [
+        "31 GMT",
+        "31 GMT"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Acaba",
+      "variants": [
+        "Acaba",
+        "Acaba"
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "AFC.",
+      "variants": [
+        "AFC.",
+        "AFC."
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Allergan Aesthetics",
+      "variants": [
+        "Allergan Aesthetics",
+        "Allergan Aesthetics"
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Anh",
+      "variants": [
+        "Anh",
+        "Anh",
+        "Anh",
+        "Anh"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Anna",
+      "variants": [
+        "Anna",
+        "Anna"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "APOEL",
+      "variants": [
+        "APOEL",
+        "APOEL."
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "AS Vita Club",
+      "variants": [
+        "AS Vita Club",
+        "AS Vita Club",
+        "AS Vita Club"
+      ],
+      "types": [
+        "Organization"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Baikonur",
+      "variants": [
+        "Baikonur",
+        "Baikonur"
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "BMI",
+      "variants": [
+        "BMI",
+        "BMI"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "báo Sài Gòn Giải Phóng",
+      "variants": [
+        "báo Sài Gòn Giải Phóng",
+        "báo Sài Gòn Giải Phóng"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "bão Bắc Ấn Độ Dương",
+      "variants": [
+        "bão Bắc Ấn Độ Dương",
+        "Bắc Ấn Độ Dương"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Béo",
+      "variants": [
+        "Béo",
+        "Béo"
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "bóng đá U-17",
+      "variants": [
+        "bóng đá U-17",
+        "bóng đá U-17"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "bút danh Toto Chan",
+      "variants": [
+        "bút danh Toto Chan",
+        "bút danh Toto Chan"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Bệ",
+      "variants": [
+        "Bệ",
+        "Bệ",
+        "Bệ"
+      ],
+      "types": [
+        "Person",
+        "Location"
+      ],
+      "type_conflict": true
+    },
+    {
+      "canonical": "bệ phóng Site",
+      "variants": [
+        "bệ phóng Site",
+        "bệ phóng Site"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "bệnh nhân có BMI",
+      "variants": [
+        "bệnh nhân có BMI",
+        "bệnh nhân có BMI"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Bỉ",
+      "variants": [
+        "Bỉ",
+        "Bỉ"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Bộ",
+      "variants": [
+        "Bộ",
+        "Bộ",
+        "Bộ"
+      ],
+      "types": [
+        "Organization"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Bộ tổng Tham mưu",
+      "variants": [
+        "Bộ tổng Tham mưu",
+        "Bộ tổng Tham mưu"
+      ],
+      "types": [
+        "Organization"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "CAF",
+      "variants": [
+        "CAF",
+        "CAF"
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "cai quản vùng Hà Lan",
+      "variants": [
+        "cai quản vùng Hà Lan",
+        "cai quản vùng Hà Lan"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Charles",
+      "variants": [
+        "Charles",
+        "Charles"
+      ],
+      "types": [
+        "Person"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "chiến sĩ , tiểu đội trưởng , Đại đội 1",
+      "variants": [
+        "chiến sĩ , tiểu đội trưởng , Đại đội 1",
+        "chiến sĩ , tiểu đội trưởng , Đại đội 1"
+      ],
+      "types": [
+        "Organization"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "chung kết Cúp",
+      "variants": [
+        "chung kết Cúp",
+        "chung kết Cúp"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Chú thích Béo",
+      "variants": [
+        "Chú thích Béo",
+        "Chú thích Béo"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    },
+    {
+      "canonical": "Chúa",
+      "variants": [
+        "Chúa",
+        "Chúa"
+      ],
+      "types": [
+        "Location"
+      ],
+      "type_conflict": false
+    }
+  ],
+  "duplicate_count": 207,
+  "fragmentation_rate": 0.17783505154639176,
+  "lowercase_start_count": 578,
+  "short_name_count": 22,
+  "summary": {
+    "total_entities": 1482,
+    "noise_entities": 318,
+    "noise_rate_pct": 21.5,
+    "clean_entities": 1164,
+    "heuristic_type_errors": 11,
+    "heuristic_type_error_rate_pct": 0.9,
+    "duplicate_groups": 207,
+    "fragmentation_rate_pct": 17.8,
+    "estimated_precision_pct": 77.8
+  },
+  "gold_evaluation": {
+    "simple": {
+      "entity_level": {
+        "precision": 0.375,
+        "recall": 0.3077,
+        "f1": 0.338
+      },
+      "typed": {
+        "precision": 0.1875,
+        "recall": 0.1538,
+        "f1": 0.169
+      },
+      "per_type": {
+        "Location": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        },
+        "Organization": {
+          "precision": 1.0,
+          "recall": 0.375,
+          "f1": 0.5455
+        },
+        "Person": {
+          "precision": 0.6,
+          "recall": 0.3,
+          "f1": 0.4
+        },
+        "Unknown": {
+          "precision": 0.0,
+          "recall": 0,
+          "f1": 0
+        },
+        "Work": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      },
+      "counts": {
+        "gold_total": 39,
+        "predicted_total": 32
+      }
+    },
+    "underthesea": {
+      "entity_level": {
+        "precision": 0.4314,
+        "recall": 0.5641,
+        "f1": 0.4889
+      },
+      "typed": {
+        "precision": 0.3725,
+        "recall": 0.4872,
+        "f1": 0.4222
+      },
+      "per_type": {
+        "Location": {
+          "precision": 0.3103,
+          "recall": 0.45,
+          "f1": 0.3673
+        },
+        "Organization": {
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5
+        },
+        "Person": {
+          "precision": 0.4286,
+          "recall": 0.6,
+          "f1": 0.5
+        },
+        "Work": {
+          "precision": 0,
+          "recall": 0.0,
+          "f1": 0
+        }
+      },
+      "counts": {
+        "gold_total": 39,
+        "predicted_total": 51
+      }
+    }
+  }
+}

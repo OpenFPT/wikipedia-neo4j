@@ -50,6 +50,10 @@ class _RateLimiter:
             if len(bucket) >= self.max_requests:
                 return False, 0
             bucket.append(now)
+            if len(self._hits) > 100 and int(now) % 10 == 0:
+                stale = [k for k, v in self._hits.items() if not v]
+                for k in stale:
+                    del self._hits[k]
             return True, self.max_requests - len(bucket)
 
 
@@ -157,6 +161,8 @@ def _persist_job(job: _JobState) -> None:
 def _restore_jobs() -> None:
     """Restore persisted jobs and normalize stale in-progress states."""
     persisted = _job_store.load_all()
+    now = datetime.now(timezone.utc)
+    pruned = 0
     for job_id, payload in persisted.items():
         try:
             job = _JobState(**payload)
@@ -168,9 +174,19 @@ def _restore_jobs() -> None:
             if not job.error:
                 job.error = "Server restarted while job was in progress"
             if not job.finished_at:
-                job.finished_at = datetime.now(timezone.utc).isoformat()
+                job.finished_at = now.isoformat()
+        if job.finished_at and job.status in {"completed", "failed", "interrupted", "cancelled"}:
+            try:
+                finished = datetime.fromisoformat(job.finished_at)
+                if (now - finished).total_seconds() > 86400:
+                    pruned += 1
+                    continue
+            except (ValueError, TypeError):
+                pass
         _jobs[job_id] = job
         _persist_job(job)
+    if pruned:
+        logger.info("Pruned old completed jobs on startup", extra={"pruned": pruned})
 
 
 _restore_jobs()

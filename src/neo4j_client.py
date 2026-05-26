@@ -40,7 +40,12 @@ class Neo4jClient:
     @contextmanager
     def session(self):
         """Yield a Neo4j session with guaranteed cleanup."""
-        session = self.driver.session()
+        try:
+            session = self.driver.session()
+        except Exception:
+            logger.warning("Neo4j session creation failed, verifying connectivity")
+            self.driver.verify_connectivity()
+            session = self.driver.session()
         try:
             yield session
         finally:

@@ -46,7 +46,8 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
 
 ### Key Design Decisions
 
-- **NER is pluggable** via `NER_BACKEND` env: `simple` (regex + keyword classification), `underthesea` (BIO tagging), or `phonlp` (PhoNLP + VnCoreNLP word segmentation)
+- **NER is pluggable** via `NER_BACKEND` env: `simple` (regex + keyword classification), `underthesea` (BIO tagging), `phonlp` (PhoNLP + VnCoreNLP word segmentation), `phobert` (transformer pipeline), or `wikilink` (Wikipedia hyperlinks — best for bulk ingestion, Typed F1=46.9%)
+- **NER postprocessing** (`postprocess_entities`): all backends pass through noise filtering (`_is_noise` patterns), org surface-pattern reclassification, and deduplication. The `wikilink` backend additionally uses `entity_grounded_in_text()` to verify entities appear in chunk text before creating mentions.
 - **Embeddings are pluggable** via `EMBEDDING_BACKEND`: `gemini` (with multi-key rotation on rate-limit) or `local` (sentence-transformers)
 - **Model mode** via `MODEL_MODE`: `api` (Gemini for Cypher generation) or `local` (Qwen2.5-7B-Instruct, 4-bit NF4 quantized, for ReAct agent)
 - **Cypher generation safety**: LLM output is validated against a blocklist of write keywords and must return exact aliases (`page_title`, `page_url`, `chunk_id`, `chunk_text`, `score`)
@@ -59,7 +60,8 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
 
 - `src/main.py` — FastAPI app, API key auth, rate limiting, job lifecycle, health/ready/metrics
 - `src/ingest.py` — Wikipedia API and HF ingestion pipelines
-- `src/ner.py` — Pluggable NER backends, BIO tag accumulation, entity type classification
+- `src/ner.py` — Pluggable NER backends, BIO tag accumulation, entity type classification, postprocessing (noise filter + type reclassification)
+- `src/text_utils.py` — Vietnamese Unicode normalization, text chunking, wikilink extraction, entity grounding
 - `src/retrieve.py` — Cypher-based retrieval with hybrid fulltext fallback
 - `src/agent.py` — ReAct agent loop with 4 graph tools for multi-hop QA
 - `src/llm.py` — Gemini client pool, embedding generation (single + batch), Cypher generation + validation

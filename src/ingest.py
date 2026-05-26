@@ -14,6 +14,7 @@ from src.llm import embed_texts
 from src.logging_utils import get_logger
 from src.neo4j_client import neo4j_client
 from src.ner import extract_entities
+from src.text_utils import chunk_text_v2
 
 
 logger = get_logger(__name__)
@@ -71,9 +72,10 @@ def _upsert_page_from_text(
     summary: str,
 ) -> IngestResult:
     """Upsert one page, chunks, entities, and mention edges into Neo4j."""
-    chunks = _chunk_text(text)
+    chunks = chunk_text_v2(text, title=title)
+    chunk_texts = [c.context + c.text for c in chunks]
     entities = extract_entities(text)
-    embeddings = embed_texts(chunks) if chunks else []
+    embeddings = embed_texts(chunk_texts) if chunk_texts else []
 
     with neo4j_client.session() as session:
         session.run(
@@ -98,13 +100,15 @@ def _upsert_page_from_text(
                 MERGE (c:Chunk {id: $chunk_id})
                 SET c.text = $text,
                     c.sequence_number = $seq,
+                    c.section = $section,
                     c.embedding = $embedding
                 MERGE (p)-[:HAS_CHUNK]->(c)
                 """,
                 page_id=page_id,
                 chunk_id=chunk_id,
-                text=chunk,
+                text=chunk.text,
                 seq=idx,
+                section=chunk.section,
                 embedding=embedding,
             )
 

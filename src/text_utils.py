@@ -234,6 +234,69 @@ def chunk_text_v2(
 
 
 # ---------------------------------------------------------------------------
+# Wiki markup stripping
+# ---------------------------------------------------------------------------
+
+_TEMPLATE_RE = re.compile(r"\{\{[^}]*\}\}")
+_REF_RE = re.compile(r"<ref[^>]*>.*?</ref>|<ref[^>]*/?>", re.DOTALL)
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+_HEADING_STRIP_RE = re.compile(r"^={2,6}\s*(.+?)\s*={2,6}\s*$", re.MULTILINE)
+_BOLD_RE = re.compile(r"'{2,3}(.+?)'{2,3}")
+_CATEGORY_RE = re.compile(r"\[\[(Category|Thể loại|Danh mục):[^\]]*\]\]", re.IGNORECASE)
+_FILE_LINK_RE = re.compile(
+    r"\[\[(File|Image|Tập tin|Hình):[^\]]*\]\]", re.IGNORECASE
+)
+_INFOBOX_FIELD_RE = re.compile(r"\|[a-zA-Z_][a-zA-Z0-9_ ]*=[^|]*")
+
+
+def _strip_nested_templates(text: str) -> str:
+    """Remove nested {{...}} templates using balanced brace matching."""
+    result = []
+    i = 0
+    n = len(text)
+    while i < n:
+        if i < n - 1 and text[i] == "{" and text[i + 1] == "{":
+            depth = 2
+            i += 2
+            while i < n and depth > 0:
+                if i < n - 1 and text[i] == "{" and text[i + 1] == "{":
+                    depth += 2
+                    i += 2
+                elif i < n - 1 and text[i] == "}" and text[i + 1] == "}":
+                    depth -= 2
+                    i += 2
+                else:
+                    i += 1
+        else:
+            result.append(text[i])
+            i += 1
+    return "".join(result)
+
+
+def strip_wiki_markup(text: str) -> str:
+    """Remove wiki markup syntax, keeping readable text content."""
+    text = _REF_RE.sub("", text)
+    text = _strip_nested_templates(text)
+    text = _TEMPLATE_RE.sub("", text)
+    text = _FILE_LINK_RE.sub("", text)
+    text = _CATEGORY_RE.sub("", text)
+    text = _HTML_TAG_RE.sub("", text)
+    text = _HEADING_STRIP_RE.sub(r"\1", text)
+    text = _BOLD_RE.sub(r"\1", text)
+    # [[target|display]] -> display, [[target]] -> target
+    text = re.sub(r"\[\[([^\[\]|]+)\|([^\[\]]+)\]\]", r"\2", text)
+    text = re.sub(r"\[\[([^\[\]]+)\]\]", r"\1", text)
+    # Orphaned fragments from split wikilinks across chunk boundaries
+    text = re.sub(r"[^\[]*\]\]", "", text, count=1) if text.lstrip().startswith("|") or ("]]" in text and "[[" not in text.split("]]")[0]) else text
+    text = re.sub(r"\[\[[^\]]*$", "", text)
+    text = re.sub(r"\]\]", "", text)
+    text = re.sub(r"\[\[", "", text)
+    text = _INFOBOX_FIELD_RE.sub("", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+# ---------------------------------------------------------------------------
 # Wiki link extraction
 # ---------------------------------------------------------------------------
 

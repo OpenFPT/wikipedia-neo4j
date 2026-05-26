@@ -7,6 +7,7 @@ from src.ner import (
     strip_disambiguation,
     _extract_entities_wikilink,
 )
+from src.text_utils import strip_wiki_markup
 
 
 class TestTruncatedNames:
@@ -101,3 +102,57 @@ class TestDisambiguationHints:
         assert type_map.get("Hà Nội") == "Location"
         assert type_map.get("Đảng Cộng sản") == "Organization"
         assert type_map.get("Titanic") == "Work"
+
+
+class TestStripWikiMarkup:
+    def test_removes_templates(self):
+        assert strip_wiki_markup("Hello {{cite web|url=x}} world") == "Hello world"
+
+    def test_removes_ref_tags(self):
+        text = "Fact<ref>source</ref> here<ref name='a'/>"
+        assert strip_wiki_markup(text) == "Fact here"
+
+    def test_removes_multiline_ref(self):
+        text = "Start<ref>\nmultiline\ncontent\n</ref>End"
+        assert strip_wiki_markup(text) == "StartEnd"
+
+    def test_removes_html_tags(self):
+        assert strip_wiki_markup("<b>bold</b> and <i>italic</i>") == "bold and italic"
+
+    def test_strips_headings(self):
+        text = "== Lịch sử ==\nContent here"
+        result = strip_wiki_markup(text)
+        assert "==" not in result
+        assert "Lịch sử" in result
+        assert "Content here" in result
+
+    def test_strips_bold_italic(self):
+        assert strip_wiki_markup("'''Hà Nội''' là ''thủ đô''") == "Hà Nội là thủ đô"
+
+    def test_removes_category_links(self):
+        text = "Text [[Thể loại:Thành phố]] end"
+        assert strip_wiki_markup(text) == "Text end"
+
+    def test_removes_file_links(self):
+        text = "Before [[Tập tin:Map.png|thumb|Caption]] after"
+        assert strip_wiki_markup(text) == "Before after"
+
+    def test_piped_wikilink_keeps_display(self):
+        assert strip_wiki_markup("[[Việt Nam|Vietnam]]") == "Vietnam"
+
+    def test_plain_wikilink_keeps_target(self):
+        assert strip_wiki_markup("[[Hà Nội]]") == "Hà Nội"
+
+    def test_collapses_whitespace(self):
+        text = "a   b  \n  c"
+        assert strip_wiki_markup(text) == "a b c"
+
+    def test_combined_markup(self):
+        text = "== Tiêu đề ==\n'''Hà Nội'''{{ref|x}} là [[thủ đô]] của [[Việt Nam|VN]]<ref>src</ref>."
+        result = strip_wiki_markup(text)
+        assert "==" not in result
+        assert "{{" not in result
+        assert "<ref" not in result
+        assert "Hà Nội" in result
+        assert "thủ đô" in result
+        assert "VN" in result

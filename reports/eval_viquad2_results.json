@@ -1,13 +1,13 @@
 {
-  "total": 10,
-  "answerable_count": 8,
-  "impossible_count": 2,
-  "context_hit_rate": 0.0,
-  "mrr": 0.0,
+  "total": 500,
+  "answerable_count": 335,
+  "impossible_count": 165,
+  "context_hit_rate": 0.726,
+  "mrr": 0.36400090219378145,
   "exact_match": 0.0,
-  "token_f1": 0.10671684966568083,
+  "token_f1": 0.11950677834619311,
   "abstain_accuracy": 0.0,
-  "avg_latency_ms": 184682.71724700026,
+  "avg_latency_ms": 2924.7487554619893,
   "details": [
     {
       "id": "0001-0001-0001",
@@ -16,8 +16,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.21645021645021645,
-      "latency_ms": 184716.1
+      "f1": 0.2510460251046025,
+      "latency_ms": 16475.3
     },
     {
       "id": "0001-0001-0002",
@@ -27,7 +27,7 @@
       "mrr": 0.0,
       "em": null,
       "f1": null,
-      "latency_ms": 185983.9
+      "latency_ms": 4241.0
     },
     {
       "id": "0001-0001-0003",
@@ -36,8 +36,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.034632034632034625,
-      "latency_ms": 184168.1
+      "f1": 0.0,
+      "latency_ms": 2903.1
     },
     {
       "id": "0001-0001-0004",
@@ -46,8 +46,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.0,
-      "latency_ms": 184732.7
+      "f1": 0.00900900900900901,
+      "latency_ms": 2570.7
     },
     {
       "id": "0001-0001-0005",
@@ -56,8 +56,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.1217391304347826,
-      "latency_ms": 185095.3
+      "f1": 0.03571428571428571,
+      "latency_ms": 2528.1
     },
     {
       "id": "0001-0001-0006",
@@ -66,8 +66,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.03636363636363637,
-      "latency_ms": 185006.4
+      "f1": 0.062222222222222213,
+      "latency_ms": 2554.4
     },
     {
       "id": "0001-0001-0007",
@@ -76,8 +76,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.21576763485477174,
-      "latency_ms": 184493.6
+      "f1": 0.34677419354838707,
+      "latency_ms": 2571.7
     },
     {
       "id": "0001-0002-0001",
@@ -86,8 +86,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.09777777777777778,
-      "latency_ms": 184911.3
+      "f1": 0.1658986175115207,
+      "latency_ms": 2605.7
     },
     {
       "id": "0001-0002-0002",
@@ -96,8 +96,8 @@
       "hit": 0.0,
       "mrr": 0.0,
       "em": 0.0,
-      "f1": 0.13100436681222707,
-      "latency_ms": 183542.2
+      "f1": 0.07692307692307693,
+      "latency_ms": 2511.1
     },
     {
       "id": "0001-0002-0003",
@@ -107,7 +107,4907 @@
       "mrr": 0.0,
       "em": null,
       "f1": null,
-      "latency_ms": 184177.6
+      "latency_ms": 2651.6
+    },
+    {
+      "id": "0001-0002-0004",
+      "question": "Điều gì đã khiến toàn cầu trở thành nơi trung chuyển trên Paris?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2927.5
+    },
+    {
+      "id": "0001-0002-0005",
+      "question": "Kinh đô ánh sáng nổi tiếng như thế nào trong lĩnh vực thời trang mua sắm?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.3708609271523179,
+      "latency_ms": 2537.2
+    },
+    {
+      "id": "0001-0002-0006",
+      "question": "Điều gì đã khiến Paris trở thành nơi trung chuyển trên toàn cầu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.2105263157894737,
+      "latency_ms": 2606.2
+    },
+    {
+      "id": "0001-0002-0007",
+      "question": "Trụ sở chính của UNESCO được đặt tại thành phố nào trong số bốn \"thành phố toàn ",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2505.6
+    },
+    {
+      "id": "0001-0002-0008",
+      "question": "Ngoài Paris, còn có thành phố nào được đánh giá là thành phố toàn cầu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.046242774566473986,
+      "latency_ms": 2468.5
+    },
+    {
+      "id": "0001-0003-0001",
+      "question": "Trước thế kỷ 17, tại Paris các nơi công cộng thiếu ánh đèn buổi tuối thường có h",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2456.9
+    },
+    {
+      "id": "0001-0003-0002",
+      "question": "Kinh đô ánh sáng dịch từ tiếng Pháp sang tiếng Anh chính xác là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.26666666666666666,
+      "latency_ms": 2501.7
+    },
+    {
+      "id": "0001-0003-0003",
+      "question": "Tên gọi The City of Lights bắt nguồn từ sự việc gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.136986301369863,
+      "latency_ms": 2577.5
+    },
+    {
+      "id": "0001-0003-0004",
+      "question": "Tên gọi Pháp bắt nguồn từ sự việc gì?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2522.0
+    },
+    {
+      "id": "0001-0003-0005",
+      "question": "Người dân trên thế giới thường gọi Paris với tên khác là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.09302325581395349,
+      "latency_ms": 2424.2
+    },
+    {
+      "id": "0001-0004-0001",
+      "question": "Làm sao để chuyển tên thành phố thủ đô nước Pháp thành danh từ dùng để chỉ người",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.029126213592233007,
+      "latency_ms": 2992.3
+    },
+    {
+      "id": "0001-0004-0002",
+      "question": "Hai thành phố nào được gọi là thành phố của tình yêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.04081632653061224,
+      "latency_ms": 2637.1
+    },
+    {
+      "id": "0001-0004-0003",
+      "question": "Thành phố nào được gọi là thành phố của Hai tình yêu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2580.5
+    },
+    {
+      "id": "0001-0005-0001",
+      "question": "Nguồn gốc tên gọi Paname bắt nguồn từ đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.0625,
+      "em": 0.0,
+      "f1": 0.5263157894736842,
+      "latency_ms": 4013.6
+    },
+    {
+      "id": "0001-0005-0002",
+      "question": "Nguồn gốc tên gọi Mỹ bắt nguồn từ đâu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2623.7
+    },
+    {
+      "id": "0001-0005-0003",
+      "question": "Ngoại trừ cái tên Paname, Paris còn có tên gọi khác là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2646.7
+    },
+    {
+      "id": "0001-0006-0001",
+      "question": "Con sông nào nằm phía nam Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2645.0
+    },
+    {
+      "id": "0001-0006-0002",
+      "question": "Công trình nào nằm trên đỉnh Montmartre?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.16666666666666669,
+      "latency_ms": 2638.2
+    },
+    {
+      "id": "0001-0006-0003",
+      "question": "Hai nằm giữa Paris trên dòng sông Sen có tên là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.12875536480686695,
+      "latency_ms": 2797.3
+    },
+    {
+      "id": "0001-0006-0004",
+      "question": "Con sông nào nằm trong lòng Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.08849557522123895,
+      "latency_ms": 2670.3
+    },
+    {
+      "id": "0001-0006-0005",
+      "question": "Hai đảo nằm giữa Seine trên dòng sông Paris có tên là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2687.3
+    },
+    {
+      "id": "0001-0006-0006",
+      "question": "Montparnasse nằm ở phía nào của Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2662.0
+    },
+    {
+      "id": "0001-0006-0007",
+      "question": "Công trình nào nằm dưới đỉnh Montmartre?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2707.4
+    },
+    {
+      "id": "0001-0007-0001",
+      "question": "Cách giới hạn nội ô Paris được thay đổi thế nào sau khoảng 150 năm tính từ ngày ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.14545454545454548,
+      "latency_ms": 2620.3
+    },
+    {
+      "id": "0001-0007-0002",
+      "question": "Năm 1844, ngoại ô và nội ô Paris được sát nhập bằng gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2620.4
+    },
+    {
+      "id": "0001-0007-0003",
+      "question": "Ngày nay, muốn từ nội ô sang ngoại ô Paris, ta thường phải băng qua đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2623.1
+    },
+    {
+      "id": "0001-0007-0004",
+      "question": "Rừng Vincennes nằm ở đâu của Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.03636363636363637,
+      "latency_ms": 2577.6
+    },
+    {
+      "id": "0001-0007-0005",
+      "question": "Năm 1844, ngoại ô và nội ô Paris được ngăn cách bằng gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.2222222222222222,
+      "latency_ms": 2611.5
+    },
+    {
+      "id": "0001-0007-0006",
+      "question": "Rừng Paris nằm ở đâu của Vincennes?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2513.2
+    },
+    {
+      "id": "0001-0008-0001",
+      "question": "Bồn Paris là nơi khởi nguồn của nhiều thuyết địa chất nổi tiếng nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.05940594059405941,
+      "latency_ms": 2773.4
+    },
+    {
+      "id": "0001-0008-0002",
+      "question": "Đâu được xem là nguyên nhân khởi nguồn cho sự hình thành lưu vực sông Seine?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 4763.8
+    },
+    {
+      "id": "0001-0008-0003",
+      "question": "Vì sao các cửa bồn Paris mở khóa lại?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2673.8
+    },
+    {
+      "id": "0001-0008-0004",
+      "question": "Sự kiện nào đánh dấu sự hình thành của lưu vực sông Paris và sông Seine?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2685.4
+    },
+    {
+      "id": "0001-0008-0005",
+      "question": "Bản đồ địa chất được bắt đầu vẽ ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.021621621621621623,
+      "latency_ms": 2685.9
+    },
+    {
+      "id": "0001-0008-0006",
+      "question": "Bồn Paris nằm trên bồn những núi nào từ thời Paleozoic?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2559.7
+    },
+    {
+      "id": "0001-0008-0007",
+      "question": "Bồn Paleozoic nằm trên bồn những núi nào từ thời Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2672.3
+    },
+    {
+      "id": "0001-0008-0008",
+      "question": "Bản đồ Đại Tây Dương được bắt đầu vẽ ở đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.07692307692307693,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2555.9
+    },
+    {
+      "id": "0001-0008-0009",
+      "question": "Sự kiện nào đánh dấu sự hình thành của lưu vực sông Loire và sông Seine?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.10526315789473684,
+      "latency_ms": 2686.1
+    },
+    {
+      "id": "0001-0008-0010",
+      "question": "Vì sao các cửa bồn Paris bị khóa lại?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.15384615384615383,
+      "latency_ms": 2633.1
+    },
+    {
+      "id": "0001-0009-0001",
+      "question": "Ở Paris, CaSO4.2H2O được khai thác nhiều ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.044444444444444446,
+      "latency_ms": 2689.0
+    },
+    {
+      "id": "0001-0009-0002",
+      "question": "Việc khai thác cát bên sông Sen đã dừng từ lúc nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2628.2
+    },
+    {
+      "id": "0001-0009-0003",
+      "question": "Việc khai thác CaCO3 đã từ lâu được di dời từ sông Sen đến đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2577.8
+    },
+    {
+      "id": "0001-0009-0004",
+      "question": "Sau thế kỷ 15 đá vôi được khai thác nhiều ở đâu trong Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2632.3
+    },
+    {
+      "id": "0001-0009-0005",
+      "question": "Ở Hầm mộ Paris, CaSO4.2H2O được khai thác nhiều ở đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2708.3
+    },
+    {
+      "id": "0001-0009-0006",
+      "question": "Việc khai thác đá vôi bên sông Sen đã dừng từ lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2682.7
+    },
+    {
+      "id": "0001-0009-0007",
+      "question": "Việc loại bỏ cặn CaCO3 đã từ lâu được di dời từ sông Sen đến đâu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2677.9
+    },
+    {
+      "id": "0001-0009-0008",
+      "question": "Tầng Lutetia được cô đọng bởi gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0392156862745098,
+      "latency_ms": 2854.3
+    },
+    {
+      "id": "0001-0009-0009",
+      "question": "Thành phần bên trong lòng đất Paris chủ yếu là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.03703703703703704,
+      "latency_ms": 2566.2
+    },
+    {
+      "id": "0001-0010-0001",
+      "question": "Nơi nào nằm trên kênh Seine nối liền bồn Villette và thượng lưu sông Saint-Marti",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2518.4
+    },
+    {
+      "id": "0001-0010-0002",
+      "question": "Điểm cuối của kênh Saint-Denis ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2739.0
+    },
+    {
+      "id": "0001-0010-0003",
+      "question": "Nơi nào nằm trên kênh Saint-Martin nối liền bồn Villette và thượng lưu sông Sein",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.04371584699453551,
+      "latency_ms": 2535.6
+    },
+    {
+      "id": "0001-0010-0004",
+      "question": "Trừ dòng sông Seine, dòng chảy nào qua Paris có phần lộ thiên?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2678.9
+    },
+    {
+      "id": "0001-0010-0005",
+      "question": "Dựa theo bản đồ sông Sen, Paris có hình dạng gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2577.2
+    },
+    {
+      "id": "0001-0010-0006",
+      "question": "Dựa theo bản đồ Paris, sông Sen có hình dạng gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.16666666666666669,
+      "latency_ms": 2794.8
+    },
+    {
+      "id": "0001-0011-0001",
+      "question": "Khí hậu châu Âu có đặc điểm gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.05263157894736842,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2535.8
+    },
+    {
+      "id": "0001-0011-0002",
+      "question": "Thời điểm nào nhiệt độ Paris đạt mức cao nhất?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2558.6
+    },
+    {
+      "id": "0001-0011-0003",
+      "question": "Nguyên nhân chủ yếu nào tạo nên khí hậu của châu Âu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2512.5
+    },
+    {
+      "id": "0001-0011-0004",
+      "question": "Khí hậu Paris có đặc điểm gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.2631578947368421,
+      "latency_ms": 2721.6
+    },
+    {
+      "id": "0001-0011-0005",
+      "question": "Thời điểm nào nhiệt độ châu Âu đạt mức cao nhất?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2888.7
+    },
+    {
+      "id": "0001-0011-0006",
+      "question": "Nguyên nhân chủ yếu nào tạo nên khí hậu của Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.07246376811594202,
+      "latency_ms": 2585.3
+    },
+    {
+      "id": "0001-0012-0001",
+      "question": "Ai là người đã chọn Paris làm thủ đô cho nước Pháp?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.027522935779816512,
+      "latency_ms": 2518.8
+    },
+    {
+      "id": "0001-0012-0002",
+      "question": "Paris trở thành nơi thịnh vượng nhất châu Âu vào thời kì nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.08071748878923767,
+      "latency_ms": 2663.1
+    },
+    {
+      "id": "0001-0012-0003",
+      "question": "Châu Âu trở thành nơi thịnh vượng nhất Paris vào thời kì nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2526.0
+    },
+    {
+      "id": "0001-0012-0004",
+      "question": "Paris bị Đế quốc Roma chiếm đóng vào thời điểm nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.08144796380090498,
+      "latency_ms": 2732.6
+    },
+    {
+      "id": "0001-0012-0005",
+      "question": "Cuộc cách mạng Pháp lần đầu tiên diễn ra ở đâu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.011363636363636362,
+      "latency_ms": 2562.9
+    },
+    {
+      "id": "0001-0012-0006",
+      "question": "Ai là những người dân đầu tiên sống ở Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": 0.0,
+      "f1": 0.14678899082568808,
+      "latency_ms": 2682.3
+    },
+    {
+      "id": "0001-0013-0001",
+      "question": "Con người lần đầu xuất hiện ở Paris vào lúc nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0909090909090909,
+      "latency_ms": 2678.0
+    },
+    {
+      "id": "0001-0013-0002",
+      "question": "Dựa vào đâu cho thấy con người đã sống ở Sông Sen 4000 năm trước?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2724.8
+    },
+    {
+      "id": "0001-0013-0003",
+      "question": "Con người bắt đầu tập trung cư trú nhiều bên Sen vào lúc nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.30508474576271183,
+      "latency_ms": 2812.5
+    },
+    {
+      "id": "0001-0013-0004",
+      "question": "Con người Paris lần đầu xuất hiện vào lúc nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2613.6
+    },
+    {
+      "id": "0001-0013-0005",
+      "question": "Dựa vào đâu cho thấy con người đã sống ở Sông Sen 40000 năm trước?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.4912280701754386,
+      "latency_ms": 2772.4
+    },
+    {
+      "id": "0001-0014-0001",
+      "question": "Lutetia có hình dáng như thế nào vào những thế kỷ đầu sau Công nguyên?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.04395604395604395,
+      "latency_ms": 3340.1
+    },
+    {
+      "id": "0001-0014-0002",
+      "question": "Roma có tên gì sau khi bị xâm chiếm bởi đế chế Paris?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2650.1
+    },
+    {
+      "id": "0001-0014-0003",
+      "question": "Ai đã kêu gọi người dân Mông Cổ không bỏ xứ trong cuộc tấn công của người Paris?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2680.1
+    },
+    {
+      "id": "0001-0014-0004",
+      "question": "Ai đã kêu gọi người dân Paris không bỏ xứ trong cuộc tấn công của người Mông Cổ?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2705.6
+    },
+    {
+      "id": "0001-0014-0005",
+      "question": "Ai đã mang  Kito giáo vào Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2784.2
+    },
+    {
+      "id": "0001-0014-0006",
+      "question": "Paris có tên gì sau khi bị xâm chiếm bởi đế chế Roma?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.05882352941176469,
+      "latency_ms": 2635.6
+    },
+    {
+      "id": "0001-0015-0001",
+      "question": "Cuộc chiến tranh Paris và người Viking đã chấm dứt như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.1176470588235294,
+      "latency_ms": 2744.7
+    },
+    {
+      "id": "0001-0015-0002",
+      "question": "Những chiến binh Paris đã tấn công Viking lần đầu vào lúc nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2701.4
+    },
+    {
+      "id": "0001-0015-0003",
+      "question": "Cuộc chiến tranh Attila và người Viking đã chấm dứt như thế nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2609.4
+    },
+    {
+      "id": "0001-0015-0004",
+      "question": "Ai đã cai trị Attila sau khi giải phóng khỏi Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2599.9
+    },
+    {
+      "id": "0001-0015-0005",
+      "question": "Những chiến binh Viking đã tấn công Paris lần đầu vào lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.04081632653061224,
+      "latency_ms": 2722.4
+    },
+    {
+      "id": "0001-0015-0006",
+      "question": "Ai là người cai trị Paris sau thời Childéric I?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.10071942446043167,
+      "latency_ms": 2593.4
+    },
+    {
+      "id": "0001-0015-0007",
+      "question": "Ai đã cai trị Paris sau khi giải phóng khỏi Attila?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2580.2
+    },
+    {
+      "id": "0001-0016-0001",
+      "question": "Paris đã trở lại làm thủ đô từ vua nào lên ngôi?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0091324200913242,
+      "latency_ms": 2672.9
+    },
+    {
+      "id": "0001-0016-0002",
+      "question": "Paris đã phát triển lớn mạnh hơn Orléans vào lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.08144796380090498,
+      "latency_ms": 2580.8
+    },
+    {
+      "id": "0001-0016-0003",
+      "question": "Capet đã chọn nơi nào để tập trung?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2633.2
+    },
+    {
+      "id": "0001-0016-0004",
+      "question": "Capet đã chọn nơi nào để đóng đô?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0909090909090909,
+      "latency_ms": 2881.2
+    },
+    {
+      "id": "0001-0017-0001",
+      "question": "Thành phố nào tập trung đông người nhất lục địa già vào thế kỷ XIV?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2853.3
+    },
+    {
+      "id": "0001-0017-0002",
+      "question": "Bên bờ phải sông Sen đã phát triển mạnh về hoạt động gì vào thế kỉ XII?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0392156862745098,
+      "latency_ms": 2628.1
+    },
+    {
+      "id": "0001-0017-0003",
+      "question": "Paris đã thành đầu não chính trị và tôn giáo sau công trình gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": 0.0,
+      "f1": 0.2553191489361702,
+      "latency_ms": 2784.6
+    },
+    {
+      "id": "0001-0017-0004",
+      "question": "Bên bờ trái sông Sen đã phát triển mạnh về hoạt động gì vào thế kỉ II?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2622.9
+    },
+    {
+      "id": "0001-0017-0005",
+      "question": "Vì sao vua Charles V cho xây dựng bức tường thành từcầu Pont Royal tới cửa ô Sai",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.11320754716981131,
+      "latency_ms": 2722.2
+    },
+    {
+      "id": "0001-0017-0006",
+      "question": "Bên bờ trái sông Sen đã phát triển mạnh về hoạt động gì vào thế kỉ XII?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2822.6
+    },
+    {
+      "id": "0001-0018-0001",
+      "question": "Ai đã nắm giữ Pháp trong chiến tranh Paris-Anh thế kỷ XIV?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2730.0
+    },
+    {
+      "id": "0001-0018-0002",
+      "question": "Ai đã nắm giữ Paris trong chiến tranh Pháp-Anh thế kỷ XIV?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0547945205479452,
+      "latency_ms": 2712.2
+    },
+    {
+      "id": "0001-0018-0003",
+      "question": "Trong chiến tranh trăm năm ai đã nổi dậy gây nên biến động lịch sử?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.07407407407407407,
+      "latency_ms": 2575.9
+    },
+    {
+      "id": "0001-0018-0004",
+      "question": "Vì sao vua di chuyển đến Hôtel Saint-Pol?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.04301075268817204,
+      "latency_ms": 2569.4
+    },
+    {
+      "id": "0001-0019-0001",
+      "question": "Vua Henry IV tên thật là gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2769.1
+    },
+    {
+      "id": "0001-0019-0002",
+      "question": "Thế lực nào đã xung đột với vua Henry III?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2723.4
+    },
+    {
+      "id": "0001-0019-0003",
+      "question": "Henry IV đã không thể quay lại Paris cho đến năm nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2829.3
+    },
+    {
+      "id": "0001-0019-0004",
+      "question": "Trong ngày lễ Thánh Barthelemy, có bao nhiêu tín đồ Tin Lành bị Kito giáo giết?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.12244897959183672,
+      "latency_ms": 2743.5
+    },
+    {
+      "id": "0001-0019-0005",
+      "question": "Từ 1562 tới 1598 có mấy cuộc xung đột tôn giáo lớn xảy ra ở Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.13636363636363635,
+      "latency_ms": 3382.5
+    },
+    {
+      "id": "0001-0019-0006",
+      "question": "Từ 1572 tới 1598 có mấy cuộc xung đột tôn giáo lớn xảy ra ở Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2949.7
+    },
+    {
+      "id": "0001-0019-0007",
+      "question": "Trong ngày lễ Tin Lành, có bao nhiêu tín đồ Thánh Barthelemy bị Kito giáo giết?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2941.9
+    },
+    {
+      "id": "0001-0019-0008",
+      "question": "Vua Henry tên thật là gì?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2742.7
+    },
+    {
+      "id": "0001-0020-0001",
+      "question": "Cung điện Tuileries nằm ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.06249999999999999,
+      "latency_ms": 2722.4
+    },
+    {
+      "id": "0001-0020-0002",
+      "question": "Ai đã thay Louis XIV điều hành Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2858.5
+    },
+    {
+      "id": "0001-0020-0003",
+      "question": "Vị vua đầu tiên nào đã chuyển từ cung điện ở Paris sang ở Versailles?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.046296296296296294,
+      "latency_ms": 3544.8
+    },
+    {
+      "id": "0001-0020-0004",
+      "question": "Cung điện Paris nằm ở đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3396.5
+    },
+    {
+      "id": "0001-0021-0001",
+      "question": "Cực Nam của Paris lúc thế kỷ XVIII là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.07142857142857142,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3039.6
+    },
+    {
+      "id": "0001-0021-0002",
+      "question": "Cực Tây của Paris lúc thế kỷ XVIII là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3092.6
+    },
+    {
+      "id": "0001-0021-0003",
+      "question": "Nhà thờ Sainte-Geneviève nằm ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.07142857142857142,
+      "em": 0.0,
+      "f1": 0.05925925925925926,
+      "latency_ms": 2897.7
+    },
+    {
+      "id": "0001-0021-0004",
+      "question": "Vì sao dù đã chuyển đến Versailles nhưng Louis XV đã cho kiến thiết nhiều công t",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.1111111111111111,
+      "latency_ms": 2703.2
+    },
+    {
+      "id": "0001-0022-0001",
+      "question": "Vì sao nhà vua phải bỏ cung điện owrVersailles để về Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.2689075630252101,
+      "latency_ms": 2679.2
+    },
+    {
+      "id": "0001-0022-0002",
+      "question": "Ai là người có mức tài sản cao nhất Paris thời gian sau khi bỏ chế độ phong kiến",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2708.6
+    },
+    {
+      "id": "0001-0022-0003",
+      "question": "Versailles dùng để làm gì sau khi nhà vua bị đuổi khỏi đó?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3176.5
+    },
+    {
+      "id": "0001-0022-0004",
+      "question": "Ai là người có quyền lực cao nhất Paris thời gian sau khi bỏ chế độ phong kiến?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.022222222222222223,
+      "latency_ms": 2642.3
+    },
+    {
+      "id": "0001-0023-0001",
+      "question": "Vì sao Louis trở thành vị vua không ngai?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.17500000000000002,
+      "latency_ms": 2783.1
+    },
+    {
+      "id": "0001-0023-0002",
+      "question": "Pháp chính thức không theo chế độ quân chủ vào lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": 0.0,
+      "f1": 0.23478260869565218,
+      "latency_ms": 2676.7
+    },
+    {
+      "id": "0001-0023-0003",
+      "question": "Sự kiện nào đánh dấu mốc chấm dứt cho chế độ quân chủ lập hiến ở Pháp?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.05042016806722689,
+      "latency_ms": 2838.5
+    },
+    {
+      "id": "0001-0023-0004",
+      "question": "Mục đích của ngày lễ Fédération là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.3461538461538462,
+      "latency_ms": 2698.9
+    },
+    {
+      "id": "0001-0023-0005",
+      "question": "Vì sao Pháp xảy ra chiến tranh với Áo vào thập niên cuối thế kỷ XVIII?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.04,
+      "latency_ms": 2632.1
+    },
+    {
+      "id": "0001-0023-0006",
+      "question": "Pháp chính thức theo chế độ quân chủ vào lúc nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2602.4
+    },
+    {
+      "id": "0001-0024-0001",
+      "question": "Đường sắt đầu tiên của Pháp là cầu nối hai nơi nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0851063829787234,
+      "latency_ms": 2767.0
+    },
+    {
+      "id": "0001-0024-0002",
+      "question": "Những nhà văn nào đã phản ánh lên tình hình xã hội Pháp thời đó?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.02702702702702703,
+      "latency_ms": 2599.6
+    },
+    {
+      "id": "0001-0024-0003",
+      "question": "Cái gì là bước đệm mở ra thời đường sắt ở Pháp?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": 0.0,
+      "f1": 0.30508474576271183,
+      "latency_ms": 2647.4
+    },
+    {
+      "id": "0001-0024-0004",
+      "question": "Những nhà văn nào đã phản ánh lên tình hình xã hội Pháp thời nay?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2745.3
+    },
+    {
+      "id": "0001-0024-0005",
+      "question": "Cái gì là bước đệm mở ra thời đường bộ ở Pháp?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2763.8
+    },
+    {
+      "id": "0001-0025-0001",
+      "question": "Paris có sự lột xác mạnh mẽ từ phong cách mới sang diện mạo cổ xưa vào lúc nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3163.9
+    },
+    {
+      "id": "0001-0025-0002",
+      "question": "Paris từ 12 quận tăng thêm 8 quận vào lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.08823529411764705,
+      "latency_ms": 3060.4
+    },
+    {
+      "id": "0001-0025-0003",
+      "question": "Ai là người đã lên kế hoạch tái kiến thiết Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.04166666666666667,
+      "latency_ms": 2670.9
+    },
+    {
+      "id": "0001-0025-0004",
+      "question": "Paris có sự lột xác mạnh mẽ từ phong cách cổ xưa sang diện mạo mới vào lúc nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.05454545454545454,
+      "latency_ms": 2604.8
+    },
+    {
+      "id": "0001-0026-0001",
+      "question": "Thời kỳ thịnh vượng của Belle Époque được biểu hiện qua sự kiện gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.16783216783216784,
+      "latency_ms": 2652.6
+    },
+    {
+      "id": "0001-0026-0002",
+      "question": "Paris trở thành trung tâm văn hóa thế giới vào thời gian nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.07339449541284403,
+      "latency_ms": 2770.1
+    },
+    {
+      "id": "0001-0026-0003",
+      "question": "Tàu điện ngầm đầu tiên của Pháp nối liền những nơi nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2541.4
+    },
+    {
+      "id": "0001-0026-0004",
+      "question": "Tàu điện ngầm thứ hai của Pháp nối liền những nơi nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2743.4
+    },
+    {
+      "id": "0001-0026-0005",
+      "question": "Công trình nổi tiếng nào được xây dựng để đánh dấu 100 năm cách mạng Pháp?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2648.0
+    },
+    {
+      "id": "0001-0026-0006",
+      "question": "Thế giới trở thành trung tâm văn hóa Paris vào thời gian nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2578.1
+    },
+    {
+      "id": "0001-0026-0007",
+      "question": "Công trình nào dựng lên nhiều sau sự xuất hiện của điện ảnh?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2579.7
+    },
+    {
+      "id": "0001-0026-0008",
+      "question": "Công trình nổi tiếng nào được xây dựng để đánh dấu 175 năm cách mạng Pháp?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.07692307692307693,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2647.7
+    },
+    {
+      "id": "0001-0027-0001",
+      "question": "Biện pháp nào dùng để giải quyết việc thiếu nhà ở của người dân?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.07692307692307693,
+      "latency_ms": 2737.8
+    },
+    {
+      "id": "0001-0027-0002",
+      "question": "Trận lũ lớn nhất thế kỷ XX đã gây tổn thất cho Paris như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.06741573033707865,
+      "latency_ms": 2475.5
+    },
+    {
+      "id": "0001-0027-0003",
+      "question": "Paris đã đối mặt với những khó khăn gì sau thế chiến I?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.07692307692307693,
+      "em": 0.0,
+      "f1": 0.19607843137254902,
+      "latency_ms": 2451.2
+    },
+    {
+      "id": "0001-0028-0001",
+      "question": "Cuộc biểu tình của sinh viên đại học Nanterre xảy ra dưới thời tổng thống nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2893.0
+    },
+    {
+      "id": "0001-0028-0002",
+      "question": "Hình ảnh các nước trên thế giới đối với Paris như thế nào sau thế chiến II?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2580.9
+    },
+    {
+      "id": "0001-0028-0003",
+      "question": "Hình ảnh Paris đối với các nước trên thế giới như thế nào sau thế chiến II?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.22388059701492538,
+      "latency_ms": 2616.1
+    },
+    {
+      "id": "0001-0028-0004",
+      "question": "Cuộc biểu tình của sinh viên đại học Algérie xảy ra dưới thời tổng thống nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2640.7
+    },
+    {
+      "id": "0001-0028-0005",
+      "question": "Trong thời gian Charles de Gaulle làm tổng thống, có vấn đề nổi bật gì xảy ra?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.24817518248175183,
+      "latency_ms": 2591.7
+    },
+    {
+      "id": "0001-0028-0006",
+      "question": "Trong thời gian Charles làm tổng thống, có vấn đề nổi bật gì xảy ra?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2491.8
+    },
+    {
+      "id": "0001-0029-0001",
+      "question": "Cuộc diễu hành toàn quốc ở Pháp kéo dài 1 ngày trong tháng 2 năm 2015 diễn ra vớ",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2607.1
+    },
+    {
+      "id": "0001-0029-0002",
+      "question": "Đối tượng nào đã ra tay với tờ báo Charlie Hebdo vào năm 2015?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.19999999999999998,
+      "latency_ms": 2632.5
+    },
+    {
+      "id": "0001-0029-0003",
+      "question": "Cuộc diễu hành toàn quốc ở Pháp kéo dài 2 ngày trong tháng 1 năm 2015 diễn ra vớ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.33513513513513515,
+      "latency_ms": 2591.1
+    },
+    {
+      "id": "0001-0029-0004",
+      "question": "Cuộc diễu hành lớn nhất ở Pháp sau thế chiến II diễn ra vào thời gian nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.1923076923076923,
+      "latency_ms": 2665.2
+    },
+    {
+      "id": "0001-0030-0001",
+      "question": "Đặc điểm của các ngành kinh doanh ở Paris là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.14054054054054055,
+      "latency_ms": 2618.1
+    },
+    {
+      "id": "0001-0030-0002",
+      "question": "Đặc điểm nổi bật của kinh tế Los Angeles là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2647.0
+    },
+    {
+      "id": "0001-0030-0003",
+      "question": "Những mặt hàng nào đem lại lợi nhuận lớn nhất của công nghiệp Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.13138686131386862,
+      "latency_ms": 2545.6
+    },
+    {
+      "id": "0001-0030-0004",
+      "question": "Cơ cấu nguồn dân lực ở Paris tập trung vào lĩnh vực nào nhiều nhất?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2657.2
+    },
+    {
+      "id": "0001-0030-0005",
+      "question": "Đặc điểm của các ngành kinh doanh ở France là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2761.5
+    },
+    {
+      "id": "0001-0030-0006",
+      "question": "Cơ cấu nguồn dân lực ở Los Angeles tập trung vào lĩnh vực nào nhiều nhất?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.1,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2549.7
+    },
+    {
+      "id": "0001-0031-0001",
+      "question": "Nguồn thu nhập của dân lao động chênh lệch như thế nào ở Pháp?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.09836065573770493,
+      "latency_ms": 2622.1
+    },
+    {
+      "id": "0001-0031-0002",
+      "question": "Mức lương trung bình của người lao động ở Pháp năm 2002 là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.0816326530612245,
+      "latency_ms": 2653.2
+    },
+    {
+      "id": "0001-0031-0003",
+      "question": "Mức lương trung bình của người lao động ở Pháp năm 2004 là bao nhiêu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2642.2
+    },
+    {
+      "id": "0001-0031-0004",
+      "question": "Nguồn dân lao động sống ở đâu nhiều nhất tại Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.04255319148936171,
+      "latency_ms": 2535.7
+    },
+    {
+      "id": "0001-0031-0005",
+      "question": "Nguồn dân không lao động sống ở đâu nhiều nhất tại Paris?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2627.4
+    },
+    {
+      "id": "0001-0031-0006",
+      "question": "Sự chênh lệch thu nhập giữa nam và nữ ở Quận 8 và Quận 20 như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.41025641025641024,
+      "latency_ms": 2878.4
+    },
+    {
+      "id": "0001-0031-0007",
+      "question": "Nguồn thu nhập của dân thất nghiệp chênh lệch như thế nào ở Pháp?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2584.1
+    },
+    {
+      "id": "0001-0032-0001",
+      "question": "Những công ty lớn tập trung ở tháp Gan nhiều đến mức nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2639.9
+    },
+    {
+      "id": "0001-0032-0002",
+      "question": "Những công ty lớn tập trung ở La Défense nhiều đến mức nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.22222222222222227,
+      "latency_ms": 2538.8
+    },
+    {
+      "id": "0001-0032-0003",
+      "question": "Có những vấn đề bất cập nào tồn tại ở La Défense?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.22222222222222224,
+      "latency_ms": 2509.8
+    },
+    {
+      "id": "0001-0032-0004",
+      "question": "Những công trình lớn nào nổi tiếng ở La Défense?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2755.2
+    },
+    {
+      "id": "0001-0032-0005",
+      "question": "Vì sao ngành bất động sản ở La Défense phát triển rất mạnh?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.08823529411764704,
+      "latency_ms": 2656.0
+    },
+    {
+      "id": "0001-0033-0001",
+      "question": "Các khách sạn tập trung ở đâu là chủ yếu tại Pháp?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.06593406593406594,
+      "latency_ms": 2563.2
+    },
+    {
+      "id": "0001-0033-0002",
+      "question": "Ngành du lịch có vị thế như thế nào trong cơ cấu kinh tế Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.08968609865470852,
+      "latency_ms": 2527.3
+    },
+    {
+      "id": "0001-0033-0003",
+      "question": "Giá của khách sạn tầm trung hạ rẻ như thế nào ở France?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2949.8
+    },
+    {
+      "id": "0001-0033-0004",
+      "question": "Ngành kinh tế có vị thế như thế nào trong cơ cấu du lịch Paris?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3120.7
+    },
+    {
+      "id": "0001-0033-0005",
+      "question": "Giá của khách sạn tầm trung hạ rẻ như thế nào ở Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.3582089552238806,
+      "latency_ms": 2610.8
+    },
+    {
+      "id": "0001-0034-0001",
+      "question": "Những hình ảnh xấu nào của Paris trong mắt du khách?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.07407407407407407,
+      "latency_ms": 2954.1
+    },
+    {
+      "id": "0001-0034-0002",
+      "question": "Vì sao nói Paris không hiếu khách?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2646.7
+    },
+    {
+      "id": "0001-0034-0003",
+      "question": "Thành phố nào đứng nhất về vẻ đẹp theo khảo sát của Global Market Insite?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2675.2
+    },
+    {
+      "id": "0001-0035-0001",
+      "question": "GDP đầu người của Paris năm 2001 là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.05405405405405405,
+      "latency_ms": 2553.5
+    },
+    {
+      "id": "0001-0035-0002",
+      "question": "Giá của các khu nhà ở tăng lên chứng tỏ điều gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2640.4
+    },
+    {
+      "id": "0001-0035-0003",
+      "question": "GDP đầu người của Paris năm 2006 là bao nhiêu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2560.0
+    },
+    {
+      "id": "0001-0035-0004",
+      "question": "Người dân cả nước phải chịu thuế ở mức nào so với Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2763.0
+    },
+    {
+      "id": "0001-0035-0005",
+      "question": "Người dân Paris phải chịu thuế ở mức nào so với cả nước?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.2829268292682927,
+      "latency_ms": 2619.1
+    },
+    {
+      "id": "0001-0036-0001",
+      "question": "Các tầng lớp xã hội chênh lệch như thế nào ở Quận 7?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2744.4
+    },
+    {
+      "id": "0001-0036-0002",
+      "question": "Người lao động quận mấy ở Paris có tiền lương cao nhất?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2580.6
+    },
+    {
+      "id": "0001-0036-0003",
+      "question": "Người lao động quận mấy ở ngoại thành Paris có tiền lương cao nhất?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2543.4
+    },
+    {
+      "id": "0001-0036-0004",
+      "question": "Các tầng lớp xã hội chênh lệch như thế nào ở Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.1372549019607843,
+      "latency_ms": 2694.2
+    },
+    {
+      "id": "0001-0036-0005",
+      "question": "Tỉ lệ người nghèo trở xuống ở Quận 7 là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.3225806451612903,
+      "latency_ms": 2568.5
+    },
+    {
+      "id": "0001-0037-0001",
+      "question": "Sự khác biệt dòng máu được thể hiện ở Paris như thế nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.06557377049180328,
+      "latency_ms": 2856.8
+    },
+    {
+      "id": "0001-0037-0002",
+      "question": "Người nghèo khổ ở Paris thường tập trung sống ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.12698412698412698,
+      "latency_ms": 2578.9
+    },
+    {
+      "id": "0001-0037-0003",
+      "question": "Sự khác biệt dòng máu được thể hiện ở Sahara như thế nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2642.6
+    },
+    {
+      "id": "0001-0037-0004",
+      "question": "Người nghèo khổ ở châu Âu thường tập trung sống ở đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2565.1
+    },
+    {
+      "id": "0001-0037-0005",
+      "question": "Người người di cư từ châu Phi đến thường sống ở nơi nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.06808510638297871,
+      "latency_ms": 2474.7
+    },
+    {
+      "id": "0001-0038-0001",
+      "question": "Tỉ lệ các cặp hôn nhân chia tay của Paris ở mức nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.1764705882352941,
+      "latency_ms": 2638.2
+    },
+    {
+      "id": "0001-0038-0002",
+      "question": "Tỉ lệ các cặp hôn nhân tái hôn của Paris ở mức nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2539.8
+    },
+    {
+      "id": "0001-0038-0003",
+      "question": "Dẫn chứng nào cho thấy sự tan vỡ của các cặp hôn nhân ở Paris thấp?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2640.5
+    },
+    {
+      "id": "0001-0038-0004",
+      "question": "Dẫn chứng nào cho thấy sự tan vỡ của các cặp hôn nhân ở Paris cao?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.608695652173913,
+      "latency_ms": 2667.9
+    },
+    {
+      "id": "0001-0038-0005",
+      "question": "Vì sao các gia đình ở Paris thường chỉ có 3 thành viên?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.18518518518518517,
+      "latency_ms": 2658.0
+    },
+    {
+      "id": "0001-0039-0001",
+      "question": "Tình trạng nào cho thấy thành phần kết hôn hoặc không sinh con ở Paris cao?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2575.9
+    },
+    {
+      "id": "0001-0039-0002",
+      "question": "Vì sao các hộ có xu hướng di chuyển ra ngoại ô?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.05,
+      "em": 0.0,
+      "f1": 0.25806451612903225,
+      "latency_ms": 2717.5
+    },
+    {
+      "id": "0001-0039-0003",
+      "question": "Tình trạng nào cho thấy thành phần không kết hôn hoặc không sinh con ở Paris cao",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.45136186770428016,
+      "latency_ms": 2670.9
+    },
+    {
+      "id": "0001-0039-0004",
+      "question": "Người dân Paris phải đối mặt với những khó khăn thường nhật gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.06999999999999999,
+      "latency_ms": 2937.8
+    },
+    {
+      "id": "0001-0039-0005",
+      "question": "Người dân Paris không phải đối mặt với những khó khăn thường nhật gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2753.4
+    },
+    {
+      "id": "0001-0039-0006",
+      "question": "Vì sao các hộ có xu hướng di chuyển vào ngoại ô?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.05263157894736842,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2596.7
+    },
+    {
+      "id": "0001-0040-0001",
+      "question": "Tỉ lệ dân di cư Pháp cho đến năm 2011 là bao nhiêu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2677.1
+    },
+    {
+      "id": "0001-0040-0002",
+      "question": "Những người dân di cư đến Mỹ thường là người ở đâu nhiều nhất?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2558.1
+    },
+    {
+      "id": "0001-0040-0003",
+      "question": "Những người dân di cư đến Pháp thường là người ở đâu nhiều nhất?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.12000000000000001,
+      "latency_ms": 2744.7
+    },
+    {
+      "id": "0001-0040-0004",
+      "question": "Sự việc gì chứng tỏ nhân dân Pháp đến từ nhiều nơi và đa tôn giáo?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.7692307692307692,
+      "latency_ms": 2592.0
+    },
+    {
+      "id": "0001-0040-0005",
+      "question": "Tỉ lệ dân di cư đến Pháp cho đến năm 2011 là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.026785714285714284,
+      "latency_ms": 2731.8
+    },
+    {
+      "id": "0001-0041-0001",
+      "question": "Biển người đổ về Paris lần đầu tiên năm 1820 vì lý do gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.3137254901960784,
+      "latency_ms": 2541.1
+    },
+    {
+      "id": "0001-0041-0002",
+      "question": "Biển người đổ về Paris lần đầu tiên năm 1917 vì lý do gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2731.5
+    },
+    {
+      "id": "0001-0042-0001",
+      "question": "Dòng họ cựu Tổng thống Pháp Nicolas Sarkozy là người nước nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2743.9
+    },
+    {
+      "id": "0001-0042-0002",
+      "question": "Dòng họ cựu Tổng thống Pháp Nicolas là người nước nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2685.7
+    },
+    {
+      "id": "0001-0042-0003",
+      "question": "Chính phủ Pháp đã ghi nhớ những đóng góp to lớn của Marie qua hình thức nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2558.3
+    },
+    {
+      "id": "0001-0042-0004",
+      "question": "Chính phủ Pháp đã ghi nhớ những đóng góp to lớn của Marie Curie qua hình thức nà",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.0625,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2645.5
+    },
+    {
+      "id": "0001-0042-0005",
+      "question": "Nhà văn Marcel Proust có dòng họ ở đâu di cư đến Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2646.7
+    },
+    {
+      "id": "0001-0043-0001",
+      "question": "Dân số thủ đô Đức năm 2006 là bao nhiêu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2549.7
+    },
+    {
+      "id": "0001-0043-0002",
+      "question": "Tỉ lệ người vô gia cư so với Pháp như thế nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2604.6
+    },
+    {
+      "id": "0001-0043-0003",
+      "question": "Có bao nhiêu người dân không nơi nương tựa ở Paris năm 2005?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.09282700421940927,
+      "latency_ms": 2880.3
+    },
+    {
+      "id": "0001-0043-0004",
+      "question": "Tỉ lệ người vô gia cư so với Luân Đôn như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.3508771929824561,
+      "latency_ms": 3233.1
+    },
+    {
+      "id": "0001-0043-0005",
+      "question": "Dân số thủ đô Đức năm 2005 là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.08641975308641975,
+      "latency_ms": 4478.2
+    },
+    {
+      "id": "0001-0044-0001",
+      "question": "Tình trạng vô gia cư đã dẫn đến hệ quả gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.058823529411764705,
+      "em": 0.0,
+      "f1": 0.4057971014492754,
+      "latency_ms": 11469.1
+    },
+    {
+      "id": "0001-0044-0002",
+      "question": "Tình trạng hôn nhân của phần lớn người không nơi nương tựa ở Paris như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.05555555555555555,
+      "em": 0.0,
+      "f1": 0.6432748538011696,
+      "latency_ms": 6150.8
+    },
+    {
+      "id": "0001-0044-0003",
+      "question": "Nam giới vô gia cư ở độ tuổi trung niên ở Paris là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.020618556701030924,
+      "latency_ms": 7174.5
+    },
+    {
+      "id": "0001-0044-0004",
+      "question": "Tình trạng hôn nhân của phần lớn người có nơi nương tựa ở Paris như thế nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 4406.3
+    },
+    {
+      "id": "0001-0045-0001",
+      "question": "Trường đại học Paris lúc mới xây dựng tọa lạc ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.06666666666666667,
+      "em": 0.0,
+      "f1": 0.0641711229946524,
+      "latency_ms": 3733.5
+    },
+    {
+      "id": "0001-0045-0002",
+      "question": "Trường đại học Paris lúc mới hiện đại tọa lạc ở đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3811.8
+    },
+    {
+      "id": "0001-0045-0003",
+      "question": "Thế mạnh giáo dục đã có từ lâu đời của châu Âu là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3742.6
+    },
+    {
+      "id": "0001-0045-0004",
+      "question": "Thế mạnh giáo dục đã có từ lâu đời của Paris là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.05,
+      "em": 0.0,
+      "f1": 0.2672811059907834,
+      "latency_ms": 3957.8
+    },
+    {
+      "id": "0001-0045-0005",
+      "question": "Hiện nay đại học Paris được hợp nhất bởi những khoa thành viên nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.08080808080808081,
+      "latency_ms": 3816.6
+    },
+    {
+      "id": "0001-0045-0006",
+      "question": "Hiện nay đại học Paris không được hợp nhất bởi những khoa thành viên nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 4310.7
+    },
+    {
+      "id": "0001-0046-0001",
+      "question": "Đại học Paris XI tọa lạc ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3881.5
+    },
+    {
+      "id": "0001-0046-0002",
+      "question": "Vì sao Đại hoc Paris phân tách thành các trường riêng biệt?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.17204301075268816,
+      "latency_ms": 3994.8
+    },
+    {
+      "id": "0001-0046-0003",
+      "question": "Vì sao các trường Đại học di chuyển ra khỏi nội thành?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3680.5
+    },
+    {
+      "id": "0001-0047-0001",
+      "question": "Hiện nay có những trường Đại học nào ở ngoại thành Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3974.9
+    },
+    {
+      "id": "0001-0047-0002",
+      "question": "Hiện nay có những trường Đại học nào ở nội thành Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.3733333333333333,
+      "latency_ms": 3921.8
+    },
+    {
+      "id": "0001-0047-0003",
+      "question": "Co những trường Đại học nào tập trung ở khu phố La Tinh?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.058823529411764705,
+      "latency_ms": 3596.7
+    },
+    {
+      "id": "0001-0047-0004",
+      "question": "Từ Paris I đến Paris VII có mấy trường mạnh về thiết kế nghệ thuật?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 4170.1
+    },
+    {
+      "id": "0001-0048-0001",
+      "question": "Số lượng sinh viên tập trung ở vùng Île-de-France lớn cỡ nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.24731182795698922,
+      "latency_ms": 3813.9
+    },
+    {
+      "id": "0001-0048-0002",
+      "question": "Tổ chức quản lý đời sống sinh viên ở Paris gọi là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3890.5
+    },
+    {
+      "id": "0001-0048-0003",
+      "question": "Ký túc xá cho sinh viên lớn nhất Paris gọi là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 4030.1
+    },
+    {
+      "id": "0001-0049-0001",
+      "question": "Hệ thống giao thông của Paris được thiết kế như thế nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.42990654205607476,
+      "latency_ms": 3694.0
+    },
+    {
+      "id": "0001-0049-0002",
+      "question": "Các con đường lớn của Paris được cải tạo bởi ai?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3965.6
+    },
+    {
+      "id": "0001-0049-0003",
+      "question": "Tình trạng của người điều khiển giao thông đường bộ ở Paris như thế nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.04166666666666667,
+      "latency_ms": 3657.6
+    },
+    {
+      "id": "0001-0049-0004",
+      "question": "Hệ thống giao thông của thế giới được thiết kế như thế nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3987.3
+    },
+    {
+      "id": "0001-0049-0005",
+      "question": "Tình trạng của người điều khiển giao thông đường sắt ở Paris như thế nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3991.4
+    },
+    {
+      "id": "0001-0050-0001",
+      "question": "Có những làn đường nào người đi xe ô tô có thể chạy ở Paris?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3770.4
+    },
+    {
+      "id": "0001-0050-0002",
+      "question": "Có những làn đường nào người đi xe đạp có thể chạy ở Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.4,
+      "latency_ms": 3789.6
+    },
+    {
+      "id": "0001-0050-0003",
+      "question": "Hệ thống dịch vụ xe đạp nào lớn nhất châu Âu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3651.4
+    },
+    {
+      "id": "0001-0050-0004",
+      "question": "Cơ quan lãnh đạo của Paris có biện pháp gì làm giảm tắt nghẽn giao thông?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.20408163265306123,
+      "latency_ms": 3835.0
+    },
+    {
+      "id": "0001-0050-0005",
+      "question": "Cơ quan lãnh đạo của Paris có biện pháp gì làm giảm tai nạn giao thông?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 4031.4
+    },
+    {
+      "id": "0001-0051-0001",
+      "question": "Paris có những sân bay lớn nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.19383259911894274,
+      "latency_ms": 3770.4
+    },
+    {
+      "id": "0001-0051-0002",
+      "question": "Thành phố nào có số lượng khách và hàng hóa trung chuyển lớn thứ năm châu Âu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3782.5
+    },
+    {
+      "id": "0001-0051-0003",
+      "question": "Trước Charles-de-Gaulle, Paris có sân bay lớn nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.009302325581395347,
+      "latency_ms": 3593.1
+    },
+    {
+      "id": "0001-0051-0004",
+      "question": "Từ Charles-de-Gaulle có thể đến sân bay Paris bằng đường nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3838.2
+    },
+    {
+      "id": "0001-0051-0005",
+      "question": "Từ Paris có thể đến sân bay Charles-de-Gaulle bằng đường nào?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.1229050279329609,
+      "latency_ms": 3695.4
+    },
+    {
+      "id": "0001-0051-0006",
+      "question": "Sân bay nào có số lượng phi cơ ra vào nhiều nhất châu Âu năm 2006?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3658.0
+    },
+    {
+      "id": "0001-0051-0007",
+      "question": "Thành phố nào có số lượng khách và hàng hóa trung chuyển lớn thứ hai châu Âu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.023255813953488372,
+      "latency_ms": 3368.8
+    },
+    {
+      "id": "0001-0052-0001",
+      "question": "Ngoài hoạt động bóng đá, các sân vận động còn dùng để làm gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.0625,
+      "em": 0.0,
+      "f1": 0.5283018867924528,
+      "latency_ms": 3097.2
+    },
+    {
+      "id": "0001-0052-0002",
+      "question": "Ngoài hoạt động Công viên, các sân vận động còn dùng để làm gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.05263157894736842,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3766.1
+    },
+    {
+      "id": "0001-0052-0003",
+      "question": "Sân nhà bóng đá của Pháp có tên gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2721.8
+    },
+    {
+      "id": "0001-0052-0004",
+      "question": "Sân nhà bóng đá của PSG có tên gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.1616161616161616,
+      "latency_ms": 2990.5
+    },
+    {
+      "id": "0001-0052-0005",
+      "question": "Pháp đã cho tu sửa sân vận động gì để phục vụ cho World Cup 1998?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.058823529411764705,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2752.0
+    },
+    {
+      "id": "0001-0052-0006",
+      "question": "Pháp đã cho xây sân vận động gì để phục vụ cho World Cup 1998?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3124.9
+    },
+    {
+      "id": "0001-0053-0001",
+      "question": "Có bao nhiêu công trình giao thông bắc ngang nội thành trong sông Seine?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2871.2
+    },
+    {
+      "id": "0001-0053-0002",
+      "question": "Cách điều phối Paris hiện nay được học theo ai?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.03773584905660377,
+      "latency_ms": 2717.8
+    },
+    {
+      "id": "0001-0053-0003",
+      "question": "Có bao nhiêu công trình giao thông bắc ngang sông Seine trong nội thành?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.061068702290076333,
+      "latency_ms": 2631.1
+    },
+    {
+      "id": "0001-0053-0004",
+      "question": "Quốc lộ Saint-Germain được ai quy hoạch?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2649.7
+    },
+    {
+      "id": "0001-0053-0005",
+      "question": "Quốc lộ Châtelet được ai quy hoạch?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2700.8
+    },
+    {
+      "id": "0001-0054-0001",
+      "question": "Grand Palais và Petit Palais ngăn cách với nhau bởi gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2558.6
+    },
+    {
+      "id": "0001-0054-0002",
+      "question": "Nơi nào đứng ngắm tháp Eiffel là đẹp nhất?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.04316546762589928,
+      "latency_ms": 2657.5
+    },
+    {
+      "id": "0001-0054-0003",
+      "question": "Điểm nổi bật trong cảnh quan thành phố Paris là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.45643153526970953,
+      "latency_ms": 2643.4
+    },
+    {
+      "id": "0001-0054-0004",
+      "question": "Điểm ít nổi bật trong cảnh quan thành phố Paris là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2701.0
+    },
+    {
+      "id": "0001-0055-0001",
+      "question": "Kim tự tháp Axe historique có nằm trên tuyến Louvre không?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2622.2
+    },
+    {
+      "id": "0001-0055-0002",
+      "question": "Điểm cuối của Axe historique lúc dài nhất là nơi nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.0851063829787234,
+      "latency_ms": 2655.0
+    },
+    {
+      "id": "0001-0055-0003",
+      "question": "Kim tự tháp Louvre có nằm trên tuyến Axe historique không?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.06896551724137932,
+      "latency_ms": 2644.2
+    },
+    {
+      "id": "0001-0055-0004",
+      "question": "Tuyến trọng tâm trong thiết kế đô thị Paris là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.020408163265306124,
+      "latency_ms": 2707.6
+    },
+    {
+      "id": "0001-0055-0005",
+      "question": "Điểm cuối của Axe lúc dài nhất là nơi nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2921.5
+    },
+    {
+      "id": "0001-0056-0001",
+      "question": "Cần những điều kiện gì để xây những tòa cao tầng ở Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.3225806451612903,
+      "latency_ms": 2887.9
+    },
+    {
+      "id": "0001-0056-0002",
+      "question": "Các tòa nhà được thiết kế ở Paris phải theo luật gì để phá hỏng cảnh quan?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2702.5
+    },
+    {
+      "id": "0001-0056-0003",
+      "question": "Các tòa nhà được thiết kế ở Paris phải theo luật gì để không phá hỏng cảnh quan?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.8985507246376812,
+      "latency_ms": 2697.2
+    },
+    {
+      "id": "0001-0056-0004",
+      "question": "Công trình nào cao nhất Tây Âu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3224.3
+    },
+    {
+      "id": "0001-0057-0001",
+      "question": "Con đường nổi tiếng với gì?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2627.4
+    },
+    {
+      "id": "0001-0057-0002",
+      "question": "Con đường Montaigne nổi tiếng với gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.14814814814814817,
+      "latency_ms": 2607.9
+    },
+    {
+      "id": "0001-0057-0003",
+      "question": "Sinh viên thường tập trung đông đúc ở khu vực nào trong phố La Tinh?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.05555555555555555,
+      "latency_ms": 2653.3
+    },
+    {
+      "id": "0001-0058-0001",
+      "question": "Quảng trường nào là nơi lý tưởng để chiêm ngưỡng tháp Eiffel?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.1379310344827586,
+      "latency_ms": 2683.1
+    },
+    {
+      "id": "0001-0058-0002",
+      "question": "Quảng trường lớn nhất ở Hoa Kỳ tên gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2543.1
+    },
+    {
+      "id": "0001-0058-0003",
+      "question": "Quảng trường lớn nhất ở Pháp tên gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.05687203791469195,
+      "latency_ms": 3003.6
+    },
+    {
+      "id": "0001-0058-0004",
+      "question": "Quảng trường nào là nơi lý tưởng để không chiêm ngưỡng tháp Eiffel?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2547.0
+    },
+    {
+      "id": "0001-0058-0005",
+      "question": "Đại sứ quán Pháp ở Hoa Kỳ tọa lạc kế quảng trường gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2651.2
+    },
+    {
+      "id": "0001-0058-0006",
+      "question": "Đại sứ quán Hoa Kỳ ở Pháp tọa lạc kế quảng trường gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.04878048780487806,
+      "latency_ms": 2731.1
+    },
+    {
+      "id": "0001-0058-0007",
+      "question": "Xung quanh quảng trường Vendome có những nơi nào quan trọng?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.11363636363636363,
+      "latency_ms": 2674.4
+    },
+    {
+      "id": "0001-0059-0001",
+      "question": "Conciergerie được thiết kế theo phong cách gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2688.2
+    },
+    {
+      "id": "0001-0059-0002",
+      "question": "Nhà thờ Đức Bà được mệnh danh là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.05454545454545454,
+      "latency_ms": 2691.9
+    },
+    {
+      "id": "0001-0059-0003",
+      "question": "Chiếc cầu nào được xem là lâu đời nhất Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.04545454545454545,
+      "latency_ms": 2533.3
+    },
+    {
+      "id": "0001-0059-0004",
+      "question": "Nhà thờ Đức Bà tọa lạc ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.13452914798206278,
+      "latency_ms": 2656.1
+    },
+    {
+      "id": "0001-0059-0005",
+      "question": "Nhà thờ tọa lạc ở đâu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2542.1
+    },
+    {
+      "id": "0001-0059-0006",
+      "question": "Sainte-Chapelle được thiết kế theo phong cách gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0625,
+      "latency_ms": 2718.0
+    },
+    {
+      "id": "0001-0060-0001",
+      "question": "Trung tâm Pompidou được thiết kế theo phong cách nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.13333333333333336,
+      "latency_ms": 2624.3
+    },
+    {
+      "id": "0001-0060-0002",
+      "question": "Kim tự tháp kính Ả Rập được thiết kế bởi ai?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2556.0
+    },
+    {
+      "id": "0001-0060-0003",
+      "question": "Các công trình trên các quốc lộ ở Paris được xây dựng những người nổi tiếng nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.05263157894736842,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2560.6
+    },
+    {
+      "id": "0001-0060-0004",
+      "question": "Kim tự tháp kính Louvre được thiết kế bởi ai?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.32,
+      "latency_ms": 2650.5
+    },
+    {
+      "id": "0001-0060-0005",
+      "question": "Bảo tàng Branly là nơi lưu trữ những gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.037037037037037035,
+      "latency_ms": 2612.6
+    },
+    {
+      "id": "0001-0060-0006",
+      "question": "Trung tâm thư viện được thiết kế theo phong cách nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2671.2
+    },
+    {
+      "id": "0001-0060-0007",
+      "question": "Các công trình trên các quốc lộ ở Paris được xây dựng bởi những người nổi tiếng ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2538.3
+    },
+    {
+      "id": "0001-0061-0001",
+      "question": "Những khu rừng nào nằm ở phía Đông và Tây trong nội thành Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.08484848484848484,
+      "latency_ms": 2683.1
+    },
+    {
+      "id": "0001-0061-0002",
+      "question": "Việc cần làm trong lúc dân số thành phố tăng nhanh là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.06666666666666667,
+      "em": 0.0,
+      "f1": 0.23529411764705882,
+      "latency_ms": 2591.3
+    },
+    {
+      "id": "0001-0061-0003",
+      "question": "Những khu phố nào nằm ở phía Đông và Tây trong nội thành Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2579.2
+    },
+    {
+      "id": "0001-0061-0004",
+      "question": "Các không gian ở Paris được thiết kế bởi những ai?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.07692307692307693,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2704.1
+    },
+    {
+      "id": "0001-0061-0005",
+      "question": "Các không gian xanh ở Paris được thiết kế bởi những ai?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.155440414507772,
+      "latency_ms": 2628.2
+    },
+    {
+      "id": "0001-0062-0001",
+      "question": "Hai bên tuyến đường sắt Petite Ceinture có những công trình gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.058823529411764705,
+      "latency_ms": 2610.3
+    },
+    {
+      "id": "0001-0062-0002",
+      "question": "Hai bên tuyến đường sắt Belleville có những công trình gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2641.4
+    },
+    {
+      "id": "0001-0062-0003",
+      "question": "La Villette được tái thiết kế bởi ai?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.21276595744680848,
+      "latency_ms": 2623.5
+    },
+    {
+      "id": "0001-0062-0004",
+      "question": "Công viên xanh lớn nhất nội thành Paris được cải tạo từ nơi nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.1317365269461078,
+      "latency_ms": 2542.9
+    },
+    {
+      "id": "0001-0063-0001",
+      "question": "Đồi Montmartre được biết đến là nơi như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.10071942446043165,
+      "latency_ms": 2640.1
+    },
+    {
+      "id": "0001-0063-0002",
+      "question": "Đồi được biết đến là nơi như thế nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2615.0
+    },
+    {
+      "id": "0001-0063-0003",
+      "question": "Các trường Đại học cổ xưa ở Paris thường tọa lạc ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.06666666666666667,
+      "em": 0.0,
+      "f1": 0.027149321266968326,
+      "latency_ms": 2829.2
+    },
+    {
+      "id": "0001-0063-0004",
+      "question": "Quận Paris được biết đến là nơi như thế nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.08333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3138.8
+    },
+    {
+      "id": "0001-0063-0005",
+      "question": "Các trường Đại học lớn nhất ở Paris thường tọa lạc ở đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2982.5
+    },
+    {
+      "id": "0001-0063-0006",
+      "question": "Khu phố người Hoa lớn nhất Châu Âu nằm ở đâu?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2720.1
+    },
+    {
+      "id": "0001-0063-0007",
+      "question": "Quận La Tinh được biết đến là nơi như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.14285714285714285,
+      "latency_ms": 2718.8
+    },
+    {
+      "id": "0001-0064-0001",
+      "question": "Paris có những viện bảo tàng nào chỉ lưu trữ tác phẩm của một danh nhân văn hóa?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.3,
+      "latency_ms": 2725.0
+    },
+    {
+      "id": "0001-0064-0002",
+      "question": "Viện bảo tàng nào hấp dẫn nhiều khách du lịch nhất trên thế giới?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.027397260273972605,
+      "latency_ms": 2675.1
+    },
+    {
+      "id": "0001-0064-0003",
+      "question": "Paris có những viện bảo tàng nào chỉ lưu trữ danh nhân của một tác phẩm văn hóa?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2681.9
+    },
+    {
+      "id": "0001-0064-0004",
+      "question": "Bảo tàng Branly có gì để hấp dẫn nghệ sĩ?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2808.7
+    },
+    {
+      "id": "0001-0064-0005",
+      "question": "Lâu đài Versaillers ngày xưa được dùng để làm gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.11881188118811882,
+      "latency_ms": 2610.7
+    },
+    {
+      "id": "0001-0064-0006",
+      "question": "Bức tranh Mona Lisa nằm ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.1935483870967742,
+      "latency_ms": 2724.6
+    },
+    {
+      "id": "0001-0064-0007",
+      "question": "Bảo tàng Branly có gì để hấp dẫn du khách?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.03571428571428571,
+      "latency_ms": 2626.6
+    },
+    {
+      "id": "0001-0065-0001",
+      "question": "Richelieu trở thành thư viện quốc gia từ lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.04081632653061225,
+      "latency_ms": 2814.6
+    },
+    {
+      "id": "0001-0065-0002",
+      "question": "Sự khác biệt giữa 2 thư viện quốc gia Pháp là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.37288135593220334,
+      "latency_ms": 2856.1
+    },
+    {
+      "id": "0001-0065-0003",
+      "question": "Hai thư viện Richelieu và François-Mitterrand có giá trị gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.08823529411764705,
+      "latency_ms": 2653.8
+    },
+    {
+      "id": "0001-0066-0001",
+      "question": "Người dân có thể mượn sách từ những nơi nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.4583333333333333,
+      "latency_ms": 2661.2
+    },
+    {
+      "id": "0001-0066-0002",
+      "question": "Pháp có thể mượn sách từ những nơi nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2864.8
+    },
+    {
+      "id": "0001-0066-0003",
+      "question": "Trong lịch sử thư viện Paris có những gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2651.3
+    },
+    {
+      "id": "0001-0066-0004",
+      "question": "Trong thư viện lịch sử Paris có những gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.45901639344262296,
+      "latency_ms": 2617.9
+    },
+    {
+      "id": "0001-0066-0005",
+      "question": "Thư viện Paris co quy định như thế nào về mượn tài liệu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.6067415730337078,
+      "latency_ms": 2586.1
+    },
+    {
+      "id": "0001-0067-0001",
+      "question": "Philharmonie de Paris bắt đầu đi vào hoạt động vào thời gian nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2629.0
+    },
+    {
+      "id": "0001-0067-0002",
+      "question": "Đặc trưng của phòng thể thao là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.08333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2619.9
+    },
+    {
+      "id": "0001-0067-0003",
+      "question": "Các ca sĩ nổi tiếng của Pháp bắt đầu sự nghiệp từ những nơi nào ở Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2788.8
+    },
+    {
+      "id": "0001-0067-0004",
+      "question": "Paris bắt đầu đi vào hoạt động vào thời gian nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2852.9
+    },
+    {
+      "id": "0001-0067-0005",
+      "question": "Đặc trưng của phòng New Morning là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.2181818181818182,
+      "latency_ms": 3049.7
+    },
+    {
+      "id": "0001-0068-0001",
+      "question": "Các quán và phòng hòa nhạc nào đã xuất hiện ở Paris vào thế kỷ 19?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.22624434389140272,
+      "latency_ms": 2898.5
+    },
+    {
+      "id": "0001-0068-0002",
+      "question": "Batofar được thiết kế như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.08333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3209.3
+    },
+    {
+      "id": "0001-0068-0003",
+      "question": "The Pulp được thiết kế như thế nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.08333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2861.9
+    },
+    {
+      "id": "0001-0068-0004",
+      "question": "Các quán và phòng hòa nhạc nào đã xuất hiện ở Paris vào thế kỷ nay?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2743.9
+    },
+    {
+      "id": "0001-0068-0005",
+      "question": "Những nơi giải trí cho giới trẻ nôỉ tiếng ở Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.017857142857142856,
+      "latency_ms": 3172.4
+    },
+    {
+      "id": "0001-0069-0001",
+      "question": "Rạp phim lớn nhất Paris tên gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2820.4
+    },
+    {
+      "id": "0001-0069-0002",
+      "question": "Quy mô của phần lớn các rạp chiếu phim ở Paris như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2870.2
+    },
+    {
+      "id": "0001-0069-0003",
+      "question": "Vị thế của phim Hollywood như thế nào tại châu Âu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.30612244897959184,
+      "latency_ms": 2777.6
+    },
+    {
+      "id": "0001-0069-0004",
+      "question": "Quy mô của phần lớn các rạp chiếu phim ở Hollywood như thế nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2942.7
+    },
+    {
+      "id": "0001-0069-0005",
+      "question": "Các rạp phim lớn ở Paris đa số thuộc tập đoàn nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2807.0
+    },
+    {
+      "id": "0001-0070-0001",
+      "question": "Nhờ vào đâu mà hình thức cà phê thềm phát triển?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": 0.0,
+      "f1": 0.03389830508474576,
+      "latency_ms": 2938.1
+    },
+    {
+      "id": "0001-0070-0002",
+      "question": "Khu vực nào tập trung nhiều du khách ở Paris?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.1645021645021645,
+      "latency_ms": 2901.9
+    },
+    {
+      "id": "0001-0070-0003",
+      "question": "Quán cafe xuất hiện thứ hai ở Paris nằm ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.15384615384615383,
+      "latency_ms": 2915.7
+    },
+    {
+      "id": "0001-0070-0004",
+      "question": "Khu vực nào tập trung nhiều du khách ở Palais-Royal?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2792.8
+    },
+    {
+      "id": "0001-0070-0005",
+      "question": "Nhờ vào đâu mà hình thức cà phê Régence phát triển?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2924.1
+    },
+    {
+      "id": "0001-0071-0001",
+      "question": "Ai đã thành lập La Taverne Anglaise vào thế kỷ 18?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2950.4
+    },
+    {
+      "id": "0001-0071-0002",
+      "question": "Mô hình của các khu vườn ở Paris hiện nay là dựa vào đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2951.1
+    },
+    {
+      "id": "0001-0071-0003",
+      "question": "Mô hình của các nhà hàng ở Paris hiện nay là dựa vào đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.11965811965811966,
+      "latency_ms": 2765.9
+    },
+    {
+      "id": "0001-0071-0004",
+      "question": "Các nhà hàng ở Paris từ lâu đã nổi tiếng về điều gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.051948051948051945,
+      "latency_ms": 2952.4
+    },
+    {
+      "id": "0001-0072-0001",
+      "question": "Những nước nào trên thế giới có sự hiện diện của ẩm thực Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3142.0
+    },
+    {
+      "id": "0001-0072-0002",
+      "question": "Ẩm thực Paris có sự hiện diện của những nước nào trên thế giới?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.08648648648648649,
+      "latency_ms": 3049.1
+    },
+    {
+      "id": "0001-0072-0003",
+      "question": "Điều kiện gián tiếp giúp ẩm thực Paris trở nên phong phú là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.5423728813559322,
+      "latency_ms": 3037.1
+    },
+    {
+      "id": "0001-0072-0004",
+      "question": "Điều kiện gián tiếp giúp ẩm thực Việt Nam trở nên phong phú là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3112.4
+    },
+    {
+      "id": "0001-0072-0005",
+      "question": "Nhà hàng Maxim's nổi tiếng về điều gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.21818181818181817,
+      "latency_ms": 3083.0
+    },
+    {
+      "id": "0001-0073-0001",
+      "question": "Khách sạn đại diện cho quảng trường nào của Crillon?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2908.8
+    },
+    {
+      "id": "0001-0073-0002",
+      "question": "Khách sạn Paris bắt đầu hoạt động vào thời gian nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3043.3
+    },
+    {
+      "id": "0001-0073-0003",
+      "question": "Vì sao có nhiều khách sạn xuất hiện ở Paris vào cuối thế kỷ 20?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2950.6
+    },
+    {
+      "id": "0001-0073-0004",
+      "question": "Khách sạn Crillon đại diện cho quảng trường nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.022988505747126436,
+      "latency_ms": 2810.6
+    },
+    {
+      "id": "0001-0073-0005",
+      "question": "Vì sao có nhiều khách sạn xuất hiện ở Paris vào đầu thế kỷ 20?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.5862068965517242,
+      "latency_ms": 2862.7
+    },
+    {
+      "id": "0001-0073-0006",
+      "question": "Khách sạn Vendôme bắt đầu hoạt động vào thời gian nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2965.6
+    },
+    {
+      "id": "0001-0074-0001",
+      "question": "Có sự kiện gì xảy ra vào ngày Quốc khánh trên Quốc lộ Champs-Élysées?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.037037037037037035,
+      "latency_ms": 3011.7
+    },
+    {
+      "id": "0001-0074-0002",
+      "question": "Sự kiện Paris-Plage là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.12698412698412698,
+      "latency_ms": 3131.8
+    },
+    {
+      "id": "0001-0074-0003",
+      "question": "FAIC tổ chức vào tháng mấy hằng năm?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.04347826086956522,
+      "latency_ms": 2870.9
+    },
+    {
+      "id": "0001-0074-0004",
+      "question": "Tour de France kết thúc vào tháng mấy hằng năm?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.08695652173913045,
+      "latency_ms": 2886.3
+    },
+    {
+      "id": "0001-0075-0001",
+      "question": "Sự khác biệt của 20 phút và Le Parisien so với Mestro là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2884.9
+    },
+    {
+      "id": "0001-0075-0002",
+      "question": "Hai hãng nhật báo văn hóa ở Paris đã ngưng hoạt động tên gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.125,
+      "latency_ms": 3219.5
+    },
+    {
+      "id": "0001-0075-0003",
+      "question": "Đa số các hãng báo của Pháp nằm ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.0625,
+      "em": 0.0,
+      "f1": 0.08888888888888889,
+      "latency_ms": 2897.3
+    },
+    {
+      "id": "0001-0075-0004",
+      "question": "Sự khác biệt của 20 phút và Mestro so với Le Parisien là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.19999999999999998,
+      "latency_ms": 3153.7
+    },
+    {
+      "id": "0001-0075-0005",
+      "question": "Hai hãng nhật báo văn hóa ở Pháp đã ngưng hoạt động tên gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2969.4
+    },
+    {
+      "id": "0001-0075-0006",
+      "question": "Đa số các hãng báo của thành phố nằm ở đâu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2872.0
+    },
+    {
+      "id": "0001-0076-0001",
+      "question": "Pablo Picasso sống trong thế kỷ thứ mấy?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": 0.0,
+      "f1": 0.15,
+      "latency_ms": 2966.6
+    },
+    {
+      "id": "0001-0076-0002",
+      "question": "Paris trở thành trái tim của Thời kỳ ánh sáng dựa vào ai?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.24242424242424243,
+      "latency_ms": 3091.0
+    },
+    {
+      "id": "0001-0076-0003",
+      "question": "Cuối thế kỷ 19, Paris có vị thế thế nào trong làng hội họa?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.32727272727272727,
+      "latency_ms": 3151.3
+    },
+    {
+      "id": "0001-0077-0001",
+      "question": "Sự kiện gì đánh dấu sự khởi đầu của điện ảnh Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.1862745098039216,
+      "latency_ms": 2938.8
+    },
+    {
+      "id": "0001-0077-0002",
+      "question": "Có những danh họa nào sống ở Paris vào thế kỷ 19?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.03619909502262443,
+      "latency_ms": 2860.4
+    },
+    {
+      "id": "0001-0077-0003",
+      "question": "Tác phẩm nào đánh dấu sự trí thức cho trường phái ấn tượng?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2916.3
+    },
+    {
+      "id": "0001-0077-0004",
+      "question": "Sự kiện gì đánh dấu sự tiến bộ của điện ảnh Paris?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3182.4
+    },
+    {
+      "id": "0001-0077-0005",
+      "question": "Tác phẩm nào đánh dấu sự khởi đầu cho trường phái ấn tượng?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.06015037593984962,
+      "latency_ms": 3118.8
+    },
+    {
+      "id": "0001-0077-0006",
+      "question": "Có những danh họa nào sống ở Paris vào thế kỷ 12?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2957.6
+    },
+    {
+      "id": "0001-0078-0001",
+      "question": "Ai là người đi tiên phong trong trường phái sáng tạo?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2993.9
+    },
+    {
+      "id": "0001-0078-0002",
+      "question": "Giai đoạn tiểu thuyết bắt đầu bùng nổ mạnh mẽ ở Paris là lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.15028901734104044,
+      "latency_ms": 3139.1
+    },
+    {
+      "id": "0001-0078-0003",
+      "question": "Ai là người đi tiên phong trong trường phái lập thể?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.045454545454545456,
+      "latency_ms": 2862.8
+    },
+    {
+      "id": "0001-0078-0004",
+      "question": "Ai là người viết tác phẩm \"Đi tim thời gian đã mất\"?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2881.0
+    },
+    {
+      "id": "0001-0078-0005",
+      "question": "Giai đoạn tiểu thuyết bắt đầu bùng nổ mạnh mẽ ở Anh là lúc nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2945.6
+    },
+    {
+      "id": "0001-0079-0001",
+      "question": "Nước nào có nền nghệ thuật,kiến truc,âm nhạc phát triển nhất châu Âu sau thế kỷ ",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2909.7
+    },
+    {
+      "id": "0001-0079-0002",
+      "question": "Người may trang phục ở đâu có tay nghề tốt nhất?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3043.1
+    },
+    {
+      "id": "0001-0079-0003",
+      "question": "Trang phục truyền thống châu Âu lan truyền đến những nơi khác bằng cách gì?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2899.3
+    },
+    {
+      "id": "0001-0079-0004",
+      "question": "Trang phục truyền thống Pháp lan truyền đến những nơi khác bằng cách gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.0909090909090909,
+      "latency_ms": 2866.9
+    },
+    {
+      "id": "0001-0079-0005",
+      "question": "Nước nào có nền nghệ thuật, kiến trúc, âm nhạc phát triển nhất thế kỷ 18 sau châ",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2869.4
+    },
+    {
+      "id": "0001-0079-0006",
+      "question": "Người may trang phục ở đâu có tay nghề bắt chước?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2852.1
+    },
+    {
+      "id": "0001-0080-0001",
+      "question": "Thời trang Paris có vị thế thế nào đối với phái mạnh?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2825.5
+    },
+    {
+      "id": "0001-0080-0002",
+      "question": "Sau thế chiến II, có những nhà thiết kế thời trang nào của Paris nổi tiếng trên ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.009569377990430623,
+      "latency_ms": 2907.9
+    },
+    {
+      "id": "0001-0080-0003",
+      "question": "Thời trang Paris có vị thế thế nào đối với phái đẹp?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.13043478260869565,
+      "latency_ms": 3113.1
+    },
+    {
+      "id": "0001-0080-0004",
+      "question": "Người sáng lập nên Paris ở Haute couture đến từ nước nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2958.5
+    },
+    {
+      "id": "0001-0080-0005",
+      "question": "Người sáng lập nên Haute couture ở Paris đến từ nước nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2832.9
+    },
+    {
+      "id": "0001-0081-0001",
+      "question": "Hiện nay Paris co những mạng lưới thương mại lớn nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.06334841628959277,
+      "latency_ms": 3151.5
+    },
+    {
+      "id": "0001-0081-0002",
+      "question": "Sự mọc lên của các trung tâm thương mại ở Paris được xem như là gì vào thế kỷ 19",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.055045871559633024,
+      "latency_ms": 2731.1
+    },
+    {
+      "id": "0001-0081-0003",
+      "question": "Người đi đầu phát triển trung tâm thương mại ở Paris là ai?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.06666666666666667,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3206.7
+    },
+    {
+      "id": "0001-0081-0004",
+      "question": "Người đi đầu tiểu thuyết trung tâm thương mại ở Paris là ai?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2851.5
+    },
+    {
+      "id": "0001-0082-0001",
+      "question": "Vì sao \"Tấn trò đời\"là một công trình to lớn, đồ sộ?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.07017543859649122,
+      "latency_ms": 2981.9
+    },
+    {
+      "id": "0001-0082-0002",
+      "question": "Tác giả của công trình thành phố là ai?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3098.3
+    },
+    {
+      "id": "0001-0082-0003",
+      "question": "Vì sao \"Le Testament\" là một công trình to lớn, đồ sộ?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2922.2
+    },
+    {
+      "id": "0001-0082-0004",
+      "question": "\"Tấn trò đời\" ra đời trong thời kỳ nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2905.4
+    },
+    {
+      "id": "0001-0082-0005",
+      "question": "Tác giả của công trình \"Tấn trò đời\" là ai?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2936.3
+    },
+    {
+      "id": "0001-0083-0001",
+      "question": "Nội dung \"Những người khốn khổ\" nói về gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.2711864406779661,
+      "latency_ms": 2918.7
+    },
+    {
+      "id": "0001-0083-0002",
+      "question": "Nội dung tiểu thuyết nói về gì?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2805.1
+    },
+    {
+      "id": "0001-0083-0003",
+      "question": "\"Bí mật thành Paris\" viết về giai cấp nào trong xã hội?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.07692307692307693,
+      "em": 0.0,
+      "f1": 0.25,
+      "latency_ms": 2921.3
+    },
+    {
+      "id": "0001-0083-0004",
+      "question": "\"Tấn trò đời\" nói về giai cấp nào trong xã hội?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.04166666666666667,
+      "latency_ms": 2861.1
+    },
+    {
+      "id": "0001-0083-0005",
+      "question": "\"Nhà thờ Đức Bà Paris\" viết về giai cấp nào trong xã hội?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2886.3
+    },
+    {
+      "id": "0001-0084-0001",
+      "question": "Ai đã soạn kịch cho tác phẩm \"Bóng ma trong nhà hát\"?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2886.8
+    },
+    {
+      "id": "0001-0084-0002",
+      "question": "Hình ảnh Paris xuất hiện trong tác phẩm \"Zazie dans le métro\" như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.07142857142857144,
+      "latency_ms": 2972.1
+    },
+    {
+      "id": "0001-0084-0003",
+      "question": "Những quy hoạch của Haussmann xuất hiện trong những tác phẩm nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.40816326530612246,
+      "latency_ms": 2959.3
+    },
+    {
+      "id": "0001-0085-0001",
+      "question": "Cuộc sống hằng ngày của Paris bắt dầu hấp dẫn cac danh họa vào lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.08333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2966.8
+    },
+    {
+      "id": "0001-0086-0001",
+      "question": "Hector Guimard là nghệ sĩ theo trường phái nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2835.9
+    },
+    {
+      "id": "0001-0086-0002",
+      "question": "Hình xuất hiện của nghệ thuật đương đại ở đâu tại Paris?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.19327731092436976,
+      "latency_ms": 2842.1
+    },
+    {
+      "id": "0001-0086-0003",
+      "question": "Ai là tác giả của tác phẩm điêu khắc đương đại vào thế kỷ 19?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2938.4
+    },
+    {
+      "id": "0001-0086-0004",
+      "question": "Jean-Baptiste Carpeaux là nghệ sĩ theo trường phái nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.08333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2896.6
+    },
+    {
+      "id": "0001-0086-0005",
+      "question": "Ai là tác giả của tác phẩm điêu khắc đài phun nước vào thế kỷ 19?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2872.6
+    },
+    {
+      "id": "0001-0087-0001",
+      "question": "Nền âm nhạc Ý bắt đầu phát triển từ lúc nào?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.05,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3049.9
+    },
+    {
+      "id": "0001-0087-0002",
+      "question": "Nền âm nhạc Paris bắt đầu phát triển từ lúc nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.08602150537634409,
+      "latency_ms": 2864.1
+    },
+    {
+      "id": "0001-0087-0003",
+      "question": "Các bài hát dễ lan truyền hơn nhờ phát minh ra thứ gì?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.04081632653061225,
+      "latency_ms": 2873.2
+    },
+    {
+      "id": "0001-0087-0004",
+      "question": "Bài hát Carmagnole đóng vai trò gì trong lịch sử Pháp?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.07017543859649122,
+      "latency_ms": 2850.0
+    },
+    {
+      "id": "0001-0088-0001",
+      "question": "Nữ ca sĩ nào nổi tiếng nhất trong nền lịch sử âm nhạc Pháp?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2889.6
+    },
+    {
+      "id": "0001-0088-0002",
+      "question": "Thể loại nhạc xuất hiện trong nước ngoài là gì?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3288.4
+    },
+    {
+      "id": "0001-0088-0003",
+      "question": "Ai đã nâng tầm mạnh mẽ cho âm nhạc ba lê Nga?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3064.4
+    },
+    {
+      "id": "0001-0088-0004",
+      "question": "Nữ ca sĩ nào nổi tiếng nhất trong nền lịch sử âm nhạc Hoa Kỳ?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.1,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2919.5
+    },
+    {
+      "id": "0001-0088-0005",
+      "question": "Thể loại nhạc xuất hiện trong Carnaval Paris là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.27368421052631575,
+      "latency_ms": 2799.2
+    },
+    {
+      "id": "0001-0088-0006",
+      "question": "Ai đã nâng tầm mạnh mẽ cho âm nhạc ba lê Pháp?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2905.8
+    },
+    {
+      "id": "0001-0089-0001",
+      "question": "Nội dung của bộ phim Le Dernier Messtro là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1,
+      "em": 0.0,
+      "f1": 0.032258064516129024,
+      "latency_ms": 2897.7
+    },
+    {
+      "id": "0001-0089-0002",
+      "question": "Câu thoại kinh điển trong La Traversée de Paris là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3024.1
+    },
+    {
+      "id": "0001-0089-0003",
+      "question": "Cảnh quay nổi tiếng trong Le Fabuleux Destin d'Amélie Poulain ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2906.7
+    },
+    {
+      "id": "0001-0089-0004",
+      "question": "Câu thoại kinh điển trong Hootel du Nord là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2987.4
+    },
+    {
+      "id": "0001-0089-0005",
+      "question": "Nội dung của bộ phim Hôtel du Nord là gì?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2882.4
+    },
+    {
+      "id": "0001-0090-0001",
+      "question": "Nội dung của \"An American in Paris\" là gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.09090909090909091,
+      "em": 0.0,
+      "f1": 0.6984126984126984,
+      "latency_ms": 3206.2
+    },
+    {
+      "id": "0001-0091-0001",
+      "question": "Hình ảnh tháp Eiffel đổ xuất hiện ở đâu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2987.6
+    },
+    {
+      "id": "0001-0091-0002",
+      "question": "Bóng ma trong nhà hát nói về Paris trong thời kỳ nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.14285714285714285,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2958.0
+    },
+    {
+      "id": "0001-0091-0003",
+      "question": "Chú chuột đầu bếp là bộ phim do nước nào sản xuất?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3063.9
+    },
+    {
+      "id": "0001-0091-0004",
+      "question": "Ca sĩ Satine trong phim Moulin Rouge! do ai thủ vai?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3075.3
+    },
+    {
+      "id": "0001-0091-0005",
+      "question": "Hình ảnh sân khấu đổ xuất hiện ở đâu?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2695.6
+    },
+    {
+      "id": "0002-0001-0001",
+      "question": "Vào ngày nào thì James Cook đã trông thấy Nouvelle-Calédonie?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.2553191489361702,
+      "latency_ms": 2805.8
+    },
+    {
+      "id": "0002-0001-0002",
+      "question": "Nguyên nhân mà sau năm 1840 thì Nouvelle-Calédonie trở nên thường xuyên được tiế",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.10638297872340424,
+      "latency_ms": 2919.8
+    },
+    {
+      "id": "0002-0001-0003",
+      "question": "Vào năm nào thì những người châu Âu đầu tiên đã đến thăm quần đảo Loyauté?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.024096385542168676,
+      "latency_ms": 2797.6
+    },
+    {
+      "id": "0002-0001-0004",
+      "question": "Nouvelle-Calédonie được trông thấy lần đầu bởi người châu Âu nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.048192771084337345,
+      "latency_ms": 2867.9
+    },
+    {
+      "id": "0002-0001-0005",
+      "question": "Vào ngày nào thì James Cook đã bắt giữ Nouvelle-Calédonie?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2911.8
+    },
+    {
+      "id": "0002-0001-0006",
+      "question": "Trước khi ông Jean-Francois de Galaup phát hiện ra Nouvelle-Calédonie thì ai đã ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.09302325581395349,
+      "latency_ms": 2983.7
+    },
+    {
+      "id": "0002-0001-0007",
+      "question": "Lý do mà James Cook đặt tên cho hòn đảo được ông khám phá ra vào ngày 4 tháng 9 ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.11510791366906474,
+      "latency_ms": 2775.1
+    },
+    {
+      "id": "0002-0002-0001",
+      "question": "Trong 4.200 tù nhân chính trị được đưa đến Nouvelle- Calédonie từ năm 1873 đến 1",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2831.4
+    },
+    {
+      "id": "0002-0002-0002",
+      "question": "Khu vực nào bị ông Febvrier Despointes chiếm giữ và là nơi giam cầm khoảng 22.00",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": 0.0,
+      "f1": 0.04878048780487806,
+      "latency_ms": 3015.0
+    },
+    {
+      "id": "0002-0002-0003",
+      "question": "Những đợt ân xá của năm nào đã giúp cho phần lớn các tù binh chính trị được giải",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.17600000000000002,
+      "latency_ms": 2709.3
+    },
+    {
+      "id": "0002-0002-0004",
+      "question": "Ai đã tuân theo lệnh của Hoàng đế Napoléon III để giành quyền chiếm hữu đối với ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.06201550387596899,
+      "latency_ms": 2908.0
+    },
+    {
+      "id": "0002-0002-0005",
+      "question": "Trong giai đoạn nào thì Nouvelle-Calédonie đã tiếp nhận 4.200 tù nhân chính trị?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": 0.0,
+      "f1": 0.16541353383458648,
+      "latency_ms": 2967.2
+    },
+    {
+      "id": "0002-0002-0006",
+      "question": "Nouvelle-Calédonie đã tử hình số lượng tù binh là bao nhiêu trong suốt khoảng th",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3425.1
+    },
+    {
+      "id": "0002-0002-0007",
+      "question": "Nouvelle-Calédonie đã tiếp nhận số lượng tù binh là bao nhiêu trong suốt khoảng ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.09302325581395349,
+      "latency_ms": 3022.9
+    },
+    {
+      "id": "0002-0003-0001",
+      "question": "Vào năm 1878 thì số lượng người Kanak là bao nhiêu?",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2904.8
+    },
+    {
+      "id": "0002-0003-0002",
+      "question": "Trong cuộc phản ứng chiến tranh của Atal thì đã có bao nhiêu người Pháp thiệt mạ",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2844.0
+    },
+    {
+      "id": "0002-0003-0003",
+      "question": "Ai là người đã lãnh đạo tạo ra phản ứng bạo lực vào năm 1878?",
+      "is_impossible": false,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": 0.0,
+      "f1": 0.038461538461538464,
+      "latency_ms": 2927.1
+    },
+    {
+      "id": "0002-0003-0004",
+      "question": "Trong cuộc phản ứng bạo lực của Atal thì đã có bao nhiêu người Pháp thiệt mạng?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.04444444444444444,
+      "latency_ms": 2842.4
+    },
+    {
+      "id": "0002-0003-0005",
+      "question": "Trong công việc buôn bán thì những người bản địa bị đối xử như thế nào?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2869.5
+    },
+    {
+      "id": "0002-0003-0006",
+      "question": "Những bệnh mới nào được du nhập bởi người châu Âu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.06167400881057268,
+      "latency_ms": 3126.5
+    },
+    {
+      "id": "0002-0003-0007",
+      "question": "Vào năm 1921 thì số lượng người Kanak là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2832.0
+    },
+    {
+      "id": "0002-0003-0008",
+      "question": "Việc gì dẫn đến số lượng người dân Kanak giảm đi phân nửa?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.04,
+      "latency_ms": 2971.0
+    },
+    {
+      "id": "0002-0003-0009",
+      "question": "Trong công việc khai mỏ thì những người bản địa bị đối xử như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.04255319148936171,
+      "latency_ms": 2797.0
+    },
+    {
+      "id": "0002-0004-0001",
+      "question": "Trận chiến nào thì quân của Nhật Bản đã bị đẩy lui bởi hạm đội vào tháng 5 năm 1",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.015267175572519085,
+      "latency_ms": 2934.4
+    },
+    {
+      "id": "0002-0004-0002",
+      "question": "Số lượng người dân ở nước Nouvelle-Calédonie vào năm 1942 là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.031496062992125984,
+      "latency_ms": 2979.7
+    },
+    {
+      "id": "0002-0004-0003",
+      "question": "Năm 1942 thì Nouméa trở thành một nơi như thế nào?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 1.0,
+      "em": 0.0,
+      "f1": 0.07843137254901962,
+      "latency_ms": 3128.4
+    },
+    {
+      "id": "0002-0004-0004",
+      "question": "Điều gì đã xảy ra ngay sau khi Pháp đầu hàng trước lực lượng Đức?",
+      "is_impossible": true,
+      "hit": 0.0,
+      "mrr": 0.0,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2921.0
+    },
+    {
+      "id": "0002-0004-0005",
+      "question": "Điều gì đã xảy ra ngay sau khi Pháp thất thủ trước lực lượng Đức?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.28169014084507044,
+      "latency_ms": 2926.7
+    },
+    {
+      "id": "0002-0004-0006",
+      "question": "Nơi nào mà vào tháng 9 thì vị thống độc thân Vichy buộc phải đi đến?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.3333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 2972.3
+    },
+    {
+      "id": "0002-0004-0007",
+      "question": "Binh sĩ Hoa Kỳ tại quần đảo có quân số là bao nhiêu?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.08333333333333333,
+      "em": 0.0,
+      "f1": 0.0,
+      "latency_ms": 3208.0
+    },
+    {
+      "id": "0002-0005-0001",
+      "question": "Tất cả những đạo luật được Nouvelle-Calédonie thông qua trong năm 1876-1988 đều ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.2,
+      "em": 0.0,
+      "f1": 0.36734693877551017,
+      "latency_ms": 3139.4
+    },
+    {
+      "id": "0002-0005-0002",
+      "question": "Số lượng đạo luật đã được Nouvelle-Calédonie lên kế hoạch trong khoảng thời gian",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3178.9
+    },
+    {
+      "id": "0002-0005-0003",
+      "question": "Sự bất mãn và hỗn loạn do các đạo luật mà Nouvelle-Calédonie thông qua đạt đến đ",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.125,
+      "em": 0.0,
+      "f1": 0.044444444444444446,
+      "latency_ms": 2960.6
+    },
+    {
+      "id": "0002-0005-0004",
+      "question": "Tại sao hiệp định Matignon ra đời?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.1111111111111111,
+      "em": 0.0,
+      "f1": 0.8070175438596491,
+      "latency_ms": 2876.1
+    },
+    {
+      "id": "0002-0005-0005",
+      "question": "Sự bất mãn và hỗn loạn do các dịch vụ mà Nouvelle-Calédonie thông qua đạt đến đỉ",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.25,
+      "em": null,
+      "f1": null,
+      "latency_ms": 2867.5
+    },
+    {
+      "id": "0002-0005-0006",
+      "question": "Số lượng đạo luật đã được Nouvelle-Calédonie thông qua trong khoảng thời gian nă",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.32558139534883723,
+      "latency_ms": 3193.8
+    },
+    {
+      "id": "0002-0005-0007",
+      "question": "Ngày 26 tháng 6 năm 1988 đã ký các hiệp định Matignon với mục đích gì?",
+      "is_impossible": false,
+      "hit": 1.0,
+      "mrr": 0.5,
+      "em": 0.0,
+      "f1": 0.043956043956043946,
+      "latency_ms": 2910.0
+    },
+    {
+      "id": "0002-0005-0008",
+      "question": "Tất cả những đạo luật được Nouvelle-Calédonie lên kế hoạch trong năm 1876-1988 đ",
+      "is_impossible": true,
+      "hit": 1.0,
+      "mrr": 0.16666666666666666,
+      "em": null,
+      "f1": null,
+      "latency_ms": 3102.7
     }
   ]
 }

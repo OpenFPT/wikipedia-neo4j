@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     local_embedding_model: str = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
     embedding_dim: int = 1024
 
+    videberta_model_id: str = "NlpHUST/ner-vietnamese-electra-base"
+
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
 
@@ -50,6 +52,9 @@ class Settings(BaseSettings):
     wrrf_k: int = 60
 
     neo4j_use_search_clause: bool = False
+
+    agent_n_trajectories: int = 1
+    agent_temperature_scaled: float = 0.7
 
     lora_adapter_path: str | None = None
 
@@ -81,9 +86,9 @@ class Settings(BaseSettings):
     @classmethod
     def validate_ner_backend(cls, value: str) -> str:
         backend = (value or "").strip().lower()
-        if backend not in {"simple", "underthesea", "phonlp", "phobert", "wikilink"}:
+        if backend not in {"simple", "underthesea", "phonlp", "phobert", "videberta", "wikilink"}:
             raise ValueError(
-                "ner_backend must be 'simple', 'underthesea', 'phonlp', 'phobert', or 'wikilink'"
+                "ner_backend must be 'simple', 'underthesea', 'phonlp', 'phobert', 'videberta', or 'wikilink'"
             )
         return backend
 

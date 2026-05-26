@@ -81,11 +81,10 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
             logger.warning("Embedding generation failed", extra={"client_index": i, "error": str(exc)})
             if not _is_retryable_gemini_error(exc):
                 raise
-            delay = min(2**i, 16) + random.uniform(0, 1)
+            delay = min(2**i, 4) + random.uniform(0, 0.5)
             time.sleep(delay)
             continue
 
-    # All Gemini keys exhausted — raise so callers can skip or handle gracefully.
     raise RuntimeError(f"All Gemini keys failed for embedding generation: {last_error}")
 
 
@@ -192,7 +191,7 @@ def _generate_cypher_gemini(question: str) -> str:
             logger.warning("Cypher generation failed", extra={"client_index": i, "error": str(exc)})
             if not _is_retryable_gemini_error(exc):
                 raise
-            delay = min(2**i, 16) + random.uniform(0, 1)
+            delay = min(2**i, 4) + random.uniform(0, 0.5)
             time.sleep(delay)
             continue
 

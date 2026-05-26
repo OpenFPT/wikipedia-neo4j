@@ -299,6 +299,226 @@ def _wrrf_fusion(
     return sorted_results
 
 
+def _vector_search(query_embedding: list[float], top_k: int) -> list[dict]:
+    """Query Neo4j vector index on Chunk.embedding directly.
+
+    Args:
+        query_embedding: Pre-computed embedding vector for the query.
+        top_k: Maximum number of results to return.
+
+    Returns:
+        List of dicts with keys: page_title, page_url, page_id, chunk_id, chunk_text, vector_score.
+    """
+    if not query_embedding:
+        return []
+    try:
+        if settings.neo4j_use_search_clause:
+            with neo4j_client.session() as session:
+                records = session.run(
+                    _VECTOR_SEARCH_CYPHER25,
+                    query_embedding=query_embedding,
+                    top_k=top_k,
+                )
+                rows = [dict(r) for r in records]
+        else:
+            with neo4j_client.session() as session:
+                records = session.run(
+                    _VECTOR_CYPHER,
+                    embedding=query_embedding,
+                    top_k=top_k,
+                )
+                rows = [dict(r) for r in records]
+        logger.info("_vector_search executed", extra={"rows": len(rows)})
+        return rows
+    except Exception as e:
+        logger.warning(f"_vector_search failed: {e}")
+        return []
+
+
+def _graph_search(query: str, top_k: int) -> list[dict]:
+    """Entity-based graph traversal: find entities mentioned in query, return their chunks.
+
+    Uses the entity_alias_ft fulltext index to match query terms against entity names,
+    then traverses MENTIONS edges to retrieve associated chunks.
+
+    Args:
+        query: Natural language query string.
+        top_k: Maximum number of results to return.
+
+    Returns:
+        List of dicts with keys: page_title, page_url, page_id, chunk_id, chunk_text, graph_score.
+    """
+    try:
+        with neo4j_client.session() as session:
+            records = session.run(_GRAPH_CYPHER, q=query, top_k=top_k)
+            rows = [dict(r) for r in records]
+        logger.info("_graph_search executed", extra={"rows": len(rows)})
+        return rows
+    except Exception as e:
+        logger.warning(f"_graph_search failed: {e}")
+        return []
+
+
+def _wrrf_fuse(
+    results_by_channel: dict[str, list[dict]],
+    k: int = 60,
+) -> list[dict]:
+    """Weighted Reciprocal Rank Fusion over named retrieval channels.
+
+    Formula: score(d) = sum(weight_i / (k + rank_i(d))) for each channel i
+    where rank_i(d) is the 1-based rank of document d in channel i.
+
+    Channel weights are read from settings:
+      - bm25    -> settings.wrrf_weight_bm25
+      - vector  -> settings.wrrf_weight_vector
+      - graph   -> settings.wrrf_weight_graph
+      - community -> settings.wrrf_weight_community
+
+    Args:
+        results_by_channel: Mapping of channel name to ranked result list.
+            Each result dict must contain at least 'chunk_id' and 'chunk_text'.
+        k: RRF smoothing constant (default 60). Higher k reduces the influence
+            of high ranks; lower k amplifies top-ranked documents.
+
+    Returns:
+        Deduplicated list of result dicts sorted by fused score descending.
+        Each dict contains: page_title, page_url, page_id, chunk_id, chunk_text, score,
+        and a 'channel_scores' dict showing per-channel contribution.
+    """
+    weight_map = {
+        "bm25": settings.wrrf_weight_bm25,
+        "vector": settings.wrrf_weight_vector,
+        "graph": settings.wrrf_weight_graph,
+        "community": settings.wrrf_weight_community,
+    }
+
+    # Build per-channel rank maps (1-based)
+    channel_ranks: dict[str, dict[str, int]] = {}
+    for channel_name, results in results_by_channel.items():
+        ranks: dict[str, int] = {}
+        for i, r in enumerate(results):
+            cid = r.get("chunk_id")
+            if cid and cid not in ranks:
+                ranks[cid] = i + 1
+        channel_ranks[channel_name] = ranks
+
+    # Collect all unique chunk IDs
+    all_chunk_ids: set[str] = set()
+    for ranks in channel_ranks.values():
+        all_chunk_ids.update(ranks.keys())
+
+    if not all_chunk_ids:
+        return []
+
+    # Compute fused scores
+    fused_scores: dict[str, float] = {}
+    channel_contributions: dict[str, dict[str, float]] = {}
+    for chunk_id in all_chunk_ids:
+        total_score = 0.0
+        contributions: dict[str, float] = {}
+        for channel_name, ranks in channel_ranks.items():
+            if chunk_id in ranks:
+                weight = weight_map.get(channel_name, 0.0)
+                contribution = weight / (k + ranks[chunk_id])
+                total_score += contribution
+                contributions[channel_name] = contribution
+        fused_scores[chunk_id] = total_score
+        channel_contributions[chunk_id] = contributions
+
+    # Build metadata map from first occurrence across channels
+    result_meta: dict[str, dict] = {}
+    for results in results_by_channel.values():
+        for r in results:
+            cid = r.get("chunk_id")
+            if cid and cid not in result_meta:
+                result_meta[cid] = {
+                    "page_title": r.get("page_title", ""),
+                    "page_url": r.get("page_url", ""),
+                    "page_id": r.get("page_id", ""),
+                    "chunk_id": cid,
+                    "chunk_text": r.get("chunk_text", ""),
+                }
+
+    # Assemble and sort
+    fused_results = []
+    for cid in fused_scores:
+        entry = {**result_meta.get(cid, {"chunk_id": cid})}
+        entry["score"] = fused_scores[cid]
+        entry["channel_scores"] = channel_contributions[cid]
+        fused_results.append(entry)
+
+    fused_results.sort(key=lambda x: x["score"], reverse=True)
+
+    logger.info(
+        "wRRF fusion completed",
+        extra={
+            "channels": list(results_by_channel.keys()),
+            "candidates": len(all_chunk_ids),
+            "k": k,
+        },
+    )
+
+    return fused_results
+
+
+def hybrid_retrieve(query: str, top_k: int = 10) -> list[dict]:
+    """Hybrid retrieval combining BM25, vector, and graph channels via weighted RRF.
+
+    This is the primary public retrieval function for the API layer. It:
+    1. Embeds the query once (shared across vector and community channels).
+    2. Runs BM25 fulltext search, vector similarity search, and graph entity search.
+    3. Optionally includes community search if Community nodes exist.
+    4. Fuses all channels via weighted Reciprocal Rank Fusion.
+    5. Returns the top_k results sorted by fused score.
+
+    Args:
+        query: Natural language question in Vietnamese.
+        top_k: Number of final results to return (default 10).
+
+    Returns:
+        List of result dicts with keys: page_title, page_url, page_id, chunk_id,
+        chunk_text, score, channel_scores.
+    """
+    # Embed query once for vector and community channels
+    query_embedding: list[float] | None = None
+    try:
+        query_embedding = embed_texts([query])[0]
+    except Exception as e:
+        logger.warning(f"hybrid_retrieve: embedding failed, vector/community disabled: {e}")
+
+    # Fetch candidates from each channel (over-fetch for better fusion)
+    candidate_k = top_k * 3
+
+    bm25_results = _run_bm25_query(query, candidate_k)
+    vector_results = _vector_search(query_embedding, candidate_k) if query_embedding else []
+    graph_results = _graph_search(query, candidate_k)
+
+    # Build channel map
+    results_by_channel: dict[str, list[dict]] = {}
+    if bm25_results:
+        results_by_channel["bm25"] = bm25_results
+    if vector_results:
+        results_by_channel["vector"] = vector_results
+    if graph_results:
+        results_by_channel["graph"] = graph_results
+
+    # Optionally add community channel
+    if query_embedding:
+        community_results = _community_search(query, top_k * 2, query_embedding=query_embedding)
+        if community_results:
+            results_by_channel["community"] = community_results
+
+    # If no channel returned results, return empty
+    if not results_by_channel:
+        logger.warning("hybrid_retrieve: all channels returned empty results")
+        return []
+
+    # Fuse via wRRF
+    fused = _wrrf_fuse(results_by_channel, k=settings.wrrf_k)
+
+    return fused[:top_k]
+
+
 def _run_fallback_query(question: str, top_k: int) -> list[dict]:
     """Execute WRRF hybrid search as fallback when LLM-generated Cypher fails.
 

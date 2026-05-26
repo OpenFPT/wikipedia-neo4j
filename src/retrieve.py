@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from src.config import settings
-from src.llm import assert_readonly_cypher, embed_texts, generate_readonly_cypher
+from src.llm import assert_readonly_cypher, embed_texts, generate_readonly_cypher, _client_pool
 from src.logging_utils import get_logger
 from src.neo4j_client import neo4j_client
 
@@ -19,6 +19,7 @@ class QueryResult:
 
     answer: str
     citations: list[dict]
+    retrieval_tier: str = "unknown"
 
 
 _LEGACY_HYBRID_CYPHER = """
@@ -372,6 +373,41 @@ def _expand_via_links(page_ids: list[str], question: str, top_k: int) -> list[di
     return rows
 
 
+def _synthesize_answer(question: str, snippets: list[str]) -> str:
+    """Synthesize a natural-language answer from retrieved snippets using LLM."""
+    if not snippets:
+        return "Không tìm thấy thông tin liên quan."
+
+    context = "\n\n".join(f"[{i+1}] {s}" for i, s in enumerate(snippets))
+    prompt = (
+        f"Dựa vào các đoạn văn bản sau, hãy trả lời câu hỏi một cách ngắn gọn và chính xác bằng tiếng Việt.\n\n"
+        f"Câu hỏi: {question}\n\n"
+        f"Ngữ cảnh:\n{context}\n\n"
+        f"Trả lời:"
+    )
+
+    try:
+        from google.genai import types
+
+        clients = _client_pool()
+        for client in clients:
+            try:
+                resp = client.models.generate_content(
+                    model=settings.gemini_model_text,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(temperature=0.3, max_output_tokens=300),
+                )
+                answer = (resp.text or "").strip()
+                if answer:
+                    return answer
+            except Exception:
+                continue
+    except Exception as exc:
+        logger.warning("LLM synthesis failed, using snippet fallback", extra={"error": str(exc)})
+
+    return "Dựa trên thông tin tìm được: " + " | ".join(s[:200] for s in snippets[:2])
+
+
 def _run_generated_query(question: str, top_k: int) -> list[dict]:
     """Generate, validate, and execute LLM-produced read-only Cypher."""
     cypher = generate_readonly_cypher(question)
@@ -397,16 +433,19 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
 
         return agent_query(question, top_k)
 
+    retrieval_tier = "generated"
     try:
         rows = _run_generated_query(question, top_k)
-    except (RuntimeError, ValueError, KeyError, TypeError):
-        # Fall back to hybrid search
+    except (RuntimeError, ValueError, KeyError, TypeError) as exc:
+        logger.warning("Generated query failed, falling back to WRRF", extra={"error": str(exc)})
+        retrieval_tier = "wrrf"
         rows = _run_fallback_query(question, top_k)
 
     if not rows:
         return QueryResult(
             answer="I could not find relevant context in the graph yet. Try ingesting more topics.",
             citations=[],
+            retrieval_tier=retrieval_tier,
         )
 
     from src.reranker import rerank
@@ -435,8 +474,8 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
     snippets = []
     for r in reranked:
         txt = (r["chunk_text"] or "").strip().replace("\n", " ")
-        snippets.append(txt[:220])
+        snippets.append(txt[:500])
 
-    answer = "Deterministic demo answer from retrieved graph context: " + " | ".join(snippets[:2])
+    answer = _synthesize_answer(question, snippets[:3])
 
-    return QueryResult(answer=answer, citations=citations)
+    return QueryResult(answer=answer, citations=citations, retrieval_tier=retrieval_tier)

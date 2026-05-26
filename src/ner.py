@@ -218,6 +218,7 @@ def _extract_entities_underthesea(text: str, max_entities: int = 25) -> list[tup
     try:
         from underthesea import ner as under_ner
     except Exception:
+        logger.warning("underthesea import failed, falling back to simple NER backend")
         return [(e, classify_entity_type(e)) for e in _extract_entities_simple(text, max_entities)]
 
     tags = under_ner(text)
@@ -266,6 +267,7 @@ def _extract_entities_phonlp(text: str, max_entities: int = 25) -> list[tuple[st
         model = _get_phonlp()
         segmenter = _get_vncorenlp_segmenter()
     except Exception:
+        logger.warning("phonlp/vncorenlp load failed, falling back to simple NER backend")
         return [(e, classify_entity_type(e)) for e in _extract_entities_simple(text, max_entities)]
 
     segmented = segmenter.word_segment(text)
@@ -447,6 +449,7 @@ def extract_entities_batch(
     try:
         pipe = _get_ner_pipeline()
     except Exception:
+        logger.warning("phobert batch pipeline load failed, falling back to per-text extraction")
         return [extract_entities(t, max_entities) for t in texts]
 
     truncated = [t[:2048] for t in texts]

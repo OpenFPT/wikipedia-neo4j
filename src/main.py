@@ -50,6 +50,10 @@ class _RateLimiter:
             if len(bucket) >= self.max_requests:
                 return False, 0
             bucket.append(now)
+            if len(self._hits) > 100 and int(now) % 10 == 0:
+                stale = [k for k, v in self._hits.items() if not v]
+                for k in stale:
+                    del self._hits[k]
             return True, self.max_requests - len(bucket)
 
 

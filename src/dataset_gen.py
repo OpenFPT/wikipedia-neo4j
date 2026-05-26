@@ -352,7 +352,7 @@ def rewrite_questions_with_llm(
                     qa.question = rewritten_q
                     rewritten += 1
             except Exception as e:
-                logger.debug("Rewrite failed, keeping original", extra={"error": str(e)})
+                logger.warning("Rewrite failed, keeping original", extra={"error": str(e)})
 
     logger.info("LLM rewrite complete", extra={"rewritten": rewritten, "total": len(qa_pairs)})
     return qa_pairs

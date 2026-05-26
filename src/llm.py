@@ -216,22 +216,18 @@ def assert_readonly_cypher(cypher: str) -> None:
     if ";" in trimmed:
         raise RuntimeError("Generated Cypher contains multiple statements")
 
-    lowered = re.sub(r"\s+", " ", raw.lower())
-    blocked = [
-        " create ",
-        " merge ",
-        " delete ",
-        " detach ",
-        " set ",
-        " remove ",
-        " drop ",
-        " load csv",
-        " apoc.periodic",
-        " call dbms",
+    # Strip single-line and block comments before validation
+    stripped = re.sub(r"//[^\n]*", " ", raw)
+    stripped = re.sub(r"/\*.*?\*/", " ", stripped, flags=re.DOTALL)
+    lowered = re.sub(r"\s+", " ", stripped.lower())
+
+    blocked_keywords = [
+        "create", "merge", "delete", "detach", "set",
+        "remove", "drop", "load csv", "apoc.periodic", "call dbms",
     ]
-    padded = f" {lowered} "
-    if any(token in padded for token in blocked):
-        raise RuntimeError("Generated Cypher is not read-only")
+    for kw in blocked_keywords:
+        if re.search(rf"\b{re.escape(kw)}\b", lowered):
+            raise RuntimeError("Generated Cypher is not read-only")
 
     required_aliases = ["page_title", "page_url", "chunk_id", "chunk_text", "score"]
     for alias in required_aliases:

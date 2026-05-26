@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 _phonlp_model = None
 _phonlp_segmenter = None
 _ner_pipeline = None
+_videberta_pipeline = None
 
 _NER_TYPE_MAP = {
     "PER": "Person",
@@ -439,6 +440,68 @@ def _extract_entities_phobert(
     return deduped
 
 
+def _get_videberta_pipeline():
+    """Lazy-load HuggingFace token-classification pipeline for ViDeBERTa."""
+    global _videberta_pipeline
+    if _videberta_pipeline is None:
+        from transformers import AutoTokenizer, pipeline as hf_pipeline
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            settings.videberta_model_id, model_max_length=512
+        )
+        _videberta_pipeline = hf_pipeline(
+            "token-classification",
+            model=settings.videberta_model_id,
+            tokenizer=tokenizer,
+            aggregation_strategy="none",
+            device=-1,
+        )
+        logger.info("Loaded ViDeBERTa NER model: %s", settings.videberta_model_id)
+    return _videberta_pipeline
+
+
+def _extract_entities_videberta(
+    text: str, max_entities: int = 25
+) -> list[tuple[str, str]]:
+    """Extract entities using ViDeBERTa token-classification with BIO accumulation."""
+    try:
+        pipe = _get_videberta_pipeline()
+    except Exception:
+        logger.warning("Failed to load ViDeBERTa pipeline, falling back to simple backend")
+        return [(e, classify_entity_type(e)) for e in _extract_entities_simple(text, max_entities)]
+
+    truncated = text[:2048]
+    raw_tokens = pipe(truncated)
+
+    # Build (token, ner_tag) pairs for BIO accumulation
+    tagged_tokens: list[tuple[str, str]] = []
+    for tok in raw_tokens:
+        word = tok.get("word", "").replace("▁", " ").strip()
+        if not word:
+            continue
+        label = tok.get("entity", "O")
+        tagged_tokens.append((word, label))
+
+    entities = _collect_bio_entities(tagged_tokens, max_entities)
+
+    # Refine types using keyword heuristics
+    refined: list[tuple[str, str]] = []
+    for name, bio_type in entities:
+        name = normalize_entity(name)
+        if not name or len(name) < 2:
+            continue
+        if bio_type == "Unknown":
+            refined.append((name, classify_entity_type(name)))
+        else:
+            kw_type = classify_entity_type(name)
+            if kw_type == "Organization":
+                refined.append((name, "Organization"))
+            else:
+                refined.append((name, bio_type))
+
+    return refined
+
+
 def extract_entities_batch(
     texts: list[str], max_entities: int = 25
 ) -> list[list[tuple[str, str]]]:
@@ -583,6 +646,8 @@ def extract_entities(text: str, max_entities: int = 25) -> list[tuple[str, str]]
         return postprocess_entities(raw)
     if settings.ner_backend == "phobert":
         raw = _extract_entities_phobert(text, max_entities)
+    elif settings.ner_backend == "videberta":
+        raw = _extract_entities_videberta(text, max_entities)
     elif settings.ner_backend == "underthesea":
         raw = _extract_entities_underthesea(text, max_entities)
     elif settings.ner_backend == "phonlp":

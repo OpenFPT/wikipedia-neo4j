@@ -67,6 +67,10 @@ def rerank(
     filtered = [d for d in ranked if d["rerank_score"] >= min_score]
 
     if not filtered and ranked:
+        logger.warning(
+            "All results below rerank threshold, returning top-1 as fallback",
+            extra={"min_score": min_score, "top_score": ranked[0]["rerank_score"]},
+        )
         filtered = ranked[:1]
 
     logger.info(

@@ -8,6 +8,16 @@ from src.config import Settings, load_gemini_api_keys, validate_runtime_settings
 
 
 class TestSettingsValidators:
+    def test_invalid_model_mode_raises(self) -> None:
+        with pytest.raises(ValueError, match="model_mode"):
+            Settings(model_mode="invalid")
+
+    def test_valid_model_modes(self) -> None:
+        s = Settings(model_mode="local")
+        assert s.model_mode == "local"
+        s2 = Settings(model_mode="api")
+        assert s2.model_mode == "api"
+
     def test_invalid_embedding_backend_raises(self) -> None:
         with pytest.raises(ValueError, match="embedding_backend"):
             Settings(embedding_backend="invalid")
@@ -46,6 +56,24 @@ class TestSettingsValidators:
     def test_no_strip_when_no_quotes(self) -> None:
         s = Settings(neo4j_username="neo4j")
         assert s.neo4j_username == "neo4j"
+
+    def test_strip_quotes_non_string_passthrough(self) -> None:
+        from src.config import Settings
+        # Directly test the validator method
+        result = Settings._strip_surrounding_quotes(42)  # type: ignore[arg-type]
+        assert result == 42
+
+    def test_videberta_ner_backend_valid(self) -> None:
+        s = Settings(ner_backend="videberta")
+        assert s.ner_backend == "videberta"
+
+    def test_phobert_ner_backend_valid(self) -> None:
+        s = Settings(ner_backend="phobert")
+        assert s.ner_backend == "phobert"
+
+    def test_wikilink_ner_backend_valid(self) -> None:
+        s = Settings(ner_backend="wikilink")
+        assert s.ner_backend == "wikilink"
 
 
 class TestValidateRuntimeSettings:
@@ -102,3 +130,46 @@ class TestLoadGeminiApiKeys:
         with patch.object(settings, "gemini_key_file", "/nonexistent/keys.txt"):
             with pytest.raises(RuntimeError, match="not found"):
                 load_gemini_api_keys()
+
+    def test_load_gemini_api_key_returns_first(self, tmp_path) -> None:
+        from unittest.mock import patch
+        from src.config import load_gemini_api_key
+
+        key_file = tmp_path / "keys.txt"
+        key_file.write_text("first-key\nsecond-key\n")
+        with patch.object(settings, "gemini_key_file", str(key_file)):
+            assert load_gemini_api_key() == "first-key"
+
+
+class TestLoggingUtils:
+    def test_configure_logging_json_with_file(self, tmp_path, monkeypatch) -> None:
+        import src.logging_utils as lu
+        monkeypatch.setattr(lu, "_CONFIGURED", False)
+        lu.configure_logging(
+            level_name="DEBUG",
+            json_logs=True,
+            log_dir=str(tmp_path),
+            task_name="test_task",
+        )
+        monkeypatch.setattr(lu, "_CONFIGURED", False)
+
+    def test_set_and_reset_request_id(self) -> None:
+        from src.logging_utils import set_request_id, reset_request_id
+        token = set_request_id("req-123")
+        reset_request_id(token)
+
+    def test_json_formatter_with_exception(self) -> None:
+        import logging
+        from src.logging_utils import JsonFormatter
+        fmt = JsonFormatter()
+        record = logging.LogRecord(
+            name="test", level=logging.ERROR, pathname="", lineno=0,
+            msg="fail", args=None, exc_info=None,
+        )
+        try:
+            raise ValueError("boom")
+        except ValueError:
+            import sys
+            record.exc_info = sys.exc_info()
+        output = fmt.format(record)
+        assert "boom" in output

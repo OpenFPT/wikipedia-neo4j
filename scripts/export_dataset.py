@@ -18,7 +18,7 @@ from tqdm import tqdm
 from src.config import settings
 from src.logging_utils import configure_logging, get_logger
 from src.ner import extract_entities
-from src.text_utils import chunk_text_v2, entity_grounded_in_text, extract_wikilinks, normalize_vietnamese
+from src.text_utils import chunk_text_v2, entity_grounded_in_text, extract_wikilinks, normalize_vietnamese, strip_wiki_markup
 
 configure_logging(settings.log_level, settings.json_logs, log_dir=settings.log_dir, task_name="export")
 logger = get_logger(__name__)
@@ -191,7 +191,7 @@ def export_dataset(
                 chunk_id = str(uuid.uuid5(uuid.NAMESPACE_URL, f"{page_id}#chunk#{chunk.seq}"))
                 chunk_ids.append(chunk_id)
                 fp_chunks.write(json.dumps(
-                    {"chunk_id": chunk_id, "page_id": page_id, "text": chunk.text,
+                    {"chunk_id": chunk_id, "page_id": page_id, "text": strip_wiki_markup(chunk.text),
                      "seq": chunk.seq, "section": chunk.section},
                     ensure_ascii=False,
                 ) + "\n")

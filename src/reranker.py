@@ -18,7 +18,7 @@ def _get_reranker() -> CrossEncoder | None:
     if _reranker is None:
         try:
             logger.info("Loading cross-encoder reranker", extra={"model": _RERANKER_MODEL})
-            _reranker = CrossEncoder(_RERANKER_MODEL, max_length=512, device="cpu")
+            _reranker = CrossEncoder(_RERANKER_MODEL, max_length=512, device="cuda")
         except Exception as e:
             logger.error("Failed to load reranker model", extra={"error": str(e)})
             return None

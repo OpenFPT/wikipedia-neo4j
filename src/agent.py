@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from src.config import settings
 from src.llm import assert_readonly_cypher
 from src.logging_utils import get_logger
 from src.neo4j_client import neo4j_client
@@ -31,6 +33,8 @@ Available tools:
 - kg_query(cypher): Execute a read-only Cypher query. Returns up to 10 rows.
 - text_search(query): Fulltext search over text chunks. Returns top 5 results.
 - get_passage(chunk_id): Get full text of a specific chunk by ID.
+- entity_neighborhood(entity_name, hops=1): Find an entity and explore its neighborhood. Returns the entity, chunks mentioning it, and co-mentioned entities. Use hops=2 to expand to second-degree connections.
+- path_search(entity_a, entity_b, max_hops=3): Find the shortest path between two entities in the graph. Useful for multi-hop questions connecting two concepts.
 
 You MUST respond with a JSON object in one of these formats:
 
@@ -110,11 +114,177 @@ def _tool_get_passage(chunk_id: str) -> str:
         return f"Error getting passage: {e}"
 
 
+def _tool_entity_neighborhood(entity_name: str, hops: int = 1) -> str:
+    """Find an entity and its neighborhood (co-mentioned entities and chunks)."""
+    hops = max(1, min(hops, 3))  # Clamp to 1-3
+
+    try:
+        with neo4j_client.session() as session:
+            if hops == 1:
+                # 1-hop: entity -> mentioning chunks + co-mentioned entities in those chunks
+                records = session.run(
+                    """
+                    MATCH (e:Entity)
+                    WHERE toLower(e.name) CONTAINS toLower($name)
+                    WITH e LIMIT 1
+                    OPTIONAL MATCH (c:Chunk)-[:MENTIONS]->(e)
+                    OPTIONAL MATCH (p:Page)-[:HAS_CHUNK]->(c)
+                    OPTIONAL MATCH (c)-[:MENTIONS]->(co_entity:Entity)
+                    WHERE co_entity <> e
+                    RETURN e.name AS entity_name, e.type AS entity_type,
+                           collect(DISTINCT {
+                               chunk_id: c.id,
+                               page_title: p.title,
+                               chunk_text: left(c.text, 200)
+                           })[..10] AS chunks,
+                           collect(DISTINCT {name: co_entity.name, type: co_entity.type})[..10] AS co_entities
+                    """,
+                    name=entity_name,
+                )
+            else:
+                # Multi-hop: also get entities co-mentioned in neighbor chunks
+                records = session.run(
+                    """
+                    MATCH (e:Entity)
+                    WHERE toLower(e.name) CONTAINS toLower($name)
+                    WITH e LIMIT 1
+                    OPTIONAL MATCH (c:Chunk)-[:MENTIONS]->(e)
+                    OPTIONAL MATCH (p:Page)-[:HAS_CHUNK]->(c)
+                    OPTIONAL MATCH (c)-[:MENTIONS]->(co1:Entity)
+                    WHERE co1 <> e
+                    WITH e, c, p, co1
+                    OPTIONAL MATCH (c2:Chunk)-[:MENTIONS]->(co1)
+                    WHERE c2 <> c
+                    OPTIONAL MATCH (p2:Page)-[:HAS_CHUNK]->(c2)
+                    OPTIONAL MATCH (c2)-[:MENTIONS]->(co2:Entity)
+                    WHERE co2 <> e AND co2 <> co1
+                    RETURN e.name AS entity_name, e.type AS entity_type,
+                           collect(DISTINCT {
+                               chunk_id: c.id,
+                               page_title: p.title,
+                               chunk_text: left(c.text, 200)
+                           })[..10] AS chunks,
+                           collect(DISTINCT {name: co1.name, type: co1.type})[..5] AS co_entities_hop1,
+                           collect(DISTINCT {
+                               chunk_id: c2.id,
+                               page_title: p2.title,
+                               chunk_text: left(c2.text, 200)
+                           })[..5] AS chunks_hop2,
+                           collect(DISTINCT {name: co2.name, type: co2.type})[..5] AS co_entities_hop2
+                    """,
+                    name=entity_name,
+                )
+
+            rows = [dict(r) for r in records]
+
+        if not rows or rows[0].get("entity_name") is None:
+            return f"Entity not found matching '{entity_name}'."
+
+        row = rows[0]
+        result: dict = {
+            "entity": {"name": row["entity_name"], "type": row.get("entity_type")},
+            "chunks": [ch for ch in row.get("chunks", []) if ch.get("chunk_id")],
+        }
+
+        if hops == 1:
+            result["co_entities"] = [
+                e for e in row.get("co_entities", []) if e.get("name")
+            ]
+        else:
+            result["co_entities_hop1"] = [
+                e for e in row.get("co_entities_hop1", []) if e.get("name")
+            ]
+            result["chunks_hop2"] = [
+                ch for ch in row.get("chunks_hop2", []) if ch.get("chunk_id")
+            ]
+            result["co_entities_hop2"] = [
+                e for e in row.get("co_entities_hop2", []) if e.get("name")
+            ]
+
+        return json.dumps(result, ensure_ascii=False, default=str)
+    except Exception as e:
+        return f"Error in entity neighborhood search: {e}"
+
+
+def _tool_path_search(entity_a: str, entity_b: str, max_hops: int = 3) -> str:
+    """Find shortest path between two entities through the graph."""
+    max_hops = max(1, min(max_hops, 5))  # Clamp to 1-5
+    max_rels = max_hops * 2
+
+    try:
+        with neo4j_client.session() as session:
+            records = session.run(
+                """
+                MATCH (a:Entity)
+                WHERE toLower(a.name) CONTAINS toLower($name_a)
+                WITH a LIMIT 1
+                MATCH (b:Entity)
+                WHERE toLower(b.name) CONTAINS toLower($name_b)
+                WITH a, b LIMIT 1
+                MATCH path = shortestPath(
+                    (a)-[:MENTIONS|HAS_CHUNK|LINKS_TO*..{max_rels}]-(b)
+                )
+                RETURN [n IN nodes(path) |
+                    CASE
+                        WHEN 'Entity' IN labels(n) THEN {label: 'Entity', name: n.name, type: n.type}
+                        WHEN 'Chunk' IN labels(n) THEN {label: 'Chunk', id: n.id, text: left(n.text, 100)}
+                        WHEN 'Page' IN labels(n) THEN {label: 'Page', title: n.title, url: n.url}
+                        ELSE {label: head(labels(n)), id: n.id}
+                    END
+                ] AS path_nodes,
+                [r IN relationships(path) | type(r)] AS rel_types,
+                length(path) AS path_length
+                """.replace("{max_rels}", str(max_rels)),
+                name_a=entity_a,
+                name_b=entity_b,
+            )
+            rows = [dict(r) for r in records]
+
+        if not rows:
+            return f"No path found between '{entity_a}' and '{entity_b}'."
+
+        row = rows[0]
+        path_nodes = row.get("path_nodes", [])
+        rel_types = row.get("rel_types", [])
+
+        # Format path as readable string
+        path_parts: list[str] = []
+        for i, node in enumerate(path_nodes):
+            label = node.get("label", "?")
+            if label == "Entity":
+                path_parts.append(f"[Entity: {node.get('name', '?')} ({node.get('type', '?')})]")
+            elif label == "Chunk":
+                path_parts.append(f"[Chunk: {node.get('id', '?')}]")
+            elif label == "Page":
+                path_parts.append(f"[Page: {node.get('title', '?')}]")
+            else:
+                path_parts.append(f"[{label}: {node.get('id', '?')}]")
+
+            if i < len(rel_types):
+                path_parts.append(f" -[:{rel_types[i]}]-> ")
+
+        result = {
+            "path": "".join(path_parts),
+            "path_length": row.get("path_length"),
+            "nodes": path_nodes,
+            "relationships": rel_types,
+        }
+        return json.dumps(result, ensure_ascii=False, default=str)
+    except Exception as e:
+        return f"Error in path search: {e}"
+
+
 _TOOLS = {
     "kg_schema": lambda _: _tool_kg_schema(),
     "kg_query": lambda inp: _tool_kg_query(inp.get("cypher", "")),
     "text_search": lambda inp: _tool_text_search(inp.get("query", "")),
     "get_passage": lambda inp: _tool_get_passage(inp.get("chunk_id", "")),
+    "entity_neighborhood": lambda inp: _tool_entity_neighborhood(
+        inp.get("entity_name", ""), inp.get("hops", 1)
+    ),
+    "path_search": lambda inp: _tool_path_search(
+        inp.get("entity_a", ""), inp.get("entity_b", ""), inp.get("max_hops", 3)
+    ),
 }
 
 
@@ -341,7 +511,7 @@ def _agent_query_standard(question: str, top_k: int = 4) -> QueryResult:
 
         tool_fn = _TOOLS.get(action)
         if not tool_fn:
-            observation = f"Error: Unknown tool '{action}'. Available: kg_schema, kg_query, text_search, get_passage"
+            observation = f"Error: Unknown tool '{action}'. Available: kg_schema, kg_query, text_search, get_passage, entity_neighborhood, path_search"
         else:
             observation = tool_fn(action_input)
 
@@ -443,3 +613,299 @@ def _agent_query_with_decomposition(question: str, sub_questions: list[str]) -> 
 
     logger.info("Decomposition-based query completed", extra={"sub_questions": len(sub_questions)})
     return QueryResult(answer=final_answer, citations=all_citations)
+
+
+# ---------------------------------------------------------------------------
+# Inference-time scaling: parallel trajectory sampling + majority voting
+# ---------------------------------------------------------------------------
+
+_DIVERSITY_NUDGES = [
+    "",  # trajectory 0: no nudge (baseline)
+    "Try a different search strategy than usual. Start with text_search instead of kg_query.",
+    "Focus on entity_neighborhood and path_search tools to explore the graph structure.",
+    "Use multiple short Cypher queries rather than one complex query. Explore step by step.",
+    "Start by searching for related entities first, then look for specific evidence.",
+    "Try to find the answer through page links and entity co-occurrence patterns.",
+]
+
+
+def _normalize_answer(text: str) -> str:
+    """Normalize an answer for comparison: strip, lowercase, remove trailing punctuation."""
+    normalized = text.strip().lower()
+    # Remove trailing punctuation that doesn't change meaning
+    normalized = re.sub(r"[.\s]+$", "", normalized)
+    return normalized
+
+
+def _answers_similar(a: str, b: str) -> bool:
+    """Check if two answers are similar enough to be grouped together.
+
+    Uses exact match on normalized form, or containment check for
+    cases where one answer is a more detailed version of another.
+    """
+    norm_a = _normalize_answer(a)
+    norm_b = _normalize_answer(b)
+
+    if norm_a == norm_b:
+        return True
+
+    # One contains the other (handles cases like "Hà Nội" vs "Hà Nội, Việt Nam")
+    if len(norm_a) > 10 and len(norm_b) > 10:
+        shorter = norm_a if len(norm_a) <= len(norm_b) else norm_b
+        longer = norm_b if len(norm_a) <= len(norm_b) else norm_a
+        if shorter in longer:
+            return True
+
+    return False
+
+
+def _majority_vote(results: list[QueryResult]) -> QueryResult:
+    """Select the best answer from multiple trajectory results via majority voting.
+
+    Grouping strategy:
+    1. Exact match on normalized answers
+    2. Containment check (one answer is substring of another)
+
+    Tie-breaking: pick the answer with the most citations.
+    """
+    if not results:
+        return QueryResult(
+            answer="Không tìm thấy thông tin phù hợp trong cơ sở tri thức.",
+            citations=[],
+        )
+
+    if len(results) == 1:
+        return results[0]
+
+    # Group similar answers
+    groups: list[list[QueryResult]] = []
+
+    for result in results:
+        placed = False
+        for group in groups:
+            if _answers_similar(result.answer, group[0].answer):
+                group.append(result)
+                placed = True
+                break
+        if not placed:
+            groups.append([result])
+
+    # Sort groups: largest group first, then by max citations in group
+    groups.sort(
+        key=lambda g: (len(g), max(len(r.citations) for r in g)),
+        reverse=True,
+    )
+
+    winning_group = groups[0]
+
+    # Within the winning group, pick the result with the most citations
+    winner = max(winning_group, key=lambda r: len(r.citations))
+
+    logger.info(
+        "Majority vote completed",
+        extra={
+            "n_trajectories": len(results),
+            "n_groups": len(groups),
+            "winning_group_size": len(winning_group),
+            "winner_citations": len(winner.citations),
+        },
+    )
+
+    return winner
+
+
+def _run_trajectory(question: str, trajectory_id: int, temperature: float) -> QueryResult:
+    """Run a single agent trajectory with diversity nudge.
+
+    Each trajectory uses a slightly modified system prompt to encourage
+    exploration of different graph paths.
+    """
+    from src.local_llm import chat
+
+    # Build system prompt with optional diversity nudge
+    nudge = _DIVERSITY_NUDGES[trajectory_id % len(_DIVERSITY_NUDGES)]
+    if nudge:
+        system_prompt = _SYSTEM_PROMPT + f"\n\nNote: {nudge}"
+    else:
+        system_prompt = _SYSTEM_PROMPT
+
+    messages: list[dict[str, str]] = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": question},
+    ]
+
+    citations: list[dict] = []
+    observations: list[str] = []
+    actions_taken: list[str] = []
+    seen_chunk_ids: set[str] = set()
+
+    for iteration in range(MAX_ITERATIONS):
+        llm_attempts = 0
+        raw = None
+        while llm_attempts < 2:
+            try:
+                raw = chat(messages, max_new_tokens=512, temperature=temperature)
+                break
+            except Exception as e:
+                llm_attempts += 1
+                if llm_attempts >= 2:
+                    logger.warning(
+                        "Trajectory LLM call failed after retry",
+                        extra={"trajectory_id": trajectory_id, "iteration": iteration, "error": str(e)},
+                    )
+                else:
+                    logger.debug(
+                        "Trajectory LLM call failed, retrying",
+                        extra={"trajectory_id": trajectory_id, "iteration": iteration, "error": str(e)},
+                    )
+
+        if raw is None:
+            break
+
+        parsed = _parse_agent_response(raw)
+        if not parsed:
+            logger.warning(
+                "Trajectory produced unparseable output",
+                extra={"trajectory_id": trajectory_id, "iteration": iteration, "raw": raw[:200]},
+            )
+            messages.append({"role": "assistant", "content": raw})
+            messages.append({"role": "user", "content": "Please respond with valid JSON."})
+            continue
+
+        if "final_answer" in parsed:
+            if not actions_taken:
+                messages.append({"role": "assistant", "content": raw})
+                messages.append({
+                    "role": "user",
+                    "content": "You must use at least one tool before providing a final answer. "
+                    "Use kg_query or text_search to find evidence first.",
+                })
+                continue
+            answer = parsed["final_answer"]
+            logger.info(
+                "Trajectory converged",
+                extra={"trajectory_id": trajectory_id, "iterations": iteration + 1},
+            )
+            return QueryResult(answer=answer, citations=citations)
+
+        action = parsed.get("action", "")
+        action_input = parsed.get("action_input", {})
+        if isinstance(action_input, str):
+            action_input = {"query": action_input} if action == "text_search" else {"cypher": action_input}
+
+        tool_fn = _TOOLS.get(action)
+        if not tool_fn:
+            observation = (
+                f"Error: Unknown tool '{action}'. "
+                "Available: kg_schema, kg_query, text_search, get_passage, entity_neighborhood, path_search"
+            )
+        else:
+            observation = tool_fn(action_input)
+
+        observations.append(observation)
+        actions_taken.append(action)
+
+        try:
+            obs_data = json.loads(observation) if not observation.startswith("Error") else None
+        except (json.JSONDecodeError, TypeError):
+            obs_data = None
+
+        if obs_data:
+            if isinstance(obs_data, list):
+                for row in obs_data:
+                    if isinstance(row, dict) and "chunk_id" in row:
+                        cid = row["chunk_id"]
+                        if cid not in seen_chunk_ids:
+                            seen_chunk_ids.add(cid)
+                            citations.append({
+                                "page_title": row.get("page_title", ""),
+                                "page_url": row.get("page_url", ""),
+                                "chunk_id": cid,
+                            })
+            elif isinstance(obs_data, dict) and "chunk_id" in obs_data:
+                cid = obs_data["chunk_id"]
+                if cid not in seen_chunk_ids:
+                    seen_chunk_ids.add(cid)
+                    citations.append({
+                        "page_title": obs_data.get("page_title", ""),
+                        "page_url": obs_data.get("page_url", ""),
+                        "chunk_id": cid,
+                    })
+
+        messages.append({"role": "assistant", "content": json.dumps(parsed, ensure_ascii=False)})
+        messages.append({"role": "user", "content": f"Observation: {observation[:2000]}"})
+
+        logger.debug(
+            "Trajectory iteration",
+            extra={"trajectory_id": trajectory_id, "iteration": iteration, "action": action},
+        )
+
+    logger.warning(
+        "Trajectory did not converge",
+        extra={"trajectory_id": trajectory_id, "iterations": MAX_ITERATIONS},
+    )
+    return _synthesize_from_observations(observations, citations)
+
+
+def run_agent_scaled(question: str, n_trajectories: int | None = None) -> QueryResult:
+    """Run inference-time scaled agent with parallel trajectory sampling and majority voting.
+
+    Inspired by Inference-Scaled GraphRAG: multiple independent reasoning trajectories
+    explore different graph paths, then majority voting selects the most consistent answer.
+
+    Args:
+        question: The question to answer.
+        n_trajectories: Number of parallel trajectories to run. If None, uses
+            settings.agent_n_trajectories. If 1, falls back to standard agent_query.
+
+    Returns:
+        QueryResult with the majority-voted answer and retrieval_tier="scaled_{n}".
+    """
+    n = n_trajectories if n_trajectories is not None else settings.agent_n_trajectories
+
+    if n <= 1:
+        return agent_query(question)
+
+    temperature = settings.agent_temperature_scaled
+
+    logger.info(
+        "Starting scaled agent inference",
+        extra={"n_trajectories": n, "temperature": temperature},
+    )
+
+    results: list[QueryResult] = []
+
+    # Run trajectories in parallel using ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=min(n, 4)) as executor:
+        futures = {
+            executor.submit(_run_trajectory, question, tid, temperature): tid
+            for tid in range(n)
+        }
+
+        for future in as_completed(futures):
+            tid = futures[future]
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                logger.error(
+                    "Trajectory failed with exception",
+                    extra={"trajectory_id": tid, "error": str(e)},
+                )
+
+    if not results:
+        logger.error("All trajectories failed")
+        return QueryResult(
+            answer="Không tìm thấy thông tin phù hợp trong cơ sở tri thức.",
+            citations=[],
+        )
+
+    # Majority vote to select the best answer
+    winner = _majority_vote(results)
+
+    # Tag the retrieval tier to indicate scaled inference was used
+    return QueryResult(
+        answer=winner.answer,
+        citations=winner.citations,
+        retrieval_tier=f"scaled_{n}",
+    )

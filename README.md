@@ -7,9 +7,10 @@ GraphRAG system that ingests Vietnamese Wikipedia content into a Neo4j knowledge
 ## Modes
 
 - **Ingest mode**: build graph context from Wikipedia topics, raw XML-derived Parquet, or HF dataset (`/ingest`, `/ingest/hf`, async jobs).
-- **Query mode (API)**: Gemini generates validated read-only Cypher with hybrid fulltext fallback (`/query`).
-- **Query mode (Local)**: ReAct agent loop with graph tools using Qwen2.5-7B-Instruct (`/query`).
+- **Query mode (API)**: WRRF hybrid retrieval (BM25 + vector + graph + community fusion) with reranking (`/query`).
+- **Query mode (Local)**: ReAct agent with complexity detection, question decomposition, and multi-trajectory voting using Vi-Qwen2-7B-RAG (`/query`).
 - **Dataset generation**: extract KG walks and produce multi-hop QA pairs (ViWiki-MHR).
+- **Evaluation**: context hit rate, MRR, latency benchmarks on ViWiki-MHR and UIT-ViQuAD2.0.
 - **Ops mode**: health/readiness/metrics/logging for deployment safety.
 
 ## Features
@@ -19,16 +20,28 @@ GraphRAG system that ingests Vietnamese Wikipedia content into a Neo4j knowledge
   - Hugging Face dataset (`POST /ingest/hf`)
   - Async HF jobs (`POST /ingest/hf/jobs`)
   - Raw Vietnamese Wikipedia XML conversion (`scripts/viwiki_processing/`) to cleaned/raw Parquet
-- Pluggable NER: `simple` (regex), `underthesea`, or `phonlp` (Vietnamese NLP)
-- Pluggable embeddings: `gemini` (multi-key rotation) or `local` (sentence-transformers)
-- Dual query engine:
-  - API mode: Gemini Cypher generation + safety validation + hybrid fallback
-  - Local mode: ReAct agent with kg_schema, kg_query, text_search, get_passage tools
+- Pluggable NER: `simple` (regex), `underthesea`, `phonlp`, `phobert`, `videberta`, or `wikilink`
+- Pluggable embeddings: `gemini` (multi-key rotation) or `local` (GreenNode-Embedding-Large-VN)
+- Hybrid retrieval (WRRF):
+  - BM25 fulltext + vector similarity + graph traversal + community-based retrieval
+  - Weighted Reciprocal Rank Fusion with configurable weights
+  - Cross-encoder reranking (BAAI/bge-reranker-v2-m3)
+- Advanced agent:
+  - 6 tools: kg_schema, kg_query, text_search, get_passage, entity_neighborhood, path_search
+  - Complexity detection and automatic question decomposition
+  - Multi-trajectory execution with majority voting
+- Knowledge graph enrichment:
+  - Entity resolution (Vietnamese alias merging, diacritic normalization)
+  - LLM-based typed relation extraction (6 relation types)
+  - Community detection (Louvain) with pre-generated summaries
 - Dataset generation pipeline:
   - 2-hop and 3-hop KG walk extraction
   - Vietnamese question templates per entity type
   - LLM rewrite for naturalness (optional)
   - 3-stage QC: well-formedness, grounding, deduplication
+- Evaluation:
+  - Context hit rate, MRR, latency on ViWiki-MHR
+  - UIT-ViQuAD2.0 adapter (72.6% hit rate)
 - Reliability:
   - Persistent HF job state in `.hf_ingest_jobs.json`
   - Startup restore marks stale running jobs as `interrupted`
@@ -51,15 +64,15 @@ Key environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NER_BACKEND` | `simple` | `simple`, `underthesea`, or `phonlp` |
-| `EMBEDDING_BACKEND` | `gemini` | `gemini` or `local` |
-| `MODEL_MODE` | `api` | `api` (Gemini) or `local` (Qwen2.5-7B) |
-| `LOCAL_MODEL_ID` | `Qwen/Qwen2.5-7B-Instruct` | HuggingFace model for local mode |
+| `NER_BACKEND` | `simple` | `simple`, `underthesea`, `phonlp`, `phobert`, `videberta`, `wikilink` |
+| `EMBEDDING_BACKEND` | `local` | `gemini` or `local` |
+| `MODEL_MODE` | `local` | `api` (Gemini) or `local` (Vi-Qwen2-7B-RAG) |
+| `LOCAL_MODEL_ID` | `AITeamVN/Vi-Qwen2-7B-RAG` | HuggingFace model for local mode |
 
 ### 2) Start Neo4j
 
 ```bash
-docker compose up -d
+sudo systemctl start neo4j
 ```
 
 ### 3) Install dependencies

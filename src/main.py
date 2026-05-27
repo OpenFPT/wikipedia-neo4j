@@ -12,6 +12,8 @@ from contextvars import Token
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse as _StarletteJSONResponse
 
 from src.config import settings, validate_runtime_settings
 from src.ingest import IngestResult, ingest_from_hf, ingest_topic
@@ -22,6 +24,7 @@ from src.logging_utils import (
     reset_request_id,
     set_request_id,
 )
+from src.mcp_server import mcp as _mcp_instance
 from src.neo4j_client import neo4j_client
 from src.retrieve import hybrid_retrieve, query_graph
 
@@ -77,6 +80,28 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=lifespan)
+
+
+# --- MCP Server Mount ---
+_mcp_app = _mcp_instance.http_app(path="/", transport="streamable-http")
+app.mount("/mcp", _mcp_app)
+
+
+# --- MCP Auth Middleware ---
+
+
+class _MCPAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.startswith("/mcp") and settings.app_api_key:
+            auth = request.headers.get("authorization", "")
+            if not auth.startswith("Bearer ") or auth[7:].strip() != settings.app_api_key:
+                return _StarletteJSONResponse(
+                    {"error": "Unauthorized"}, status_code=401
+                )
+        return await call_next(request)
+
+
+app.add_middleware(_MCPAuthMiddleware)
 
 
 @app.exception_handler(Exception)

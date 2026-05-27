@@ -1,0 +1,2304 @@
+{
+  "dataset": "data/viquad2/validation.jsonl",
+  "total_evaluated": 200,
+  "top_k": 5,
+  "hit_rate": 0.635,
+  "mrr": 0.4257,
+  "avg_latency_ms": 125.3,
+  "errors": 0,
+  "details": [
+    {
+      "id": "0001-0001-0001",
+      "question": "Paris đạt được thành quả gì sau khoảng 4 thế kỷ tính từ ngày Cách mạng Pháp diễn ra?",
+      "gold_answers": [
+        "trở thành một trong những trung tâm văn hóa của thế giới, thủ đô của nghệ thuật và giải trí"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 14127.9
+    },
+    {
+      "id": "0001-0001-0003",
+      "question": "Kinh tế xung quanh kinh đô ánh sáng mạnh về gì?",
+      "gold_answers": [
+        "giáo dục và nghệ thuật",
+        "nông nghiệp"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 102.0
+    },
+    {
+      "id": "0001-0001-0004",
+      "question": "Cuộc cách mạng Pháp diễn ra ở đâu?",
+      "gold_answers": [
+        "Paris"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 55.3
+    },
+    {
+      "id": "0001-0001-0005",
+      "question": "Kinh đô ánh sáng nổi tiếng về lĩnh vực gì?",
+      "gold_answers": [
+        "nghệ thuật và giải trí",
+        "trung tâm văn hóa của thế giới, thủ đô của nghệ thuật và giải trí"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 54.7
+    },
+    {
+      "id": "0001-0001-0006",
+      "question": "Paris là một thành phố quan trọng của nước Pháp bắt đầu từ thời gian nào?",
+      "gold_answers": [
+        "thế kỷ 10"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 82.1
+    },
+    {
+      "id": "0001-0001-0007",
+      "question": "Vị trí địa lý của Paris có gì đặc biệt?",
+      "gold_answers": [
+        "nằm ở điểm gặp nhau của các hành trình thương mại đường bộ và đường sông",
+        "điểm gặp nhau của các hành trình thương mại đường bộ và đường sông, và là trung tâm của một vùng nông nghiệp giàu có"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 92.1
+    },
+    {
+      "id": "0001-0002-0001",
+      "question": "Điều gì đã nói lên Paris là thành phố lý tưởng để khách du lịch?",
+      "gold_answers": [
+        "Kinh đô ánh sáng",
+        "mỗi năm có đến 30 triệu khách nước ngoài"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 149.1
+    },
+    {
+      "id": "0001-0002-0002",
+      "question": "Người ta đến với Paris vì điều gì?",
+      "gold_answers": [
+        "Sự nhộn nhịp, các công trình kiến trúc và không khí nghệ sĩ"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 60.9
+    },
+    {
+      "id": "0001-0002-0005",
+      "question": "Kinh đô ánh sáng nổi tiếng như thế nào trong lĩnh vực thời trang mua sắm?",
+      "gold_answers": [
+        "Thành phố còn được xem như kinh đô của thời trang cao cấp với nhiều khu phố xa xỉ cùng các trung tâm thương mại lớn",
+        "kinh đô của thời trang cao cấp với nhiều khu phố xa xỉ cùng các trung tâm thương mại lớn"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 75.2
+    },
+    {
+      "id": "0001-0002-0006",
+      "question": "Điều gì đã khiến Paris trở thành nơi trung chuyển trên toàn cầu?",
+      "gold_answers": [
+        "Là nơi đặt trụ sở chính của các tổ chức quốc tế như OECD, UNESCO... cộng với những hoạt động đa dạng về tài chính, kinh doanh, chính trị và du lịch",
+        "nơi đặt trụ sở chính của các tổ chức quốc tế như OECD, UNESCO... cộng với những hoạt động đa dạng về tài chính, kinh doanh, chính trị và du lịch"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 60.2
+    },
+    {
+      "id": "0001-0002-0007",
+      "question": "Trụ sở chính của UNESCO được đặt tại thành phố nào trong số bốn \"thành phố toàn cầu\"?",
+      "gold_answers": [
+        "Paris"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 69.8
+    },
+    {
+      "id": "0001-0002-0008",
+      "question": "Ngoài Paris, còn có thành phố nào được đánh giá là thành phố toàn cầu?",
+      "gold_answers": [
+        "New York, Luân Đôn và Tokyo"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 68.3
+    },
+    {
+      "id": "0001-0003-0001",
+      "question": "Trước thế kỷ 17, tại Paris các nơi công cộng thiếu ánh đèn buổi tuối thường có hiện tượng gì?",
+      "gold_answers": [
+        "nhiều tệ nạn"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 65.8
+    },
+    {
+      "id": "0001-0003-0002",
+      "question": "Kinh đô ánh sáng dịch từ tiếng Pháp sang tiếng Anh chính xác là gì?",
+      "gold_answers": [
+        "The City of Lights",
+        "Thành phố ánh sáng"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 64.2
+    },
+    {
+      "id": "0001-0003-0003",
+      "question": "Tên gọi The City of Lights bắt nguồn từ sự việc gì?",
+      "gold_answers": [
+        "cuối thế kỷ 17, trung tướng cảnh sát đầu tiên của Paris Gabriel Nicolas de La Reynie ra lệnh thắp sáng những khu vực công cộng nhiều tệ nạn của thành phố"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 57.7
+    },
+    {
+      "id": "0001-0003-0005",
+      "question": "Người dân trên thế giới thường gọi Paris với tên khác là gì?",
+      "gold_answers": [
+        "Kinh đô ánh sáng"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 51.5
+    },
+    {
+      "id": "0001-0004-0001",
+      "question": "Làm sao để chuyển tên thành phố thủ đô nước Pháp thành danh từ dùng để chỉ người dân của thành phố này?",
+      "gold_answers": [
+        "thêm hai chữ a và d"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 65.1
+    },
+    {
+      "id": "0001-0004-0002",
+      "question": "Hai thành phố nào được gọi là thành phố của tình yêu?",
+      "gold_answers": [
+        "Venezia, Paris"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 52.0
+    },
+    {
+      "id": "0001-0005-0001",
+      "question": "Nguồn gốc tên gọi Paname bắt nguồn từ đâu?",
+      "gold_answers": [
+        "những chiếc mũ panama",
+        "từ đầu thế kỷ 20 khi những chiếc mũ panama phổ biến"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 53.8
+    },
+    {
+      "id": "0001-0005-0003",
+      "question": "Ngoại trừ cái tên Paname, Paris còn có tên gọi khác là gì?",
+      "gold_answers": [
+        "Pantruche"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 51.9
+    },
+    {
+      "id": "0001-0006-0002",
+      "question": "Công trình nào nằm trên đỉnh Montmartre?",
+      "gold_answers": [
+        "nhà thờ Saint-Pierre"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 57.2
+    },
+    {
+      "id": "0001-0006-0003",
+      "question": "Hai nằm giữa Paris trên dòng sông Sen có tên là gì?",
+      "gold_answers": [
+        "Île de la Cité ở phía tây và Île Saint-Louis ở phía đông"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 53.4
+    },
+    {
+      "id": "0001-0006-0004",
+      "question": "Con sông nào nằm trong lòng Paris?",
+      "gold_answers": [
+        "Seine",
+        "sông Seine"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 52.7
+    },
+    {
+      "id": "0001-0006-0006",
+      "question": "Montparnasse nằm ở phía nào của Paris?",
+      "gold_answers": [
+        "phía nam"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 57.7
+    },
+    {
+      "id": "0001-0007-0001",
+      "question": "Cách giới hạn nội ô Paris được thay đổi thế nào sau khoảng 150 năm tính từ ngày bức tường thành Thiers được sử dụng cho việc này?",
+      "gold_answers": [
+        "phân định với ngoại ô bằng các đại lộ vành đai dài 35 km"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 68.8
+    },
+    {
+      "id": "0001-0007-0003",
+      "question": "Ngày nay, muốn từ nội ô sang ngoại ô Paris, ta thường phải băng qua đâu?",
+      "gold_answers": [
+        "các đại lộ vành đai",
+        "các đại lộ vành đai dài 35 km"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 52.3
+    },
+    {
+      "id": "0001-0007-0004",
+      "question": "Rừng Vincennes nằm ở đâu của Paris?",
+      "gold_answers": [
+        "Quận 12 ở phía Đông",
+        "Quận 12 ở phía Đông"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 59.4
+    },
+    {
+      "id": "0001-0007-0005",
+      "question": "Năm 1844, ngoại ô và nội ô Paris được ngăn cách bằng gì?",
+      "gold_answers": [
+        "bức tường thành Thiers"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 57.5
+    },
+    {
+      "id": "0001-0008-0001",
+      "question": "Bồn Paris là nơi khởi nguồn của nhiều thuyết địa chất nổi tiếng nào?",
+      "gold_answers": [
+        "cổ sinh vật học và giải phẫu so sánh của Georges Cuvier"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 76.2
+    },
+    {
+      "id": "0001-0008-0002",
+      "question": "Đâu được xem là nguyên nhân khởi nguồn cho sự hình thành lưu vực sông Seine?",
+      "gold_answers": [
+        "sự tạo thành của dãy Alps"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 63.7
+    },
+    {
+      "id": "0001-0008-0005",
+      "question": "Bản đồ địa chất được bắt đầu vẽ ở đâu?",
+      "gold_answers": [
+        "Bồn Paris"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 60.1
+    },
+    {
+      "id": "0001-0008-0006",
+      "question": "Bồn Paris nằm trên bồn những núi nào từ thời Paleozoic?",
+      "gold_answers": [
+        "khối núi Vosges, khối núi Massif central, khối núi Armorica"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 61.7
+    },
+    {
+      "id": "0001-0008-0009",
+      "question": "Sự kiện nào đánh dấu sự hình thành của lưu vực sông Loire và sông Seine?",
+      "gold_answers": [
+        "bồn Paris bị đóng lại, chỉ còn mở ra phía biển Manche và Đại Tây Dương",
+        "sự tạo thành của dãy Alps, bồn Paris bị đóng lại"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 59.8
+    },
+    {
+      "id": "0001-0008-0010",
+      "question": "Vì sao các cửa bồn Paris bị khóa lại?",
+      "gold_answers": [
+        "báo trước cho sự hình thành lưu vực sông Loire và sông Seine",
+        "sự tạo thành của dãy Alps"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 61.6
+    },
+    {
+      "id": "0001-0009-0001",
+      "question": "Ở Paris, CaSO4.2H2O được khai thác nhiều ở đâu?",
+      "gold_answers": [
+        "Montmartre và Bagneux",
+        "tả ngạn sông Seine"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 58.1
+    },
+    {
+      "id": "0001-0009-0003",
+      "question": "Việc khai thác CaCO3 đã từ lâu được di dời từ sông Sen đến đâu?",
+      "gold_answers": [
+        "Oise",
+        "phố Vaugirard"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 57.0
+    },
+    {
+      "id": "0001-0009-0004",
+      "question": "Sau thế kỷ 15 đá vôi được khai thác nhiều ở đâu trong Paris?",
+      "gold_answers": [
+        "Oise"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 56.6
+    },
+    {
+      "id": "0001-0009-0006",
+      "question": "Việc khai thác đá vôi bên sông Sen đã dừng từ lúc nào?",
+      "gold_answers": [
+        "thế kỷ 14"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 53.2
+    },
+    {
+      "id": "0001-0009-0008",
+      "question": "Tầng Lutetia được cô đọng bởi gì?",
+      "gold_answers": [
+        "thạch cao và đá vôi"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 55.7
+    },
+    {
+      "id": "0001-0009-0009",
+      "question": "Thành phần bên trong lòng đất Paris chủ yếu là gì?",
+      "gold_answers": [
+        "đá vôi, thạch cao và đá vôi silic"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 72.8
+    },
+    {
+      "id": "0001-0010-0002",
+      "question": "Điểm cuối của kênh Saint-Denis ở đâu?",
+      "gold_answers": [
+        "sông Seine ở phần hạ lưu",
+        "thượng lưu của đảo Île Saint-Louis"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 59.0
+    },
+    {
+      "id": "0001-0010-0003",
+      "question": "Nơi nào nằm trên kênh Saint-Martin nối liền bồn Villette và thượng lưu sông Seine?",
+      "gold_answers": [
+        "phố Faubourg-du-Temple ở quảng trường Bastille",
+        "quảng trường Bastille"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 66.9
+    },
+    {
+      "id": "0001-0010-0004",
+      "question": "Trừ dòng sông Seine, dòng chảy nào qua Paris có phần lộ thiên?",
+      "gold_answers": [
+        "Saint-Martin"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 49.9
+    },
+    {
+      "id": "0001-0010-0006",
+      "question": "Dựa theo bản đồ Paris, sông Sen có hình dạng gì?",
+      "gold_answers": [
+        "cánh cung",
+        "hình một cánh cung"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 53.6
+    },
+    {
+      "id": "0001-0011-0002",
+      "question": "Thời điểm nào nhiệt độ Paris đạt mức cao nhất?",
+      "gold_answers": [
+        "ngày 28 tháng 6 năm 1948"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 48.7
+    },
+    {
+      "id": "0001-0011-0004",
+      "question": "Khí hậu Paris có đặc điểm gì?",
+      "gold_answers": [
+        "mùa hè mát, trung bình 18°C; mùa đông không quá lạnh, trung bình 6 °C; các mùa đều mưa nhiều và thời tiết thất thường",
+        "ôn đới đại dương"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 55.3
+    },
+    {
+      "id": "0001-0011-0006",
+      "question": "Nguyên nhân chủ yếu nào tạo nên khí hậu của Paris?",
+      "gold_answers": [
+        "đại dương",
+        "Ảnh hưởng của đại dương"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 50.3
+    },
+    {
+      "id": "0001-0012-0001",
+      "question": "Ai là người đã chọn Paris làm thủ đô cho nước Pháp?",
+      "gold_answers": [
+        "Clovis I",
+        "vua Clovi"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 60.2
+    },
+    {
+      "id": "0001-0012-0002",
+      "question": "Paris trở thành nơi thịnh vượng nhất châu Âu vào thời kì nào?",
+      "gold_answers": [
+        "thế kỷ 17",
+        "thời kỳ Belle Époque"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 57.8
+    },
+    {
+      "id": "0001-0012-0004",
+      "question": "Paris bị Đế quốc Roma chiếm đóng vào thời điểm nào?",
+      "gold_answers": [
+        "thế kỷ 1"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 59.7
+    },
+    {
+      "id": "0001-0012-0005",
+      "question": "Cuộc cách mạng Pháp lần đầu tiên diễn ra ở đâu?",
+      "gold_answers": [
+        "Paris",
+        "Paris"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 50.0
+    },
+    {
+      "id": "0001-0012-0006",
+      "question": "Ai là những người dân đầu tiên sống ở Paris?",
+      "gold_answers": [
+        "người Parisii",
+        "người Parisii thuộc bộ tộc Gaulois"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 57.3
+    },
+    {
+      "id": "0001-0013-0001",
+      "question": "Con người lần đầu xuất hiện ở Paris vào lúc nào?",
+      "gold_answers": [
+        "40.000 năm",
+        "Cách đây ít nhất 40.000 năm"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 56.9
+    },
+    {
+      "id": "0001-0013-0003",
+      "question": "Con người bắt đầu tập trung cư trú nhiều bên Sen vào lúc nào?",
+      "gold_answers": [
+        "khoảng năm 4.000 đến 3.800 trước Công Nguyên",
+        "đầu thời kỳ Đồ đá mới, khoảng năm 4.000 đến 3.800 trước Công Nguyên"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 57.5
+    },
+    {
+      "id": "0001-0013-0005",
+      "question": "Dựa vào đâu cho thấy con người đã sống ở Sông Sen 40000 năm trước?",
+      "gold_answers": [
+        "những công cụ đá được tìm thấy ở bờ sông Seine"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 56.3
+    },
+    {
+      "id": "0001-0014-0001",
+      "question": "Lutetia có hình dáng như thế nào vào những thế kỷ đầu sau Công nguyên?",
+      "gold_answers": [
+        "Hippodamos",
+        "kiểu Hippodamos"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 60.0
+    },
+    {
+      "id": "0001-0014-0004",
+      "question": "Ai đã kêu gọi người dân Paris không bỏ xứ trong cuộc tấn công của người Mông Cổ?",
+      "gold_answers": [
+        "Thánh Geneviève"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 62.4
+    },
+    {
+      "id": "0001-0014-0005",
+      "question": "Ai đã mang  Kito giáo vào Paris?",
+      "gold_answers": [
+        "Thánh Denis"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 58.3
+    },
+    {
+      "id": "0001-0014-0006",
+      "question": "Paris có tên gì sau khi bị xâm chiếm bởi đế chế Roma?",
+      "gold_answers": [
+        "Lutetia"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 52.1
+    },
+    {
+      "id": "0001-0015-0001",
+      "question": "Cuộc chiến tranh Paris và người Viking đã chấm dứt như thế nào?",
+      "gold_answers": [
+        "hòa ước Saint-Clair-sur-Epte năm 911"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 54.5
+    },
+    {
+      "id": "0001-0015-0005",
+      "question": "Những chiến binh Viking đã tấn công Paris lần đầu vào lúc nào?",
+      "gold_answers": [
+        "Năm 845"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 49.5
+    },
+    {
+      "id": "0001-0015-0006",
+      "question": "Ai là người cai trị Paris sau thời Childéric I?",
+      "gold_answers": [
+        "Clovis I",
+        "Clovis I - con trai của Childéric I"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 61.3
+    },
+    {
+      "id": "0001-0015-0007",
+      "question": "Ai đã cai trị Paris sau khi giải phóng khỏi Attila?",
+      "gold_answers": [
+        "Childéric I"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 48.3
+    },
+    {
+      "id": "0001-0016-0001",
+      "question": "Paris đã trở lại làm thủ đô từ vua nào lên ngôi?",
+      "gold_answers": [
+        "Louis VI",
+        "vua Louis VI"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 45.3
+    },
+    {
+      "id": "0001-0016-0002",
+      "question": "Paris đã phát triển lớn mạnh hơn Orléans vào lúc nào?",
+      "gold_answers": [
+        "thế kỷ 11"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 52.5
+    },
+    {
+      "id": "0001-0016-0004",
+      "question": "Capet đã chọn nơi nào để đóng đô?",
+      "gold_answers": [
+        "Orléans"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 49.2
+    },
+    {
+      "id": "0001-0017-0001",
+      "question": "Thành phố nào tập trung đông người nhất lục địa già vào thế kỷ XIV?",
+      "gold_answers": [
+        "Paris"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 53.4
+    },
+    {
+      "id": "0001-0017-0002",
+      "question": "Bên bờ phải sông Sen đã phát triển mạnh về hoạt động gì vào thế kỉ XII?",
+      "gold_answers": [
+        "thương mại và tài chính"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 56.4
+    },
+    {
+      "id": "0001-0017-0003",
+      "question": "Paris đã thành đầu não chính trị và tôn giáo sau công trình gì?",
+      "gold_answers": [
+        "nhà thờ Đức Bà",
+        "nhà thờ Đức Bà trên đảo Île de la Cité"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 52.4
+    },
+    {
+      "id": "0001-0017-0005",
+      "question": "Vì sao vua Charles V cho xây dựng bức tường thành từcầu Pont Royal tới cửa ô Saint-Denis?",
+      "gold_answers": [
+        "nạn dịch hạch đen",
+        "nạn dịch hạch đen đã tàn sát dân chúng thành phố"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 53.7
+    },
+    {
+      "id": "0001-0017-0006",
+      "question": "Bên bờ trái sông Sen đã phát triển mạnh về hoạt động gì vào thế kỉ XII?",
+      "gold_answers": [
+        "giáo dục"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 47.3
+    },
+    {
+      "id": "0001-0018-0002",
+      "question": "Ai đã nắm giữ Paris trong chiến tranh Pháp-Anh thế kỷ XIV?",
+      "gold_answers": [
+        "người Anh"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 54.4
+    },
+    {
+      "id": "0001-0018-0003",
+      "question": "Trong chiến tranh trăm năm ai đã nổi dậy gây nên biến động lịch sử?",
+      "gold_answers": [
+        "quan thái thú Étienne Marcel",
+        "Étienne Marcel"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 59.0
+    },
+    {
+      "id": "0001-0018-0004",
+      "question": "Vì sao vua di chuyển đến Hôtel Saint-Pol?",
+      "gold_answers": [
+        "dễ dàng thoát khi có binh biến",
+        "nơi dễ dàng thoát khi có binh biến"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 62.5
+    },
+    {
+      "id": "0001-0019-0001",
+      "question": "Vua Henry IV tên thật là gì?",
+      "gold_answers": [
+        "Henri de Navarre"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 51.8
+    },
+    {
+      "id": "0001-0019-0002",
+      "question": "Thế lực nào đã xung đột với vua Henry III?",
+      "gold_answers": [
+        "Giáo hội Pháp"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 52.9
+    },
+    {
+      "id": "0001-0019-0003",
+      "question": "Henry IV đã không thể quay lại Paris cho đến năm nào?",
+      "gold_answers": [
+        "1594"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 56.7
+    },
+    {
+      "id": "0001-0019-0004",
+      "question": "Trong ngày lễ Thánh Barthelemy, có bao nhiêu tín đồ Tin Lành bị Kito giáo giết?",
+      "gold_answers": [
+        "2 ngàn tới 10 ngàn",
+        "khoảng 2 ngàn tới 10 ngàn người"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 56.4
+    },
+    {
+      "id": "0001-0019-0005",
+      "question": "Từ 1562 tới 1598 có mấy cuộc xung đột tôn giáo lớn xảy ra ở Paris?",
+      "gold_answers": [
+        "8",
+        "8 cuộc"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 51.5
+    },
+    {
+      "id": "0001-0020-0001",
+      "question": "Cung điện Tuileries nằm ở đâu?",
+      "gold_answers": [
+        "Palais-Royal",
+        "Paris"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 45.4
+    },
+    {
+      "id": "0001-0020-0002",
+      "question": "Ai đã thay Louis XIV điều hành Paris?",
+      "gold_answers": [
+        "Jean-Baptiste",
+        "Jean-Baptiste Colbert"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 52.2
+    },
+    {
+      "id": "0001-0020-0003",
+      "question": "Vị vua đầu tiên nào đã chuyển từ cung điện ở Paris sang ở Versailles?",
+      "gold_answers": [
+        "Louis XIII"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 57.1
+    },
+    {
+      "id": "0001-0021-0002",
+      "question": "Cực Tây của Paris lúc thế kỷ XVIII là gì?",
+      "gold_answers": [
+        "vườn Luxembourg"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 55.1
+    },
+    {
+      "id": "0001-0021-0003",
+      "question": "Nhà thờ Sainte-Geneviève nằm ở đâu?",
+      "gold_answers": [
+        "Paris",
+        "Sainte-Geneviève"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 49.9
+    },
+    {
+      "id": "0001-0021-0004",
+      "question": "Vì sao dù đã chuyển đến Versailles nhưng Louis XV đã cho kiến thiết nhiều công trình kiến trúc ở Paris?",
+      "gold_answers": [
+        "Louis XV vẫn yêu thích thành phố"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 58.6
+    },
+    {
+      "id": "0001-0022-0001",
+      "question": "Vì sao nhà vua phải bỏ cung điện owrVersailles để về Paris?",
+      "gold_answers": [
+        "những người nổi dậy tới Versailles",
+        "những người nổi dậy tới Versailles vào buổi tối. Sáng ngày 6, họ chiếm lâu đài và buộc nhà vua phải quay trở lại Paris"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 49.3
+    },
+    {
+      "id": "0001-0022-0003",
+      "question": "Versailles dùng để làm gì sau khi nhà vua bị đuổi khỏi đó?",
+      "gold_answers": [
+        "Quốc hội lập hiến",
+        "Quốc hội lập hiến được triệu tập"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 47.0
+    },
+    {
+      "id": "0001-0022-0004",
+      "question": "Ai là người có quyền lực cao nhất Paris thời gian sau khi bỏ chế độ phong kiến?",
+      "gold_answers": [
+        "Quốc hội",
+        "nhà thiên văn Jean Sylvain Bailly"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 52.6
+    },
+    {
+      "id": "0001-0023-0001",
+      "question": "Vì sao Louis trở thành vị vua không ngai?",
+      "gold_answers": [
+        "Đa số vẫn ủng hộ chế độ quân chủ",
+        "Đa số vẫn ủng hộ chế độ quân chủ, đã đi đến thỏa thuận cho vua Louis làm một đấng quân vương bù nhìn"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 44.8
+    },
+    {
+      "id": "0001-0023-0002",
+      "question": "Pháp chính thức không theo chế độ quân chủ vào lúc nào?",
+      "gold_answers": [
+        "Ngày 21 tháng 9 năm 1792"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 57.2
+    },
+    {
+      "id": "0001-0023-0003",
+      "question": "Sự kiện nào đánh dấu mốc chấm dứt cho chế độ quân chủ lập hiến ở Pháp?",
+      "gold_answers": [
+        "Louis XVI bị hành quyết",
+        "Louis XVI bị hành quyết bởi tội danh âm mưu chống lại tự do nhân dân và an ninh chung"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 56.1
+    },
+    {
+      "id": "0001-0023-0004",
+      "question": "Mục đích của ngày lễ Fédération là gì?",
+      "gold_answers": [
+        "mừng một năm ngày phá ngục Bastille"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 58.3
+    },
+    {
+      "id": "0001-0023-0005",
+      "question": "Vì sao Pháp xảy ra chiến tranh với Áo vào thập niên cuối thế kỷ XVIII?",
+      "gold_answers": [
+        "Tình hình chính trị rối loạn"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 53.2
+    },
+    {
+      "id": "0001-0024-0001",
+      "question": "Đường sắt đầu tiên của Pháp là cầu nối hai nơi nào?",
+      "gold_answers": [
+        "Paris với Saint-Germain-en-Laye"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 54.8
+    },
+    {
+      "id": "0001-0024-0002",
+      "question": "Những nhà văn nào đã phản ánh lên tình hình xã hội Pháp thời đó?",
+      "gold_answers": [
+        "Balzac, Victor Hugo hay Eugène Sue"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 49.7
+    },
+    {
+      "id": "0001-0024-0003",
+      "question": "Cái gì là bước đệm mở ra thời đường sắt ở Pháp?",
+      "gold_answers": [
+        "Các nhà ga Saint-Lazare, Gare du Nord, các tuyến đường sắt Paris-Orléans, Paris-Rouen được xây dựng"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 52.7
+    },
+    {
+      "id": "0001-0025-0002",
+      "question": "Paris từ 12 quận tăng thêm 8 quận vào lúc nào?",
+      "gold_answers": [
+        "Ngày 1 tháng năm 1860"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 68.2
+    },
+    {
+      "id": "0001-0025-0003",
+      "question": "Ai là người đã lên kế hoạch tái kiến thiết Paris?",
+      "gold_answers": [
+        "Napoléon III cùng Nam tước Haussmann"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 52.0
+    },
+    {
+      "id": "0001-0025-0004",
+      "question": "Paris có sự lột xác mạnh mẽ từ phong cách cổ xưa sang diện mạo mới vào lúc nào?",
+      "gold_answers": [
+        "thời Napoléon III"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 52.9
+    },
+    {
+      "id": "0001-0026-0001",
+      "question": "Thời kỳ thịnh vượng của Belle Époque được biểu hiện qua sự kiện gì?",
+      "gold_answers": [
+        "Hai cuộc triển lãm thế giới vào năm 1889 và 1900"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 53.8
+    },
+    {
+      "id": "0001-0026-0002",
+      "question": "Paris trở thành trung tâm văn hóa thế giới vào thời gian nào?",
+      "gold_answers": [
+        "Belle Époque",
+        "thời kỳ Belle Époque"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 58.0
+    },
+    {
+      "id": "0001-0026-0003",
+      "question": "Tàu điện ngầm đầu tiên của Pháp nối liền những nơi nào?",
+      "gold_answers": [
+        "Grand Palais, Petit Palais và cầu Alexandre-III"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 46.7
+    },
+    {
+      "id": "0001-0026-0005",
+      "question": "Công trình nổi tiếng nào được xây dựng để đánh dấu 100 năm cách mạng Pháp?",
+      "gold_answers": [
+        "Tháp Eiffel"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 48.3
+    },
+    {
+      "id": "0001-0026-0007",
+      "question": "Công trình nào dựng lên nhiều sau sự xuất hiện của điện ảnh?",
+      "gold_answers": [
+        "175 rạp chiếu phim",
+        "rạp chiếu phim"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 50.1
+    },
+    {
+      "id": "0001-0027-0001",
+      "question": "Biện pháp nào dùng để giải quyết việc thiếu nhà ở của người dân?",
+      "gold_answers": [
+        "chung cư bình dân được lập nên",
+        "những chung cư bình dân được lập nên"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 51.3
+    },
+    {
+      "id": "0001-0027-0002",
+      "question": "Trận lũ lớn nhất thế kỷ XX đã gây tổn thất cho Paris như thế nào?",
+      "gold_answers": [
+        "ba tỷ franc"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 52.1
+    },
+    {
+      "id": "0001-0027-0003",
+      "question": "Paris đã đối mặt với những khó khăn gì sau thế chiến I?",
+      "gold_answers": [
+        "chịu các cuộc ném bom và nã pháo của quân đội Đức",
+        "khủng hoảng về kinh tế và xã hội"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 68.7
+    },
+    {
+      "id": "0001-0028-0001",
+      "question": "Cuộc biểu tình của sinh viên đại học Nanterre xảy ra dưới thời tổng thống nào?",
+      "gold_answers": [
+        "Charles de Gaulle"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 53.9
+    },
+    {
+      "id": "0001-0028-0003",
+      "question": "Hình ảnh Paris đối với các nước trên thế giới như thế nào sau thế chiến II?",
+      "gold_answers": [
+        "một biểu tượng của sự hòa giải"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 50.0
+    },
+    {
+      "id": "0001-0028-0005",
+      "question": "Trong thời gian Charles de Gaulle làm tổng thống, có vấn đề nổi bật gì xảy ra?",
+      "gold_answers": [
+        "Ngày 17 tháng 10 năm 1961, một cuộc biểu tình cho nền độc lập của Algérie bị cảnh sát đàn áp, ước tính 32 tới 325 người chết. Từ ngày 22 tháng 3 năm 1968, một phong trào sinh viên, bắt đầu từ Đại học Nanterre lan dần tới khu phố La Tinh trở thành một vụ bạo loạn",
+        "nhiều sự kiện chính trị đã diễn ra ở thủ đô"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 48.5
+    },
+    {
+      "id": "0001-0029-0002",
+      "question": "Đối tượng nào đã ra tay với tờ báo Charlie Hebdo vào năm 2015?",
+      "gold_answers": [
+        "hai kẻ Hồi giáo cực đoan"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 46.8
+    },
+    {
+      "id": "0001-0029-0003",
+      "question": "Cuộc diễu hành toàn quốc ở Pháp kéo dài 2 ngày trong tháng 1 năm 2015 diễn ra với mục đích gì?",
+      "gold_answers": [
+        "tưởng niệm các nạn nhân của vụ tấn công Charlie Hebdo, vụ nổ súng tại Montrouge, và cuộc khủng hoảng con tin Porte de Vincennes, đồng thời lên tiếng ủng hộ cho tự do ngôn luận, tự do báo chí và chống chủ nghĩa khủng bố",
+        "để tưởng niệm các nạn nhân của vụ tấn công Charlie Hebdo, vụ nổ súng tại Montrouge, và cuộc khủng hoảng con tin Porte de Vincennes, đồng thời lên tiếng ủng hộ cho tự do ngôn luận, tự do báo chí và chống chủ nghĩa khủng bố"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 52.7
+    },
+    {
+      "id": "0001-0029-0004",
+      "question": "Cuộc diễu hành lớn nhất ở Pháp sau thế chiến II diễn ra vào thời gian nào?",
+      "gold_answers": [
+        "ngày 10 và 11 tháng 1 năm 2015"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 47.6
+    },
+    {
+      "id": "0001-0030-0001",
+      "question": "Đặc điểm của các ngành kinh doanh ở Paris là gì?",
+      "gold_answers": [
+        "đa dạng, không đặc trưng",
+        "đa dạng, không đặc trưng giống các thành phố kinh tế lớn"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 59.7
+    },
+    {
+      "id": "0001-0030-0002",
+      "question": "Đặc điểm nổi bật của kinh tế Los Angeles là gì?",
+      "gold_answers": [
+        "ngành công nghiệp giải trí"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 54.3
+    },
+    {
+      "id": "0001-0030-0003",
+      "question": "Những mặt hàng nào đem lại lợi nhuận lớn nhất của công nghiệp Paris?",
+      "gold_answers": [
+        "sản xuất hàng tiêu dùng, xây dựng, xe hơi, năng lượng"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 54.5
+    },
+    {
+      "id": "0001-0030-0004",
+      "question": "Cơ cấu nguồn dân lực ở Paris tập trung vào lĩnh vực nào nhiều nhất?",
+      "gold_answers": [
+        "dịch vụ"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 49.7
+    },
+    {
+      "id": "0001-0031-0001",
+      "question": "Nguồn thu nhập của dân lao động chênh lệch như thế nào ở Pháp?",
+      "gold_answers": [
+        "10% những nhân công hưởng lương cao nhất nhận được gấp bốn lần 10% hưởng lương thấp nhất"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 54.0
+    },
+    {
+      "id": "0001-0031-0002",
+      "question": "Mức lương trung bình của người lao động ở Pháp năm 2002 là bao nhiêu?",
+      "gold_answers": [
+        "13,1 euro một giờ"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 51.6
+    },
+    {
+      "id": "0001-0031-0004",
+      "question": "Nguồn dân lao động sống ở đâu nhiều nhất tại Paris?",
+      "gold_answers": [
+        "Nội ô Paris"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 48.8
+    },
+    {
+      "id": "0001-0031-0006",
+      "question": "Sự chênh lệch thu nhập giữa nam và nữ ở Quận 8 và Quận 20 như thế nào?",
+      "gold_answers": [
+        "6%, trong khi ở các tỉnh lên đến 10 %",
+        "sự chênh lệch lương giữa nam giới và nữ giới chỉ 6%"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 48.3
+    },
+    {
+      "id": "0001-0032-0002",
+      "question": "Những công ty lớn tập trung ở La Défense nhiều đến mức nào?",
+      "gold_answers": [
+        "1.500 công ty, trong đó có 14 trong 20 công ty hàng đầu của Pháp và 15 trong 50 công ty hàng đầu của thế giới",
+        "14 trong 20 công ty hàng đầu của Pháp và 15 trong 50 công ty hàng đầu của thế giới"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 45.8
+    },
+    {
+      "id": "0001-0032-0003",
+      "question": "Có những vấn đề bất cập nào tồn tại ở La Défense?",
+      "gold_answers": [
+        "giá bất động sản quá cao và diện tích các văn phòng rất giới hạn"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 46.9
+    },
+    {
+      "id": "0001-0032-0004",
+      "question": "Những công trình lớn nào nổi tiếng ở La Défense?",
+      "gold_answers": [
+        "tháp Areva, tháp EDF, tháp Gan"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 45.7
+    },
+    {
+      "id": "0001-0032-0005",
+      "question": "Vì sao ngành bất động sản ở La Défense phát triển rất mạnh?",
+      "gold_answers": [
+        "các nhà chọc trời như tháp Areva, tháp EDF, tháp Gan... có tới 3 triệu m² văn phòng và tập trung 150.000 nhân viên",
+        "Được phát triển từ những năm 1960"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 48.1
+    },
+    {
+      "id": "0001-0033-0001",
+      "question": "Các khách sạn tập trung ở đâu là chủ yếu tại Pháp?",
+      "gold_answers": [
+        "Paris"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 52.8
+    },
+    {
+      "id": "0001-0033-0002",
+      "question": "Ngành du lịch có vị thế như thế nào trong cơ cấu kinh tế Paris?",
+      "gold_answers": [
+        "chiếm 12,8% nhân công của thành phố, tức 147.000 người",
+        "vai trò quan trọng trong"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 50.9
+    },
+    {
+      "id": "0001-0033-0005",
+      "question": "Giá của khách sạn tầm trung hạ rẻ như thế nào ở Paris?",
+      "gold_answers": [
+        "giá các khách sạn 2 sao của Paris lại thấp, đứng thứ 17 trên tổng số 20 đô thị lớn của thế giới",
+        "đứng thứ 17 trên tổng số 20 đô thị lớn của thế giớ"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 48.1
+    },
+    {
+      "id": "0001-0034-0001",
+      "question": "Những hình ảnh xấu nào của Paris trong mắt du khách?",
+      "gold_answers": [
+        "một trong những thành phố đắt nhất và bị cho là kém hiếu khách",
+        "thành phố đắt nhất và bị cho là kém hiếu khách"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 48.4
+    },
+    {
+      "id": "0001-0034-0002",
+      "question": "Vì sao nói Paris không hiếu khách?",
+      "gold_answers": [
+        "đứng thứ 52 về chất lượng đón tiếp"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 38.3
+    },
+    {
+      "id": "0001-0034-0003",
+      "question": "Thành phố nào đứng nhất về vẻ đẹp theo khảo sát của Global Market Insite?",
+      "gold_answers": [
+        "Paris"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 45.4
+    },
+    {
+      "id": "0001-0035-0001",
+      "question": "GDP đầu người của Paris năm 2001 là bao nhiêu?",
+      "gold_answers": [
+        "27.400 euro",
+        "27.400 euro thu nhập trung bình cho mỗi người"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 47.2
+    },
+    {
+      "id": "0001-0035-0002",
+      "question": "Giá của các khu nhà ở tăng lên chứng tỏ điều gì?",
+      "gold_answers": [
+        "những dân cư nghèo và trung bình dần được thay thế bằng một tầng lớp mới khá giả hơn"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 58.3
+    },
+    {
+      "id": "0001-0035-0005",
+      "question": "Người dân Paris phải chịu thuế ở mức nào so với cả nước?",
+      "gold_answers": [
+        "đứng thứ 12 nước Pháp về tỷ lệ phải đóng thuế tài sản",
+        "đứng thứ 12 nước Pháp về tỷ lệ phải đóng thuế tài sản: 34,5 hộ trên 1.000 người dân"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 48.8
+    },
+    {
+      "id": "0001-0036-0002",
+      "question": "Người lao động quận mấy ở Paris có tiền lương cao nhất?",
+      "gold_answers": [
+        "Quận 7"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 45.4
+    },
+    {
+      "id": "0001-0036-0004",
+      "question": "Các tầng lớp xã hội chênh lệch như thế nào ở Paris?",
+      "gold_answers": [
+        "những người dân phía tây thường giàu có hơn phía đông"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 45.8
+    },
+    {
+      "id": "0001-0036-0005",
+      "question": "Tỉ lệ người nghèo trở xuống ở Quận 7 là bao nhiêu?",
+      "gold_answers": [
+        "7%",
+        "chỉ có 7%"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 47.8
+    },
+    {
+      "id": "0001-0037-0001",
+      "question": "Sự khác biệt dòng máu được thể hiện ở Paris như thế nào?",
+      "gold_answers": [
+        "32,6% các gia đình Paris có gốc ngoài Liên minh châu Âu ở mức nghèo",
+        "32,6% các gia đình Paris có gốc ngoài Liên minh châu Âu ở mức nghèo, trong khi đó con số với những gia đình Pháp là 9,7 %"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 46.5
+    },
+    {
+      "id": "0001-0037-0002",
+      "question": "Người nghèo khổ ở Paris thường tập trung sống ở đâu?",
+      "gold_answers": [
+        "Các Quận 18, 19 và 20",
+        "Quận 18, 19 và 20"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 50.2
+    },
+    {
+      "id": "0001-0037-0005",
+      "question": "Người người di cư từ châu Phi đến thường sống ở nơi nào?",
+      "gold_answers": [
+        "Các Quận 18, 19 và 20",
+        "Quận 18, 19 và 20"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 49.6
+    },
+    {
+      "id": "0001-0038-0001",
+      "question": "Tỉ lệ các cặp hôn nhân chia tay của Paris ở mức nào?",
+      "gold_answers": [
+        "27%",
+        "trên tổng số 100 cặp kết hôn có 55 cặp ly hôn sau đó"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 46.2
+    },
+    {
+      "id": "0001-0038-0004",
+      "question": "Dẫn chứng nào cho thấy sự tan vỡ của các cặp hôn nhân ở Paris cao?",
+      "gold_answers": [
+        "Tỷ lệ số gia đình chỉ có bố hoặc mẹ của Paris cũng cao hơn trung bình nước Pháp",
+        "trên tổng số 100 cặp kết hôn có 55 cặp ly hôn sau đó"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 49.1
+    },
+    {
+      "id": "0001-0038-0005",
+      "question": "Vì sao các gia đình ở Paris thường chỉ có 3 thành viên?",
+      "gold_answers": [
+        "bởi giá bất động sản cao, các gia đình thường sống trong một diện tích nhỏ hẹp",
+        "giá bất động sản cao, các gia đình thường sống trong một diện tích nhỏ hẹp"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 46.2
+    },
+    {
+      "id": "0001-0039-0002",
+      "question": "Vì sao các hộ có xu hướng di chuyển ra ngoại ô?",
+      "gold_answers": [
+        "các căn hộ không có diện tích rộng và giá bất động sản quá cao",
+        "căn hộ không có diện tích rộng và giá bất động sản quá cao"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 45.5
+    },
+    {
+      "id": "0001-0039-0003",
+      "question": "Tình trạng nào cho thấy thành phần không kết hôn hoặc không sinh con ở Paris cao?",
+      "gold_answers": [
+        "Hơn một nửa - 58,1% vào năm 1999 - số căn hộ của Paris chỉ gồm một hoặc hai phòng"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 47.9
+    },
+    {
+      "id": "0001-0039-0004",
+      "question": "Người dân Paris phải đối mặt với những khó khăn thường nhật gì?",
+      "gold_answers": [
+        "dân số quá đông, tâm lý stress của đô thị, ô nhiễm, giá cả đắt đỏ, kém an ninh",
+        "dân số quá đông, tâm lý stress của đô thị, ô nhiễm, giá cả đắt đỏ, kém an ninh",
+        "ân số quá đông, tâm lý stress của đô thị, ô nhiễm, giá cả đắt đỏ, kém an ninh"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 68.1
+    },
+    {
+      "id": "0001-0040-0003",
+      "question": "Những người dân di cư đến Pháp thường là người ở đâu nhiều nhất?",
+      "gold_answers": [
+        "Trung Quốc và châu Phi"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 103.5
+    },
+    {
+      "id": "0001-0040-0004",
+      "question": "Sự việc gì chứng tỏ nhân dân Pháp đến từ nhiều nơi và đa tôn giáo?",
+      "gold_answers": [
+        "Theo cuộc điều tra năm 2011, có 23,1% dân số của thành phố sinh ngoài lãnh thổ chính quốc Pháp",
+        "các cuộc điều tra dân số ở Pháp không đặt những câu hỏi thuộc về chủng tộc hay tôn giáo"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 59.8
+    },
+    {
+      "id": "0001-0040-0005",
+      "question": "Tỉ lệ dân di cư đến Pháp cho đến năm 2011 là bao nhiêu?",
+      "gold_answers": [
+        "23,1%",
+        "4,2%"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 57.3
+    },
+    {
+      "id": "0001-0041-0001",
+      "question": "Biển người đổ về Paris lần đầu tiên năm 1820 vì lý do gì?",
+      "gold_answers": [
+        "chạy trốn cuộc khủng hoảng nông nghiệp"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 58.3
+    },
+    {
+      "id": "0001-0042-0001",
+      "question": "Dòng họ cựu Tổng thống Pháp Nicolas Sarkozy là người nước nào?",
+      "gold_answers": [
+        "Hungary"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 56.8
+    },
+    {
+      "id": "0001-0042-0004",
+      "question": "Chính phủ Pháp đã ghi nhớ những đóng góp to lớn của Marie Curie qua hình thức nào?",
+      "gold_answers": [
+        "sau khi mất được đưa vào điện Panthéon và in trên tờ 500 franc của Pháp"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 54.7
+    },
+    {
+      "id": "0001-0042-0005",
+      "question": "Nhà văn Marcel Proust có dòng họ ở đâu di cư đến Paris?",
+      "gold_answers": [
+        "Do Thái"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 53.2
+    },
+    {
+      "id": "0001-0043-0003",
+      "question": "Có bao nhiêu người dân không nơi nương tựa ở Paris năm 2005?",
+      "gold_answers": [
+        "8.000 người",
+        "khoảng 8.000"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 72.9
+    },
+    {
+      "id": "0001-0043-0004",
+      "question": "Tỉ lệ người vô gia cư so với Luân Đôn như thế nào?",
+      "gold_answers": [
+        "50.000 người vô gia cư trên tổng số 7 triệu dân",
+        "không cao"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 60.9
+    },
+    {
+      "id": "0001-0043-0005",
+      "question": "Dân số thủ đô Đức năm 2005 là bao nhiêu?",
+      "gold_answers": [
+        "3,5 triệu dân"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 68.0
+    },
+    {
+      "id": "0001-0044-0001",
+      "question": "Tình trạng vô gia cư đã dẫn đến hệ quả gì?",
+      "gold_answers": [
+        "gặp các vấn đề về sức khỏe, cả thể chất lẫn tâm lý",
+        "nhiều người vô gia cư gặp các vấn đề về sức khỏe, cả thể chất lẫn tâm lý"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 82.5
+    },
+    {
+      "id": "0001-0044-0002",
+      "question": "Tình trạng hôn nhân của phần lớn người không nơi nương tựa ở Paris như thế nào?",
+      "gold_answers": [
+        "17% người vô gia cư là nữ giới, và cứ 3 nữ vô gia cư thì một người kèm theo con nhỏ, có thể cùng bố đưa trẻ hoặc không",
+        "độc thân"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 93.6
+    },
+    {
+      "id": "0001-0044-0003",
+      "question": "Nam giới vô gia cư ở độ tuổi trung niên ở Paris là bao nhiêu?",
+      "gold_answers": [
+        "31 tới 50 tuổi",
+        "57%"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 85.1
+    },
+    {
+      "id": "0001-0045-0001",
+      "question": "Trường đại học Paris lúc mới xây dựng tọa lạc ở đâu?",
+      "gold_answers": [
+        "Sainte-Geneviève",
+        "đồi Sainte-Geneviève, thuộc khu phố La Tinh ngày nay"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 63.0
+    },
+    {
+      "id": "0001-0045-0004",
+      "question": "Thế mạnh giáo dục đã có từ lâu đời của Paris là gì?",
+      "gold_answers": [
+        "thần học và triết học",
+        "tập trung nhiều trường đại học lớn và có số lượng sinh viên đông đảo"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 55.7
+    },
+    {
+      "id": "0001-0045-0005",
+      "question": "Hiện nay đại học Paris được hợp nhất bởi những khoa thành viên nào?",
+      "gold_answers": [
+        "khoa luật, y, dược, văn, thần học và khoa học"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 51.7
+    },
+    {
+      "id": "0001-0046-0001",
+      "question": "Đại học Paris XI tọa lạc ở đâu?",
+      "gold_answers": [
+        "Cao nguyên nhỏ Saclay"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 43.9
+    },
+    {
+      "id": "0001-0046-0002",
+      "question": "Vì sao Đại hoc Paris phân tách thành các trường riêng biệt?",
+      "gold_answers": [
+        "cuộc nổi loạn của sinh viên năm 1968"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 47.6
+    },
+    {
+      "id": "0001-0046-0003",
+      "question": "Vì sao các trường Đại học di chuyển ra khỏi nội thành?",
+      "gold_answers": [
+        "tìm những khu vực rộng hơn ngoài ngoại thành"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 49.5
+    },
+    {
+      "id": "0001-0047-0002",
+      "question": "Hiện nay có những trường Đại học nào ở nội thành Paris?",
+      "gold_answers": [
+        "Các trường đại học Paris từ I đến VII"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 48.0
+    },
+    {
+      "id": "0001-0047-0003",
+      "question": "Co những trường Đại học nào tập trung ở khu phố La Tinh?",
+      "gold_answers": [
+        "Sorbonne và Trường Sư phạm (École normale supérieure), Trường Mỏ (École des Mines) cùng Collège de France",
+        "Sorbonne và Trường Sư phạm (École normale supérieure), Trường Mỏ (École des Mines) cùng Collège de France."
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 53.8
+    },
+    {
+      "id": "0001-0047-0004",
+      "question": "Từ Paris I đến Paris VII có mấy trường mạnh về thiết kế nghệ thuật?",
+      "gold_answers": [
+        "Bốn"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 47.4
+    },
+    {
+      "id": "0001-0048-0001",
+      "question": "Số lượng sinh viên tập trung ở vùng Île-de-France lớn cỡ nào?",
+      "gold_answers": [
+        "600.000 sinh viên, chiếm hơn một phần tư số sinh viên ở Pháp",
+        "chiếm hơn một phần tư số sinh viên ở Pháp"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 51.2
+    },
+    {
+      "id": "0001-0048-0002",
+      "question": "Tổ chức quản lý đời sống sinh viên ở Paris gọi là gì?",
+      "gold_answers": [
+        "CROUS"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 48.4
+    },
+    {
+      "id": "0001-0048-0003",
+      "question": "Ký túc xá cho sinh viên lớn nhất Paris gọi là gì?",
+      "gold_answers": [
+        "Cité internationale universitaire"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 53.5
+    },
+    {
+      "id": "0001-0049-0001",
+      "question": "Hệ thống giao thông của Paris được thiết kế như thế nào?",
+      "gold_answers": [
+        "Thành phố được bao bọc bởi một hệ thống các đại lộ vành đai và từ các cửa ô của Paris, các đường quốc lộ, xa lộ tỏa đi khắp vùng và tới các tỉnh",
+        "hệ thống các đại lộ vành đai và từ các cửa ô của Paris, các đường quốc lộ, xa lộ tỏa đi khắp vùng và tới các tỉnh"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 48.5
+    },
+    {
+      "id": "0001-0049-0002",
+      "question": "Các con đường lớn của Paris được cải tạo bởi ai?",
+      "gold_answers": [
+        "Haussmann"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 45.4
+    },
+    {
+      "id": "0001-0049-0003",
+      "question": "Tình trạng của người điều khiển giao thông đường bộ ở Paris như thế nào?",
+      "gold_answers": [
+        "khá khó khăn",
+        "khá khó khăn và dày đặc xe cộ"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 57.8
+    },
+    {
+      "id": "0001-0050-0002",
+      "question": "Có những làn đường nào người đi xe đạp có thể chạy ở Paris?",
+      "gold_answers": [
+        "Cùng với các làn đường được phép chạy chung với xe buýt, ở nhiều phố những người đi xe đạp còn có làn đường riêng, tổng cộng dài 371 km",
+        "các làn đường được phép chạy chung với xe buýt, ở nhiều phố những người đi xe đạp còn có làn đường riêng"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 47.9
+    },
+    {
+      "id": "0001-0050-0003",
+      "question": "Hệ thống dịch vụ xe đạp nào lớn nhất châu Âu?",
+      "gold_answers": [
+        "Vélib'"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 41.5
+    },
+    {
+      "id": "0001-0050-0004",
+      "question": "Cơ quan lãnh đạo của Paris có biện pháp gì làm giảm tắt nghẽn giao thông?",
+      "gold_answers": [
+        "khuyến khích giao thông công cộng và xe đạp",
+        "thực hiện chính sách khuyến khích giao thông công cộng và xe đạp"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 47.8
+    },
+    {
+      "id": "0001-0051-0001",
+      "question": "Paris có những sân bay lớn nào?",
+      "gold_answers": [
+        "Charles-de-Gaulle ở phía đông bắc và Orly ở phía nam"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 42.6
+    },
+    {
+      "id": "0001-0051-0003",
+      "question": "Trước Charles-de-Gaulle, Paris có sân bay lớn nào?",
+      "gold_answers": [
+        "Orly"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 40.7
+    },
+    {
+      "id": "0001-0051-0005",
+      "question": "Từ Paris có thể đến sân bay Charles-de-Gaulle bằng đường nào?",
+      "gold_answers": [
+        "đường cao tốc, xe buýt và tuyến RER B"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 40.3
+    },
+    {
+      "id": "0001-0051-0006",
+      "question": "Sân bay nào có số lượng phi cơ ra vào nhiều nhất châu Âu năm 2006?",
+      "gold_answers": [
+        "Charles-de-Gaulle"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 45.2
+    },
+    {
+      "id": "0001-0051-0007",
+      "question": "Thành phố nào có số lượng khách và hàng hóa trung chuyển lớn thứ hai châu Âu?",
+      "gold_answers": [
+        "Paris"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 43.1
+    },
+    {
+      "id": "0001-0052-0001",
+      "question": "Ngoài hoạt động bóng đá, các sân vận động còn dùng để làm gì?",
+      "gold_answers": [
+        "Ngoài các hoạt động thể thao, nó còn là nơi tổ chức nhiều buổi hòa nhạc lớn",
+        "địa điểm của các trận bóng bầu dục quan trọng"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 45.0
+    },
+    {
+      "id": "0001-0052-0004",
+      "question": "Sân nhà bóng đá của PSG có tên gì?",
+      "gold_answers": [
+        "Công viên các hoàng tử (Parc des Princes)",
+        "Sân vận động Công viên các hoàng tử (Parc des Princes)"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 63.4
+    },
+    {
+      "id": "0001-0052-0006",
+      "question": "Pháp đã cho xây sân vận động gì để phục vụ cho World Cup 1998?",
+      "gold_answers": [
+        "Stade de France",
+        "Sân Stade de France"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 42.3
+    },
+    {
+      "id": "0001-0053-0002",
+      "question": "Cách điều phối Paris hiện nay được học theo ai?",
+      "gold_answers": [
+        "nam tước Haussmann",
+        "nam tước Haussmann dưới thời Đệ nhị đế chế"
+      ],
+      "hit": false,
+      "rank": null,
+      "n_results": 5,
+      "latency_ms": 44.6
+    },
+    {
+      "id": "0001-0053-0003",
+      "question": "Có bao nhiêu công trình giao thông bắc ngang sông Seine trong nội thành?",
+      "gold_answers": [
+        "37 cây cầu"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 46.6
+    },
+    {
+      "id": "0001-0053-0004",
+      "question": "Quốc lộ Saint-Germain được ai quy hoạch?",
+      "gold_answers": [
+        "Haussmann"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 42.5
+    },
+    {
+      "id": "0001-0054-0001",
+      "question": "Grand Palais và Petit Palais ngăn cách với nhau bởi gì?",
+      "gold_answers": [
+        "đại lộ Winston-Churchill"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 43.8
+    },
+    {
+      "id": "0001-0054-0002",
+      "question": "Nơi nào đứng ngắm tháp Eiffel là đẹp nhất?",
+      "gold_answers": [
+        "sân giữa của Palais de Chaillot, cạnh quảng trường Trocadéro"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 41.8
+    },
+    {
+      "id": "0001-0054-0003",
+      "question": "Điểm nổi bật trong cảnh quan thành phố Paris là gì?",
+      "gold_answers": [
+        "các công trình quan trọng, cả cổ và hiện đại",
+        "các công trình quan trọng, cả cổ và hiện đại, đều là những điểm nhấn trong quang cảnh của thành phố"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 49.5
+    },
+    {
+      "id": "0001-0055-0002",
+      "question": "Điểm cuối của Axe historique lúc dài nhất là nơi nào?",
+      "gold_answers": [
+        "khu đô thị hiện đại La Défense"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 44.3
+    },
+    {
+      "id": "0001-0055-0003",
+      "question": "Kim tự tháp Louvre có nằm trên tuyến Axe historique không?",
+      "gold_answers": [
+        "Kim tự tháp kính Louvre không nằm trên đường thẳng này, mà được xây lệnh sang một bên",
+        "không"
+      ],
+      "hit": true,
+      "rank": 1,
+      "n_results": 5,
+      "latency_ms": 42.5
+    },
+    {
+      "id": "0001-0055-0004",
+      "question": "Tuyến trọng tâm trong thiết kế đô thị Paris là gì?",
+      "gold_answers": [
+        "Axe historique"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 43.8
+    },
+    {
+      "id": "0001-0056-0001",
+      "question": "Cần những điều kiện gì để xây những tòa cao tầng ở Paris?",
+      "gold_answers": [
+        "những tòa nhà mới có độ cao trên 37 mét phải có giấy phép đặc biệt",
+        "những tòa nhà mới có độ cao trên 37 mét phải có giấy phép đặc biệt và ở một vài quận giới hạn chiều cao này còn nhỏ hơn thế"
+      ],
+      "hit": true,
+      "rank": 3,
+      "n_results": 5,
+      "latency_ms": 43.1
+    },
+    {
+      "id": "0001-0056-0003",
+      "question": "Các tòa nhà được thiết kế ở Paris phải theo luật gì để không phá hỏng cảnh quan?",
+      "gold_answers": [
+        "màu sắc, kiểu cửa sổ",
+        "mặt ngoài các tòa nhà ở Paris phải tuân theo những quy định của thành phố, như về màu sắc, kiểu cửa sổ"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 45.1
+    },
+    {
+      "id": "0001-0056-0004",
+      "question": "Công trình nào cao nhất Tây Âu?",
+      "gold_answers": [
+        "Tour Generali"
+      ],
+      "hit": true,
+      "rank": 4,
+      "n_results": 5,
+      "latency_ms": 46.9
+    },
+    {
+      "id": "0001-0057-0002",
+      "question": "Con đường Montaigne nổi tiếng với gì?",
+      "gold_answers": [
+        "có nhiều cửa hiệu thời trang cao cấp và khách sạn sang trọng Plaza Athénée",
+        "nhiều cửa hiệu thời trang cao cấp và khách sạn sang trọng Plaza Athénée"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 44.2
+    },
+    {
+      "id": "0001-0057-0003",
+      "question": "Sinh viên thường tập trung đông đúc ở khu vực nào trong phố La Tinh?",
+      "gold_answers": [
+        "Đại lộ Saint-Michel"
+      ],
+      "hit": true,
+      "rank": 2,
+      "n_results": 5,
+      "latency_ms": 45.5
+    },
+    {
+      "id": "0001-0058-0001",
+      "question": "Quảng trường nào là nơi lý tưởng để chiêm ngưỡng tháp Eiffel?",
+      "gold_answers": [
+        "Trocadéro",
+        "quảng trường Trocadéro"
+      ],
+      "hit": true,
+      "rank": 5,
+      "n_results": 5,
+      "latency_ms": 44.5
+    }
+  ]
+}

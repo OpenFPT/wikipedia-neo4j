@@ -7,17 +7,13 @@ import random
 import re
 import time
 
-from google import genai
-from google.genai import types
-from sentence_transformers import SentenceTransformer
-
 from src.config import load_gemini_api_keys, settings
 from src.logging_utils import get_logger
 
 
 logger = get_logger(__name__)
 
-_local_embedding_model: SentenceTransformer | None = None
+_local_embedding_model = None
 
 
 def _is_retryable_gemini_error(exc: Exception) -> bool:
@@ -36,15 +32,19 @@ def _is_retryable_gemini_error(exc: Exception) -> bool:
     return any(tok in msg for tok in retry_tokens)
 
 
-def _client_pool() -> list[genai.Client]:
+def _client_pool() -> list:
     """Create a client per configured Gemini API key."""
+    from google import genai
+
     keys = load_gemini_api_keys()
     return [genai.Client(api_key=key) for key in keys]
 
 
-def _get_local_embedding_model() -> SentenceTransformer:
+def _get_local_embedding_model():
     global _local_embedding_model
     if _local_embedding_model is None:
+        from sentence_transformers import SentenceTransformer
+
         _local_embedding_model = SentenceTransformer(settings.local_embedding_model)
     return _local_embedding_model
 
@@ -161,6 +161,8 @@ def _generate_cypher_local(question: str) -> str:
 
 def _generate_cypher_gemini(question: str) -> str:
     """Generate Cypher using Gemini API with key rotation."""
+    from google.genai import types
+
     prompt = f"{_CYPHER_SYSTEM_PROMPT}\n\n{_build_cypher_user_prompt(question)}"
 
     clients = _client_pool()

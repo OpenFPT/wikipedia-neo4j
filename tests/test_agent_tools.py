@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from contextlib import contextmanager
 
-import pytest
 
 import src.agent as agent_mod
 from src.retrieve import QueryResult
@@ -138,7 +137,7 @@ class TestToolEntityNeighborhood:
         @contextmanager
         def _failing_session():
             raise RuntimeError("Neo4j connection failed")
-            yield  # noqa: unreachable
+            yield  
 
         monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
 
@@ -232,7 +231,7 @@ class TestToolPathSearch:
         @contextmanager
         def _failing_session():
             raise RuntimeError("Connection error")
-            yield  # noqa: unreachable
+            yield  
 
         monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
 
@@ -400,7 +399,7 @@ class TestRunAgentScaled:
 
         monkeypatch.setattr(agent_mod, "agent_query", _fake_agent_query)
 
-        result = agent_mod.run_agent_scaled("Test question", n_trajectories=None)
+        agent_mod.run_agent_scaled("Test question", n_trajectories=None)
         assert called[0] is True
 
     def test_multiple_trajectories_uses_majority_vote(self, monkeypatch) -> None:

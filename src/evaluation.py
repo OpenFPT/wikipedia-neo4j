@@ -76,7 +76,7 @@ def _retrieve_chunks(question: str, top_k: int = 20) -> list[dict]:
     """Retrieve chunks using fallback (fulltext) for evaluation."""
     try:
         rows = _run_generated_query(question, top_k)
-    except (RuntimeError, ValueError, KeyError, TypeError):
+    except Exception:
         rows = _run_fallback_query(question, top_k)
     return rows
 

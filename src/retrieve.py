@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from src.config import settings
 from src.llm import assert_readonly_cypher, embed_texts, generate_readonly_cypher, _client_pool
 from src.logging_utils import get_logger
+from neo4j.exceptions import CypherSyntaxError
 from src.neo4j_client import neo4j_client
 
 
@@ -656,7 +657,7 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
     retrieval_tier = "generated"
     try:
         rows = _run_generated_query(question, top_k)
-    except (RuntimeError, ValueError, KeyError, TypeError) as exc:
+    except (RuntimeError, ValueError, KeyError, TypeError, CypherSyntaxError) as exc:
         logger.warning("Generated query failed, falling back to WRRF", extra={"error": str(exc)})
         retrieval_tier = "wrrf"
         rows = _run_fallback_query(question, top_k)

@@ -1,0 +1,83 @@
+{
+  "total_questions": 5,
+  "total_evaluated": 5,
+  "accuracy": 0.0,
+  "correct": 0,
+  "errors": 0,
+  "by_type": {
+    "listing": {
+      "correct": 0,
+      "total": 2,
+      "accuracy": 0.0
+    },
+    "aggregation": {
+      "correct": 0,
+      "total": 3,
+      "accuracy": 0.0
+    }
+  },
+  "details": [
+    {
+      "question": "Trang Paris liên kết đến những quốc gia nào trong đồ thị tri thức?",
+      "type": "listing",
+      "gold_answers": [
+        "Pháp",
+        "Nhật Bản",
+        "Việt Nam",
+        "Bồ Đào Nha",
+        "Trung Quốc",
+        "Đức",
+        "Thổ Nhĩ Kỳ",
+        "Luxembourg"
+      ],
+      "predicted": "Không tìm thấy thông tin phù hợp trong cơ sở tri thức.",
+      "correct": false,
+      "latency_ms": 12894.2,
+      "citations": []
+    },
+    {
+      "question": "Có bao nhiêu tổ chức được nhắc đến trong bài viết về Chiến tranh Đông Dương?",
+      "type": "aggregation",
+      "gold_answers": [
+        "63"
+      ],
+      "predicted": "Không tìm thấy thông tin phù hợp trong cơ sở tri thức.",
+      "correct": false,
+      "latency_ms": 7770.1,
+      "citations": []
+    },
+    {
+      "question": "Tổ chức nào được nhắc đến nhiều nhất trong toàn bộ đồ thị tri thức?",
+      "type": "aggregation",
+      "gold_answers": [
+        "Quốc hội Hoa Kỳ"
+      ],
+      "predicted": "Không tìm thấy thông tin phù hợp trong cơ sở tri thức.",
+      "correct": false,
+      "latency_ms": 7905.4,
+      "citations": []
+    },
+    {
+      "question": "Đảng Cộng sản Đông Dương được nhắc đến trong bài viết Wikipedia nào?",
+      "type": "listing",
+      "gold_answers": [
+        "Chiến tranh Đông Dương"
+      ],
+      "predicted": "Không tìm thấy thông tin phù hợp trong cơ sở tri thức.",
+      "correct": false,
+      "latency_ms": 8054.9,
+      "citations": []
+    },
+    {
+      "question": "Trang nào có nhiều liên kết đi ra nhất trong đồ thị?",
+      "type": "aggregation",
+      "gold_answers": [
+        "Paris"
+      ],
+      "predicted": "Không tìm thấy thông tin phù hợp trong cơ sở tri thức.",
+      "correct": false,
+      "latency_ms": 7988.6,
+      "citations": []
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "summary": {
+    "model": "claude-haiku-4-5-20251001",
+    "dataset": "data/viquad2/validation.jsonl",
+    "total_questions": 20,
+    "evaluated": 0,
+    "errors": 20,
+    "avg_f1": 0,
+    "avg_em": 0,
+    "avg_faithfulness": 0,
+    "avg_efficiency": 0,
+    "avg_tool_calls": 0,
+    "total_empty_calls": 0,
+    "refusals": 0,
+    "total_input_tokens": 0,
+    "total_output_tokens": 0,
+    "estimated_cost_usd": 0.0
+  },
+  "details": [
+    {
+      "id": "0001-0001-0001",
+      "question": "Paris đạt được thành quả gì sau khoảng 4 thế kỷ tính từ ngày Cách mạng Pháp diễn ra?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0001-0003",
+      "question": "Kinh tế xung quanh kinh đô ánh sáng mạnh về gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0001-0004",
+      "question": "Cuộc cách mạng Pháp diễn ra ở đâu?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0001-0005",
+      "question": "Kinh đô ánh sáng nổi tiếng về lĩnh vực gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0001-0006",
+      "question": "Paris là một thành phố quan trọng của nước Pháp bắt đầu từ thời gian nào?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0001-0007",
+      "question": "Vị trí địa lý của Paris có gì đặc biệt?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0002-0001",
+      "question": "Điều gì đã nói lên Paris là thành phố lý tưởng để khách du lịch?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0002-0002",
+      "question": "Người ta đến với Paris vì điều gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0002-0005",
+      "question": "Kinh đô ánh sáng nổi tiếng như thế nào trong lĩnh vực thời trang mua sắm?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0002-0006",
+      "question": "Điều gì đã khiến Paris trở thành nơi trung chuyển trên toàn cầu?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0002-0007",
+      "question": "Trụ sở chính của UNESCO được đặt tại thành phố nào trong số bốn \"thành phố toàn cầu\"?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0002-0008",
+      "question": "Ngoài Paris, còn có thành phố nào được đánh giá là thành phố toàn cầu?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0003-0001",
+      "question": "Trước thế kỷ 17, tại Paris các nơi công cộng thiếu ánh đèn buổi tuối thường có hiện tượng gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0003-0002",
+      "question": "Kinh đô ánh sáng dịch từ tiếng Pháp sang tiếng Anh chính xác là gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0003-0003",
+      "question": "Tên gọi The City of Lights bắt nguồn từ sự việc gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0003-0005",
+      "question": "Người dân trên thế giới thường gọi Paris với tên khác là gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0004-0001",
+      "question": "Làm sao để chuyển tên thành phố thủ đô nước Pháp thành danh từ dùng để chỉ người dân của thành phố này?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0004-0002",
+      "question": "Hai thành phố nào được gọi là thành phố của tình yêu?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0005-0001",
+      "question": "Nguồn gốc tên gọi Paname bắt nguồn từ đâu?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    },
+    {
+      "id": "0001-0005-0003",
+      "question": "Ngoại trừ cái tên Paname, Paris còn có tên gọi khác là gì?",
+      "error": "Error code: 403 - {'type': 'error', 'error': {'type': 'forbidden', 'message': 'Unknown client. Supported: Claude Code, OpenCode.'}}",
+      "f1": 0.0,
+      "em": 0.0
+    }
+  ]
+}

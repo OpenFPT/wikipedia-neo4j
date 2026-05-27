@@ -1,6 +1,6 @@
 # Wikipedia Neo4j GraphRAG Demo
 
-[![CI](https://github.com/Chunporo/wikipedia-neo4j/actions/workflows/ci.yml/badge.svg)](https://github.com/Chunporo/wikipedia-neo4j/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.12%2B-blue) ![Coverage](https://img.shields.io/badge/coverage-75%25%2B-brightgreen)
+[![CI](https://github.com/OpenFPT/wikipedia-neo4j/actions/workflows/ci.yml/badge.svg)](https://github.com/OpenFPT/wikipedia-neo4j/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.12%2B-blue) ![Coverage](https://img.shields.io/badge/coverage-75%25%2B-brightgreen) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 GraphRAG system that ingests Vietnamese Wikipedia content into a Neo4j knowledge graph, answers multi-hop questions using graph-based retrieval, and generates QA datasets.
 

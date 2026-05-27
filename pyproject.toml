@@ -29,6 +29,8 @@ dependencies = [
   "peft>=0.10.0",
   "igraph>=1.0.0",
   "leidenalg>=0.12.0",
+  "fastmcp>=2.0.0",
+  "anthropic>=0.40.0",
 ]
 
 [project.optional-dependencies]

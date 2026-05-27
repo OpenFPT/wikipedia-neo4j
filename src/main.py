@@ -79,6 +79,32 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=lifespan)
 
 
+# --- MCP Server Mount ---
+from src.mcp_server import mcp as _mcp_instance
+
+_mcp_app = _mcp_instance.http_app(path="/", transport="streamable-http")
+app.mount("/mcp", _mcp_app)
+
+
+# --- MCP Auth Middleware ---
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse as _StarletteJSONResponse
+
+
+class _MCPAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.startswith("/mcp") and settings.app_api_key:
+            auth = request.headers.get("authorization", "")
+            if not auth.startswith("Bearer ") or auth[7:].strip() != settings.app_api_key:
+                return _StarletteJSONResponse(
+                    {"error": "Unauthorized"}, status_code=401
+                )
+        return await call_next(request)
+
+
+app.add_middleware(_MCPAuthMiddleware)
+
+
 @app.exception_handler(Exception)
 async def _unhandled_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled exception", extra={"path": request.url.path})

@@ -593,7 +593,7 @@ def evaluate_viquad(
 
         retrieved_texts = [r.get("chunk_text", "") for r in rows]
         raw_scores = [r.get("score") for r in rows]
-        max_score = max(
+        max(
             ((s[0] if isinstance(s, list) else s) or 0 for s in raw_scores),
             default=0,
         )

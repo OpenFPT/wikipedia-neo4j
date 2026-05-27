@@ -33,8 +33,8 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
    - `scripts/export_dataset.py`: Arrow dataset → filter stubs → Unicode normalize → chunk → NER → JSONL/CSV files
    - `scripts/embed_chunks.py`: chunks.jsonl → batch embeddings → chunk_embeddings.jsonl
    - `scripts/load_neo4j.py`: JSONL/CSV → batched UNWIND → Neo4j
-3. **Query — API mode** (`src/retrieve.py`): Question → Gemini generates read-only Cypher → validate safety → execute → fallback to hybrid fulltext if generation fails
-4. **Query — Local mode** (`src/agent.py`): Question → ReAct agent loop (up to 6 iterations) → graph tools (kg_schema, kg_query, text_search, get_passage) → final answer with citations
+3. **Query — API mode** (`src/retrieve.py`): Question → WRRF hybrid retrieval (BM25 + vector + graph + community fusion) → rerank → answer synthesis; legacy path: Gemini Cypher generation with safety validation + hybrid fulltext fallback
+4. **Query — Local mode** (`src/agent.py`): Question → complexity detection → simple: standard ReAct agent (6 tools, up to 6 iterations) → complex: question decomposition → multi-trajectory execution with majority voting → final answer with citations
 5. **Dataset generation** (`src/dataset_gen.py`): KG walk extraction → template QA → optional LLM rewrite → QC pipeline → JSONL output
 
 ### Graph Schema
@@ -46,10 +46,16 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
 
 ### Key Design Decisions
 
-- **NER is pluggable** via `NER_BACKEND` env: `simple` (regex + keyword classification), `underthesea` (BIO tagging), `phonlp` (PhoNLP + VnCoreNLP word segmentation), `phobert` (transformer pipeline), or `wikilink` (Wikipedia hyperlinks — best for bulk ingestion, Typed F1=46.9%)
+- **NER is pluggable** via `NER_BACKEND` env: `simple` (regex + keyword classification), `underthesea` (BIO tagging), `phonlp` (PhoNLP + VnCoreNLP word segmentation), `phobert` (PhoBERT transformer pipeline), `videberta` (ViDeBERTa/NlpHUST electra-base), or `wikilink` (Wikipedia hyperlinks — best for bulk ingestion, Typed F1=46.9%)
 - **NER postprocessing** (`postprocess_entities`): all backends pass through noise filtering (`_is_noise` patterns), org surface-pattern reclassification, and deduplication. The `wikilink` backend additionally uses `entity_grounded_in_text()` to verify entities appear in chunk text before creating mentions.
-- **Embeddings are pluggable** via `EMBEDDING_BACKEND`: `gemini` (with multi-key rotation on rate-limit) or `local` (sentence-transformers)
-- **Model mode** via `MODEL_MODE`: `api` (Gemini for Cypher generation) or `local` (Qwen2.5-7B-Instruct, 4-bit NF4 quantized, for ReAct agent)
+- **Embeddings are pluggable** via `EMBEDDING_BACKEND`: `gemini` (with multi-key rotation on rate-limit) or `local` (GreenNode-Embedding-Large-VN-Mixed-V1, 1024-dim)
+- **Model mode** via `MODEL_MODE`: `api` (Gemini for Cypher generation) or `local` (AITeamVN/Vi-Qwen2-7B-RAG, 4-bit NF4 quantized, for ReAct agent)
+- **Hybrid retrieval** via WRRF (Weighted Reciprocal Rank Fusion): combines BM25 fulltext, vector similarity, graph traversal, and community-based retrieval with configurable weights
+- **Community detection**: Louvain-based community summaries stored in JSONL, used as an additional retrieval signal
+- **Entity resolution** (`src/entity_resolution.py`): merges diacritic variants and known Vietnamese aliases (e.g., "Bác Hồ" → "Hồ Chí Minh")
+- **Relation extraction** (`src/relation_extract.py`): LLM-based typed relation extraction with 6 relation types (FOUNDED_BY, LOCATED_IN, BORN_IN, MEMBER_OF, PART_OF, CREATED_BY)
+- **Multi-trajectory agent**: configurable `AGENT_N_TRAJECTORIES` with temperature scaling and majority voting for complex questions
+- **Question decomposition**: complex multi-hop questions are automatically decomposed into sub-questions, solved independently, then synthesized
 - **Cypher generation safety**: LLM output is validated against a blocklist of write keywords and must return exact aliases (`page_title`, `page_url`, `chunk_id`, `chunk_text`, `score`)
 - **Gemini keys** are stored in a plaintext file (default `.gemini_key.txt`), one key per line, for rotation
 - **Background HF ingestion jobs** run in daemon threads with progress callbacks, cancellation via `threading.Event`, and persistent state in `.hf_ingest_jobs.json` (atomic writes via tmp+rename)
@@ -60,20 +66,26 @@ This is a **GraphRAG system** that ingests Vietnamese Wikipedia content into a N
 
 - `src/main.py` — FastAPI app, API key auth, rate limiting, job lifecycle, health/ready/metrics
 - `src/ingest.py` — Wikipedia API and HF ingestion pipelines
-- `src/ner.py` — Pluggable NER backends, BIO tag accumulation, entity type classification, postprocessing (noise filter + type reclassification)
+- `src/ner.py` — Pluggable NER backends (simple/underthesea/phonlp/phobert/videberta/wikilink), BIO tag accumulation, entity type classification, postprocessing
 - `src/text_utils.py` — Vietnamese Unicode normalization, text chunking, wikilink extraction, entity grounding
-- `src/retrieve.py` — Cypher-based retrieval with hybrid fulltext fallback
-- `src/agent.py` — ReAct agent loop with 4 graph tools for multi-hop QA
+- `src/retrieve.py` — WRRF hybrid retrieval (BM25 + vector + graph + community), legacy Cypher generation fallback
+- `src/agent.py` — ReAct agent loop with 6 tools, complexity detection, question decomposition, multi-trajectory voting
+- `src/agent_tools.py` — Agent tool definitions (kg_schema, kg_query, text_search, get_passage, entity_neighborhood, path_search)
 - `src/llm.py` — Gemini client pool, embedding generation (single + batch), Cypher generation + validation
-- `src/local_llm.py` — Local SLM wrapper (Qwen2.5-7B-Instruct, 4-bit NF4, lazy-loaded)
+- `src/local_llm.py` — Local SLM wrapper (Vi-Qwen2-7B-RAG, 4-bit NF4, lazy-loaded)
+- `src/prompts.py` — Prompt templates for agent, Cypher generation, and rewriting
+- `src/community.py` — Community-based retrieval: Louvain membership lookup, pre-generated summaries, chunk retrieval
+- `src/entity_resolution.py` — Vietnamese entity resolution: diacritic normalization, alias merging, canonical form lookup
+- `src/relation_extract.py` — LLM-based typed relation extraction (6 relation types)
+- `src/reranker.py` — Cross-encoder reranking (BAAI/bge-reranker-v2-m3)
 - `src/dataset_gen.py` — KG walk extraction, question templates, LLM rewrite, QC pipeline
+- `src/viquad_adapter.py` — UIT-ViQuAD2.0 HuggingFace adapter for evaluation benchmarking
+- `src/evaluation.py` — Evaluation pipeline: context hit rate, MRR, latency on ViWiki-MHR and ViQuAD2
 - `src/neo4j_client.py` — Driver singleton, schema/index/constraint setup, batch UNWIND writes
 - `src/job_store.py` — Thread-safe JSON file persistence for job state
 - `src/config.py` — Pydantic Settings from `.env`, Gemini key loading, runtime validation
 - `src/logging_utils.py` — Structured logging with request-ID context and file-based log output
-- `src/text_utils.py` — Vietnamese Unicode normalization and text chunking utilities
-- `src/reranker.py` — Cross-encoder reranking (BAAI/bge-reranker-v2-m3)
-- `src/evaluation.py` — Evaluation pipeline: context hit rate, MRR, latency on ViWiki-MHR
+- `src/app_gradio.py` — Gradio demo interface for interactive QA
 
 ## Configuration
 
@@ -83,10 +95,23 @@ Key environment variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `NER_BACKEND` | `simple` | NER engine: `simple`, `underthesea`, `phonlp` |
-| `EMBEDDING_BACKEND` | `gemini` | Embedding engine: `gemini`, `local` |
-| `MODEL_MODE` | `api` | Query engine: `api` (Gemini), `local` (Qwen2.5) |
-| `LOCAL_MODEL_ID` | `Qwen/Qwen2.5-7B-Instruct` | HuggingFace model ID for local mode |
+| `NER_BACKEND` | `simple` | NER engine: `simple`, `underthesea`, `phonlp`, `phobert`, `videberta`, `wikilink` |
+| `NER_MODEL_ID` | `NlpHUST/ner-vietnamese-electra-base` | Transformer model for phobert/videberta backends |
+| `NER_CONFIDENCE_THRESHOLD` | `0.50` | Minimum confidence for transformer NER predictions |
+| `EMBEDDING_BACKEND` | `local` | Embedding engine: `gemini`, `local` |
+| `LOCAL_EMBEDDING_MODEL` | `GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1` | Local embedding model |
+| `EMBEDDING_DIM` | `1024` | Embedding vector dimension |
+| `MODEL_MODE` | `local` | Query engine: `api` (Gemini), `local` (Vi-Qwen2-7B-RAG) |
+| `LOCAL_MODEL_ID` | `AITeamVN/Vi-Qwen2-7B-RAG` | HuggingFace model ID for local mode |
+| `LORA_ADAPTER_PATH` | (none) | Optional LoRA adapter path for fine-tuned model |
+| `WRRF_WEIGHT_BM25` | `0.4` | WRRF fusion weight for BM25 fulltext |
+| `WRRF_WEIGHT_VECTOR` | `0.4` | WRRF fusion weight for vector similarity |
+| `WRRF_WEIGHT_GRAPH` | `0.2` | WRRF fusion weight for graph traversal |
+| `WRRF_WEIGHT_COMMUNITY` | `0.15` | WRRF fusion weight for community retrieval |
+| `WRRF_K` | `60` | WRRF smoothing constant |
+| `AGENT_N_TRAJECTORIES` | `1` | Number of parallel agent trajectories (majority voting) |
+| `AGENT_TEMPERATURE_SCALED` | `0.7` | Temperature for scaled multi-trajectory generation |
+| `NEO4J_USE_SEARCH_CLAUSE` | `false` | Use Cypher 2.5 native vector search clause |
 | `APP_API_KEY` | (none) | Optional API key for protected endpoints |
 | `RATE_LIMIT_PER_MINUTE` | `120` | Per-client rate limit |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |

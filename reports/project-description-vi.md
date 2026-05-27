@@ -52,14 +52,15 @@ Hệ thống hỏi-đáp tiếng Việt hiện tại có **3 hạn chế chính*
 
 ```
 Câu hỏi người dùng
-    → SLM Orchestrator (Qwen2.5-7B, 4-bit NF4, ~5.5GB VRAM)
-    → Vòng lặp ReAct (tối đa 6 bước)
-    → 3 nguồn truy xuất: Neo4j Cypher | BM25 + Dense Vector | Cross-encoder Reranker
-    → Citation Verifier (xác minh trích dẫn)
+    → SLM Orchestrator (Vi-Qwen2-7B-RAG, 4-bit NF4, ~5.5GB VRAM)
+    → Phát hiện độ phức tạp (complexity detection)
+    → Vòng lặp ReAct (tối đa 6 bước) hoặc Question Decomposition + Multi-trajectory
+    → 4 nguồn truy xuất: BM25 | Vector | Graph Traversal | Community (WRRF fusion)
+    → Cross-encoder Reranker + Citation Verifier
     → Câu trả lời cuối cùng + nguồn trích dẫn
 ```
 
-### 4.2. Bốn công cụ (Tools) của Agent
+### 4.2. Sáu công cụ (Tools) của Agent
 
 | Tool | Chức năng | Giải thích |
 |------|-----------|------------|
@@ -67,6 +68,8 @@ Câu hỏi người dùng
 | `kg_query(cypher)` | Thực thi Cypher trên Neo4j | Truy vấn có cấu trúc, trả về kết quả hoặc lỗi để retry |
 | `text_search(query, k)` | Tìm kiếm hybrid BM25 + dense | Fallback khi Cypher thất bại hoặc KG thiếu thông tin |
 | `get_passage(id)` | Lấy đoạn văn gốc | Dùng cho citation — xác minh câu trả lời có căn cứ |
+| `entity_neighborhood(entity, hops)` | Lấy thực thể lân cận | Khám phá quan hệ xung quanh một entity trong k bước |
+| `path_search(entity_a, entity_b, max_hops)` | Tìm đường đi ngắn nhất | Tìm quan hệ giữa 2 thực thể qua đồ thị |
 
 ### 4.3. Giải thích cơ chế hoạt động
 
@@ -101,15 +104,18 @@ Page -[:LINKS_TO]-> Page
 | Chunk (đoạn văn) | ~19,000 | Mỗi bài chia thành nhiều chunk |
 | Entity (thực thể) | ~3,300 | Trích xuất bằng NER |
 
-### 5.3. NER pluggable (3 backend)
+### 5.3. NER pluggable (6 backend)
 
 | Backend | Cơ chế | Ưu/nhược |
 |---------|--------|----------|
 | `simple` | Regex + keyword classification | Nhanh, không cần model, độ chính xác thấp |
 | `underthesea` | BIO tagging (CRF/BiLSTM) | Offline, tốt cho tiếng Việt, cần cài thêm |
 | `phonlp` | PhoNLP + VnCoreNLP word segmentation | Chính xác nhất, nặng nhất |
+| `phobert` | PhoBERT transformer pipeline | Chính xác cao, cần GPU |
+| `videberta` | ViDeBERTa (NlpHUST electra-base) | Tốt cho NER tiếng Việt, cần GPU |
+| `wikilink` | Wikipedia hyperlinks | Tốt nhất cho bulk ingestion (F1=46.9%), không cần model |
 
-**Tại sao pluggable?** Cho phép chọn backend phù hợp với tài nguyên máy. Prototype dùng `simple`, production dùng `underthesea` hoặc `phonlp`.
+**Tại sao pluggable?** Cho phép chọn backend phù hợp với tài nguyên máy. Prototype dùng `simple`, bulk ingestion dùng `wikilink`, production dùng `phobert` hoặc `videberta`.
 
 ---
 
@@ -145,12 +151,13 @@ Chuyển câu hỏi tiếng Việt thành truy vấn Cypher an toàn qua **4 gia
 | Text-only (BM25 + Dense) | Bao phủ rộng | Không suy luận đa bước |
 | **Hybrid (của chúng tôi)** | Graph-first, text fallback | Phức tạp hơn nhưng robust |
 
-### Pipeline 5 bước:
-1. Schema linking → prune graph
-2. SLM sinh Cypher (read-only)
-3. Validation xác định
-4. Nếu Cypher invalid → fallback BM25 + dense vector
-5. Cross-encoder reranker (BAAI/bge-reranker-v2-m3) xếp hạng top-k
+### Pipeline 6 bước:
+1. BM25 fulltext search (trọng số 0.4)
+2. Vector similarity search (trọng số 0.4)
+3. Graph traversal — entity neighborhood + path search (trọng số 0.2)
+4. Community-based retrieval — Louvain summaries (trọng số 0.15)
+5. **WRRF fusion** (Weighted Reciprocal Rank Fusion) kết hợp 4 nguồn
+6. Cross-encoder reranker (BAAI/bge-reranker-v2-m3) xếp hạng top-k
 
 **Cross-encoder reranking cải thiện ~15% accuracy** so với không rerank (theo literature).
 
@@ -204,17 +211,17 @@ KG Walks (2-hop, 3-hop, broken-link)
 
 | Thông số | Giá trị |
 |----------|---------|
-| Model | Qwen2.5-7B-Instruct |
+| Model | AITeamVN/Vi-Qwen2-7B-RAG |
 | Quantization | 4-bit NF4 |
 | VRAM sử dụng | ~5.5 GB |
 | Tốc độ sinh | ~30 tokens/giây |
 | Lazy loading | Có (chỉ load khi cần) |
 
-### 9.2. Tại sao chọn Qwen2.5-7B?
+### 9.2. Tại sao chọn Vi-Qwen2-7B-RAG?
 
 - **PhoBERT:** Encoder-only → không sinh được Cypher hay câu trả lời tự do.
 - **VinaLLaMA (13B):** Quá lớn cho 8GB VRAM ở mức quantization chấp nhận được.
-- **Qwen2.5-7B:** Vừa 5.5GB ở 4-bit, hỗ trợ tiếng Việt tốt, instruction-following mạnh.
+- **Vi-Qwen2-7B-RAG:** Dựa trên Qwen2.5-7B, fine-tune cho RAG tiếng Việt, vừa 5.5GB ở 4-bit, instruction-following mạnh.
 
 ### 9.3. Kế hoạch fine-tuning (planned)
 
@@ -263,9 +270,9 @@ KG Walks (2-hop, 3-hop, broken-link)
 |-----------|-----------|---------|
 | Backend API | FastAPI | REST API, async, rate limiting |
 | Knowledge Graph | Neo4j | Lưu trữ đồ thị, Cypher query |
-| SLM | Qwen2.5-7B + bitsandbytes | Sinh Cypher, điều phối agent |
-| NER | underthesea / PhoNLP | Trích xuất thực thể tiếng Việt |
-| Embedding | Gemini API / sentence-transformers | Vector hóa chunk cho dense retrieval |
+| SLM | Vi-Qwen2-7B-RAG + bitsandbytes | Sinh Cypher, điều phối agent |
+| NER | 6 backend: simple, underthesea, phonlp, phobert, videberta, wikilink | Trích xuất thực thể tiếng Việt |
+| Embedding | GreenNode-Embedding-Large-VN / Gemini API | Vector hóa chunk cho dense retrieval |
 | Reranker | BAAI/bge-reranker-v2-m3 | Xếp hạng lại kết quả |
 | Dataset | HuggingFace Datasets | Nguồn Wikipedia dump + ViQuAD 2.0 |
 | Package manager | uv | Quản lý dependency Python |
@@ -277,7 +284,7 @@ KG Walks (2-hop, 3-hop, broken-link)
 | Hệ thống | Hạn chế | Chúng tôi khắc phục |
 |----------|---------|---------------------|
 | Microsoft GraphRAG | Enterprise-scale, không local | Chạy trên consumer hardware |
-| StepChain | English-only, không NER tiếng Việt | 3 NER backend tiếng Việt |
+| StepChain | English-only, không NER tiếng Việt | 6 NER backend tiếng Việt |
 | HisGraphRAG | Chỉ cho sách giáo khoa lịch sử | Toàn bộ Wikipedia tiếng Việt |
 | CyVerACT | Không có agent loop, không tiếng Việt | ReAct agent + CyVer validation |
 | GFM-RAG | Cần pre-train graph foundation model | Dùng SLM có sẵn, chỉ fine-tune adapter |
@@ -286,11 +293,11 @@ KG Walks (2-hop, 3-hop, broken-link)
 
 ## 13. Đóng góp chính (Contributions)
 
-1. **Hệ thống GraphRAG hoàn chỉnh:** Typed KG + 3 NER backend + hybrid retrieval + cross-encoder reranking + ReAct agent + citation verifier — tất cả chạy cục bộ.
+1. **Hệ thống GraphRAG hoàn chỉnh:** Typed KG + 6 NER backend + hybrid retrieval + WRRF fusion + community detection + cross-encoder reranking + ReAct agent + citation verifier — tất cả chạy cục bộ.
 
 2. **Bộ dữ liệu ViWiki-MHR (~36K):** 6 loại suy luận, adversarial unanswerables kiểu BRINK, 3-stage QC — benchmark đầu tiên cho multi-hop QA tiếng Việt trên KG.
 
-3. **Pipeline SLM cục bộ:** Qwen2.5-7B ở 4-bit + Text2Cypher + CyVer validation — chạy trên 8GB VRAM, không cần internet.
+3. **Pipeline SLM cục bộ:** Vi-Qwen2-7B-RAG ở 4-bit + Text2Cypher + CyVer validation — chạy trên 8GB VRAM, không cần internet.
 
 ---
 
@@ -300,9 +307,8 @@ KG Walks (2-hop, 3-hop, broken-link)
 |----------|---------|---------|
 | QLoRA fine-tuning | Text2Cypher chuyên biệt | Cao |
 | DPO alignment | Tool-call JSON compliance | Cao |
-| Community detection | Louvain → global search | Trung bình |
-| Query decomposition | StepChain-style cho 3+ hop | Trung bình |
-| Scale KG | 5000+ pages | Thấp (infra) |
+| Scale KG | 5000+ pages | Trung bình |
+| Ablation studies | So sánh từng thành phần retrieval | Trung bình |
 
 ---
 

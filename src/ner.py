@@ -17,9 +17,13 @@ _videberta_pipeline = None
 
 _NER_TYPE_MAP = {
     "PER": "Person",
+    "PERSON": "Person",
     "ORG": "Organization",
+    "ORGANIZATION": "Organization",
     "LOC": "Location",
+    "LOCATION": "Location",
     "MISC": "Work",
+    "MISCELLANEOUS": "Work",
 }
 
 _ORG_KEYWORDS = [

@@ -76,7 +76,7 @@ def _retrieve_chunks(question: str, top_k: int = 20) -> list[dict]:
     """Retrieve chunks using fallback (fulltext) for evaluation."""
     try:
         rows = _run_generated_query(question, top_k)
-    except (RuntimeError, ValueError, KeyError, TypeError):
+    except Exception:
         rows = _run_fallback_query(question, top_k)
     return rows
 
@@ -593,7 +593,7 @@ def evaluate_viquad(
 
         retrieved_texts = [r.get("chunk_text", "") for r in rows]
         raw_scores = [r.get("score") for r in rows]
-        max_score = max(
+        max(
             ((s[0] if isinstance(s, list) else s) or 0 for s in raw_scores),
             default=0,
         )

@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from unittest.mock import patch, MagicMock
 
-import pytest
 
 import src.retrieve as retrieve_mod
 from src.retrieve import _wrrf_fuse, _vector_search, _graph_search, hybrid_retrieve
@@ -212,7 +210,7 @@ class TestVectorSearch:
         @contextmanager
         def _failing_session():
             raise RuntimeError("Connection failed")
-            yield  # noqa: unreachable
+            yield  
 
         monkeypatch.setattr(retrieve_mod.neo4j_client, "session", _failing_session)
 
@@ -251,7 +249,7 @@ class TestGraphSearch:
         @contextmanager
         def _failing_session():
             raise RuntimeError("Neo4j down")
-            yield  # noqa: unreachable
+            yield  
 
         monkeypatch.setattr(retrieve_mod.neo4j_client, "session", _failing_session)
 

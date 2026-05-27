@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from unittest.mock import patch
 
-import pytest
 
 import src.community as community_mod
 

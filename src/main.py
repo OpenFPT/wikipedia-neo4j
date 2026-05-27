@@ -23,7 +23,7 @@ from src.logging_utils import (
     set_request_id,
 )
 from src.neo4j_client import neo4j_client
-from src.retrieve import query_graph
+from src.retrieve import hybrid_retrieve, query_graph
 
 
 configure_logging(settings.log_level, json_logs=settings.json_logs)
@@ -317,6 +317,24 @@ def query(req: QueryRequest, request: Request) -> dict:
         "answer": result.answer,
         "citations": result.citations,
     }
+
+
+@app.post("/query/hybrid", dependencies=[Depends(_guard)])
+def query_hybrid(req: QueryRequest, request: Request) -> dict:
+    """Hybrid retrieval combining BM25, vector, and graph channels via wRRF."""
+    _request_id_value, token = _with_request_context(request)
+    started = time.perf_counter()
+    try:
+        results = hybrid_retrieve(req.question, req.top_k)
+    except RuntimeError as exc:
+        logger.exception("Hybrid query failed")
+        raise HTTPException(status_code=500, detail=f"Query failed: {exc}") from exc
+    finally:
+        elapsed_ms = int((time.perf_counter() - started) * 1000)
+        logger.info("Hybrid query completed", extra={"duration_ms": elapsed_ms})
+        reset_request_id(token)
+
+    return {"results": results}
 
 
 @app.post("/ingest/hf", dependencies=[Depends(_guard)])

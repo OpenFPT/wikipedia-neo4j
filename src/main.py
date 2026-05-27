@@ -12,6 +12,8 @@ from contextvars import Token
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse as _StarletteJSONResponse
 
 from src.config import settings, validate_runtime_settings
 from src.ingest import IngestResult, ingest_from_hf, ingest_topic
@@ -22,6 +24,7 @@ from src.logging_utils import (
     reset_request_id,
     set_request_id,
 )
+from src.mcp_server import mcp as _mcp_instance
 from src.neo4j_client import neo4j_client
 from src.retrieve import hybrid_retrieve, query_graph
 
@@ -80,15 +83,11 @@ app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=l
 
 
 # --- MCP Server Mount ---
-from src.mcp_server import mcp as _mcp_instance
-
 _mcp_app = _mcp_instance.http_app(path="/", transport="streamable-http")
 app.mount("/mcp", _mcp_app)
 
 
 # --- MCP Auth Middleware ---
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse as _StarletteJSONResponse
 
 
 class _MCPAuthMiddleware(BaseHTTPMiddleware):

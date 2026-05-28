@@ -16,17 +16,19 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse as _StarletteJSONResponse
 
 from src.config import settings, validate_runtime_settings
-from src.ingest import IngestResult, ingest_from_hf, ingest_topic
-from src.job_store import JobStore
+from src.dashboard.query_log import QueryLogEntry, query_log
+from src.dashboard.routes import router as dashboard_router
+from src.ingestion.pipeline import IngestResult, ingest_from_hf, ingest_topic
+from src.infrastructure.job_store import JobStore
 from src.logging_utils import (
     configure_logging,
     get_logger,
     reset_request_id,
     set_request_id,
 )
-from src.mcp_server import mcp as _mcp_instance
-from src.neo4j_client import neo4j_client
-from src.retrieve import hybrid_retrieve, query_graph
+from src.mcp_pkg.server import mcp as _mcp_instance
+from src.infrastructure.neo4j_client import neo4j_client
+from src.retrieval.hybrid import hybrid_retrieve, query_graph
 
 
 configure_logging(settings.log_level, json_logs=settings.json_logs)
@@ -81,6 +83,8 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=lifespan)
 
+# --- Dashboard Router ---
+app.include_router(dashboard_router)
 
 # --- MCP Server Mount ---
 _mcp_app = _mcp_instance.http_app(path="/", transport="streamable-http")
@@ -338,6 +342,15 @@ def query(req: QueryRequest, request: Request) -> dict:
         logger.info("Query completed", extra={"duration_ms": elapsed_ms})
         reset_request_id(token)
 
+    query_log.append(QueryLogEntry(
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        question=req.question,
+        retrieval_tier="cypher",
+        latency_ms=elapsed_ms,
+        result_count=len(result.citations),
+        signal_scores={},
+    ))
+
     return {
         "answer": result.answer,
         "citations": result.citations,
@@ -358,6 +371,23 @@ def query_hybrid(req: QueryRequest, request: Request) -> dict:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         logger.info("Hybrid query completed", extra={"duration_ms": elapsed_ms})
         reset_request_id(token)
+
+    # Log query with signal contribution estimates
+    signal_scores: dict[str, int] = {}
+    for r in results:
+        if isinstance(r, dict):
+            for key in ("bm25", "vector", "graph", "community"):
+                if r.get(f"{key}_score") or r.get(f"{key}_rank"):
+                    signal_scores[key] = signal_scores.get(key, 0) + 1
+
+    query_log.append(QueryLogEntry(
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        question=req.question,
+        retrieval_tier="hybrid",
+        latency_ms=elapsed_ms,
+        result_count=len(results),
+        signal_scores=signal_scores,
+    ))
 
     return {"results": results}
 

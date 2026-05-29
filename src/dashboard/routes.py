@@ -22,6 +22,16 @@ _template_dir = Path(__file__).parent / "templates"
 _jinja_env = Environment(loader=FileSystemLoader(str(_template_dir)), autoescape=True)
 
 
+def _format_number(value: int | float | None) -> str:
+    """Jinja2 filter: format number with thousand separators."""
+    if value is None:
+        return "—"
+    return f"{int(value):,}"
+
+
+_jinja_env.filters["fmt"] = _format_number
+
+
 @router.get("", response_class=HTMLResponse)
 def dashboard_page(request: Request) -> HTMLResponse:
     """Render the main dashboard HTML page."""

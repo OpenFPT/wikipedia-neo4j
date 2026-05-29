@@ -297,6 +297,14 @@ header h1 {
   header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
   .query-table .col-question { max-width: 12rem; }
 }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.panel.loading {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
 </style>
 </head>
 <body>
@@ -316,22 +324,22 @@ header h1 {
   <h2 class="section-title" id="section-stats">Graph Statistics</h2>
   <div class="grid-stats" id="stats-grid" role="region" aria-label="Graph statistics">
     <div class="stat-card">
-      <span class="stat-value accent" data-stat="pages">{{ "{:,}".format(stats.pages) if stats.available and stats.pages is not none else "—" }}</span>
+      <span class="stat-value accent" data-stat="pages">{{ stats.pages|fmt }}</span>
       <span class="stat-label">Pages</span>
       {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
     <div class="stat-card">
-      <span class="stat-value" data-stat="chunks">{{ "{:,}".format(stats.chunks) if stats.available and stats.chunks is not none else "—" }}</span>
+      <span class="stat-value" data-stat="chunks">{{ stats.chunks|fmt }}</span>
       <span class="stat-label">Chunks</span>
       {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
     <div class="stat-card">
-      <span class="stat-value" data-stat="entities">{{ "{:,}".format(stats.entities) if stats.available and stats.entities is not none else "—" }}</span>
+      <span class="stat-value" data-stat="entities">{{ stats.entities|fmt }}</span>
       <span class="stat-label">Entities</span>
       {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
     <div class="stat-card">
-      <span class="stat-value" data-stat="total_rels">{{ "{:,}".format(stats.total_rels) if stats.available and stats.total_rels is not none else "—" }}</span>
+      <span class="stat-value" data-stat="total_rels">{{ stats.total_rels|fmt }}</span>
       <span class="stat-label">Relationships</span>
       {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
@@ -358,19 +366,19 @@ header h1 {
         </svg>
         <div class="entity-row">
           <span class="entity-name"><span style="color:#4ecdc4">&#9632;</span> Person</span>
-          <span class="entity-count" data-stat="persons">{{ "{:,}".format(stats.persons) }}</span>
+          <span class="entity-count" data-stat="persons">{{ stats.persons|fmt }}</span>
         </div>
         <div class="entity-row">
           <span class="entity-name"><span style="color:#7c4dff">&#9632;</span> Organization</span>
-          <span class="entity-count" data-stat="orgs">{{ "{:,}".format(stats.orgs) }}</span>
+          <span class="entity-count" data-stat="orgs">{{ stats.orgs|fmt }}</span>
         </div>
         <div class="entity-row">
           <span class="entity-name"><span style="color:#ff6b6b">&#9632;</span> Location</span>
-          <span class="entity-count" data-stat="locations">{{ "{:,}".format(stats.locations) }}</span>
+          <span class="entity-count" data-stat="locations">{{ stats.locations|fmt }}</span>
         </div>
         <div class="entity-row">
           <span class="entity-name"><span style="color:#ffd600">&#9632;</span> Work</span>
-          <span class="entity-count" data-stat="works">{{ "{:,}".format(stats.works) }}</span>
+          <span class="entity-count" data-stat="works">{{ stats.works|fmt }}</span>
         </div>
         {% else %}
         <div class="empty-state">Neo4j unavailable</div>
@@ -692,10 +700,15 @@ header h1 {
 
   function refresh() {
     countdown = INTERVAL;
-    fetch('/dashboard/api/stats').then(function(r){return r.json();}).then(updateStats).catch(function(){});
-    fetch('/dashboard/api/queries').then(function(r){return r.json();}).then(updateQueries).catch(function(){});
-    fetch('/dashboard/api/signals').then(function(r){return r.json();}).then(updateSignals).catch(function(){});
-    fetch('/dashboard/api/eval').then(function(r){return r.json();}).then(updateEval).catch(function(){});
+    var panels = document.querySelectorAll('.panel, #stats-grid');
+    panels.forEach(function(p) { p.classList.add('loading'); });
+    var done = 0;
+    var total = 4;
+    function checkDone() { done++; if (done >= total) panels.forEach(function(p) { p.classList.remove('loading'); }); }
+    fetch('/dashboard/api/stats').then(function(r){return r.json();}).then(function(d){updateStats(d);checkDone();}).catch(checkDone);
+    fetch('/dashboard/api/queries').then(function(r){return r.json();}).then(function(d){updateQueries(d);checkDone();}).catch(checkDone);
+    fetch('/dashboard/api/signals').then(function(r){return r.json();}).then(function(d){updateSignals(d);checkDone();}).catch(checkDone);
+    fetch('/dashboard/api/eval').then(function(r){return r.json();}).then(function(d){updateEval(d);checkDone();}).catch(checkDone);
   }
 
   function toggleOverlay() {

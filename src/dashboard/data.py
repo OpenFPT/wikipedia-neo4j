@@ -72,17 +72,17 @@ def fetch_graph_stats() -> dict:
         logger.warning("Failed to fetch graph stats", extra={"error": str(exc)})
 
     return {
-        "pages": 0,
-        "chunks": 0,
-        "entities": 0,
-        "persons": 0,
-        "orgs": 0,
-        "locations": 0,
-        "works": 0,
-        "has_chunk_rels": 0,
-        "mention_rels": 0,
-        "links_to_rels": 0,
-        "total_rels": 0,
+        "pages": None,
+        "chunks": None,
+        "entities": None,
+        "persons": None,
+        "orgs": None,
+        "locations": None,
+        "works": None,
+        "has_chunk_rels": None,
+        "mention_rels": None,
+        "links_to_rels": None,
+        "total_rels": None,
         "available": False,
     }
 

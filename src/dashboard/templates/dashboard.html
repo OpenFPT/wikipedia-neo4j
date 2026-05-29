@@ -15,7 +15,7 @@
   --accent: #4ecdc4;
   --coral: #ff6b6b;
   --text: #e8eaed;
-  --muted: #8899a6;
+  --muted: #a8bcc8;
   --success: #00c853;
   --warning: #ffd600;
   --border: #2d3f50;
@@ -300,100 +300,110 @@ header h1 {
 </style>
 </head>
 <body>
-<div class="container">
-  <header>
+<main class="container" role="main">
+  <header role="banner">
     <h1>GraphPulse</h1>
-    <div class="header-status">
+    <div class="header-status" role="status" aria-label="System status">
       <span>
-        <span class="status-dot {{ 'green' if stats.available else 'red' }}"></span>
+        <span class="status-dot {{ 'green' if stats.available else 'red' }}" aria-hidden="true"></span>
         Neo4j: {{ 'connected' if stats.available else 'unavailable' }}
       </span>
-      <span>Refresh: <span id="refresh-countdown">30</span>s</span>
+      <span>Refresh: <span id="refresh-countdown" role="timer" aria-live="off">30</span>s</span>
     </div>
   </header>
 
-  <div class="section-title">Graph Statistics</div>
-  <div class="grid-stats" id="stats-grid">
-    {% if not stats.available %}
+  <section aria-labelledby="section-stats">
+  <h2 class="section-title" id="section-stats">Graph Statistics</h2>
+  <div class="grid-stats" id="stats-grid" role="region" aria-label="Graph statistics">
     <div class="stat-card">
-      <span class="unavailable-badge">Neo4j unavailable</span>
-      <span class="stat-label">Connection failed</span>
-    </div>
-    {% else %}
-    <div class="stat-card">
-      <span class="stat-value accent" data-stat="pages">{{ "{:,}".format(stats.pages) }}</span>
+      <span class="stat-value accent" data-stat="pages">{{ "{:,}".format(stats.pages) if stats.available and stats.pages is not none else "—" }}</span>
       <span class="stat-label">Pages</span>
+      {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
     <div class="stat-card">
-      <span class="stat-value" data-stat="chunks">{{ "{:,}".format(stats.chunks) }}</span>
+      <span class="stat-value" data-stat="chunks">{{ "{:,}".format(stats.chunks) if stats.available and stats.chunks is not none else "—" }}</span>
       <span class="stat-label">Chunks</span>
+      {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
     <div class="stat-card">
-      <span class="stat-value" data-stat="entities">{{ "{:,}".format(stats.entities) }}</span>
+      <span class="stat-value" data-stat="entities">{{ "{:,}".format(stats.entities) if stats.available and stats.entities is not none else "—" }}</span>
       <span class="stat-label">Entities</span>
+      {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
     <div class="stat-card">
-      <span class="stat-value" data-stat="total_rels">{{ "{:,}".format(stats.total_rels) }}</span>
+      <span class="stat-value" data-stat="total_rels">{{ "{:,}".format(stats.total_rels) if stats.available and stats.total_rels is not none else "—" }}</span>
       <span class="stat-label">Relationships</span>
+      {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
-    {% endif %}
   </div>
+  </section>
 
   <div class="grid-two">
-    <div class="panel">
-      <div class="section-title">Entity Types</div>
+    <section class="panel" aria-labelledby="section-entities">
+      <h2 class="section-title" id="section-entities">Entity Types</h2>
       <div id="entity-types">
         {% if stats.available %}
+        {% set entity_total = (stats.persons or 0) + (stats.orgs or 0) + (stats.locations or 0) + (stats.works or 0) %}
+        {% set et = entity_total if entity_total > 0 else 1 %}
+        <svg width="100%" height="32" viewBox="0 0 400 32" preserveAspectRatio="none" role="img" aria-label="Entity type distribution chart">
+          <title>Entity type distribution</title>
+          {% set p_pct = ((stats.persons or 0) / et * 400)|round|int %}
+          {% set o_pct = ((stats.orgs or 0) / et * 400)|round|int %}
+          {% set l_pct = ((stats.locations or 0) / et * 400)|round|int %}
+          {% set w_pct = (400 - p_pct - o_pct - l_pct) %}
+          <rect x="0" y="4" width="{{ p_pct }}" height="24" rx="2" fill="#4ecdc4" />
+          <rect x="{{ p_pct }}" y="4" width="{{ o_pct }}" height="24" rx="2" fill="#7c4dff" />
+          <rect x="{{ p_pct + o_pct }}" y="4" width="{{ l_pct }}" height="24" rx="2" fill="#ff6b6b" />
+          <rect x="{{ p_pct + o_pct + l_pct }}" y="4" width="{{ w_pct }}" height="24" rx="2" fill="#ffd600" />
+        </svg>
         <div class="entity-row">
-          <span class="entity-name">Person</span>
+          <span class="entity-name"><span style="color:#4ecdc4">&#9632;</span> Person</span>
           <span class="entity-count" data-stat="persons">{{ "{:,}".format(stats.persons) }}</span>
         </div>
         <div class="entity-row">
-          <span class="entity-name">Organization</span>
+          <span class="entity-name"><span style="color:#7c4dff">&#9632;</span> Organization</span>
           <span class="entity-count" data-stat="orgs">{{ "{:,}".format(stats.orgs) }}</span>
         </div>
         <div class="entity-row">
-          <span class="entity-name">Location</span>
+          <span class="entity-name"><span style="color:#ff6b6b">&#9632;</span> Location</span>
           <span class="entity-count" data-stat="locations">{{ "{:,}".format(stats.locations) }}</span>
         </div>
         <div class="entity-row">
-          <span class="entity-name">Work</span>
+          <span class="entity-name"><span style="color:#ffd600">&#9632;</span> Work</span>
           <span class="entity-count" data-stat="works">{{ "{:,}".format(stats.works) }}</span>
         </div>
         {% else %}
         <div class="empty-state">Neo4j unavailable</div>
         {% endif %}
       </div>
-    </div>
-    <div class="panel">
-      <div class="section-title">Retrieval Weights (WRRF)</div>
+    </section>
+    <section class="panel" aria-labelledby="section-wrrf">
+      <h2 class="section-title" id="section-wrrf">Retrieval Weights (WRRF)</h2>
       <div id="wrrf-weights">
-        <div class="weight-row">
-          <span class="weight-label">BM25</span>
-          <div class="weight-bar-bg"><div class="weight-bar-fill" style="width: {{ (weights.bm25 / 1.15 * 100)|round|int }}%"></div></div>
-          <span class="weight-value">{{ "%.2f"|format(weights.bm25) }}</span>
-        </div>
-        <div class="weight-row">
-          <span class="weight-label">Vector</span>
-          <div class="weight-bar-bg"><div class="weight-bar-fill" style="width: {{ (weights.vector / 1.15 * 100)|round|int }}%"></div></div>
-          <span class="weight-value">{{ "%.2f"|format(weights.vector) }}</span>
-        </div>
-        <div class="weight-row">
-          <span class="weight-label">Graph</span>
-          <div class="weight-bar-bg"><div class="weight-bar-fill" style="width: {{ (weights.graph / 1.15 * 100)|round|int }}%"></div></div>
-          <span class="weight-value">{{ "%.2f"|format(weights.graph) }}</span>
-        </div>
-        <div class="weight-row">
-          <span class="weight-label">Community</span>
-          <div class="weight-bar-bg"><div class="weight-bar-fill" style="width: {{ (weights.community / 1.15 * 100)|round|int }}%"></div></div>
-          <span class="weight-value">{{ "%.2f"|format(weights.community) }}</span>
-        </div>
+        {% set max_w = [weights.bm25, weights.vector, weights.graph, weights.community]|max %}
+        {% set mw = max_w if max_w > 0 else 1 %}
+        <svg width="100%" height="120" viewBox="0 0 400 120" preserveAspectRatio="none" role="img" aria-label="WRRF weight distribution chart">
+          <title>WRRF retrieval weight distribution</title>
+          <rect x="20" y="{{ 100 - (weights.bm25 / mw * 80)|round|int }}" width="60" height="{{ (weights.bm25 / mw * 80)|round|int }}" rx="2" fill="#4ecdc4" />
+          <text x="50" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">BM25</text>
+          <rect x="120" y="{{ 100 - (weights.vector / mw * 80)|round|int }}" width="60" height="{{ (weights.vector / mw * 80)|round|int }}" rx="2" fill="#7c4dff" />
+          <text x="150" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">Vector</text>
+          <rect x="220" y="{{ 100 - (weights.graph / mw * 80)|round|int }}" width="60" height="{{ (weights.graph / mw * 80)|round|int }}" rx="2" fill="#ff6b6b" />
+          <text x="250" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">Graph</text>
+          <rect x="320" y="{{ 100 - (weights.community / mw * 80)|round|int }}" width="60" height="{{ (weights.community / mw * 80)|round|int }}" rx="2" fill="#ffd600" />
+          <text x="350" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">Comm.</text>
+          <text x="50" y="{{ 96 - (weights.bm25 / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.bm25) }}</text>
+          <text x="150" y="{{ 96 - (weights.vector / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.vector) }}</text>
+          <text x="250" y="{{ 96 - (weights.graph / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.graph) }}</text>
+          <text x="350" y="{{ 96 - (weights.community / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.community) }}</text>
+        </svg>
       </div>
-    </div>
+    </section>
   </div>
 
-  <div class="section-title">Recent Queries</div>
-  <div class="panel query-table-wrap" id="queries-panel">
+  <section aria-labelledby="section-queries">
+  <h2 class="section-title" id="section-queries">Recent Queries</h2>
+  <div class="panel query-table-wrap" id="queries-panel" role="region" aria-label="Recent queries" aria-live="polite">
     {% if queries %}
     <table class="query-table" id="queries-table">
       <thead>
@@ -421,11 +431,12 @@ header h1 {
     <div class="empty-state">No queries recorded yet</div>
     {% endif %}
   </div>
+  </section>
 
   <div class="grid-bottom">
-    <div class="panel">
-      <div class="section-title">Signal Breakdown (Last Query)</div>
-      <div id="signal-panel">
+    <section class="panel" aria-labelledby="section-signals">
+      <h2 class="section-title" id="section-signals">Signal Breakdown (Last Query)</h2>
+      <div id="signal-panel" aria-live="polite">
         {% if signals and signals.scores %}
         {% set max_score = [signals.scores.get('bm25', 0), signals.scores.get('vector', 0), signals.scores.get('graph', 0), signals.scores.get('community', 0)]|max %}
         {% set max_val = max_score if max_score > 0 else 1 %}
@@ -455,10 +466,10 @@ header h1 {
         <div class="empty-state">No retrieval data</div>
         {% endif %}
       </div>
-    </div>
-    <div class="panel">
-      <div class="section-title">Evaluation Metrics</div>
-      <div id="eval-panel">
+    </section>
+    <section class="panel" aria-labelledby="section-eval">
+      <h2 class="section-title" id="section-eval">Evaluation Metrics</h2>
+      <div id="eval-panel" aria-live="polite">
         {% if eval_metrics and eval_metrics.available %}
         <div class="eval-grid">
           {% set hr = eval_metrics.context_hit_rate %}
@@ -490,6 +501,18 @@ header h1 {
         <div class="empty-state">No evaluation data</div>
         {% endif %}
       </div>
+    </section>
+  </div>
+</main>
+
+<!-- Keyboard shortcuts overlay -->
+<div id="shortcuts-overlay" role="dialog" aria-label="Keyboard shortcuts" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(15,20,25,0.85);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;max-width:320px;width:90%;">
+    <h2 style="font-size:0.875rem;font-weight:600;color:var(--text);margin-bottom:1rem;">Keyboard Shortcuts</h2>
+    <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.8125rem;">
+      <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Force refresh</span><kbd style="font-family:'JetBrains Mono',monospace;background:var(--bg);padding:0.125rem 0.5rem;border-radius:2px;color:var(--accent);">R</kbd></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Show shortcuts</span><kbd style="font-family:'JetBrains Mono',monospace;background:var(--bg);padding:0.125rem 0.5rem;border-radius:2px;color:var(--accent);">?</kbd></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted);">Close overlay</span><kbd style="font-family:'JetBrains Mono',monospace;background:var(--bg);padding:0.125rem 0.5rem;border-radius:2px;color:var(--accent);">Esc</kbd></div>
     </div>
   </div>
 </div>
@@ -499,6 +522,7 @@ header h1 {
   var INTERVAL = 30;
   var countdown = INTERVAL;
   var countdownEl = document.getElementById('refresh-countdown');
+  var overlay = document.getElementById('shortcuts-overlay');
 
   function formatNumber(n) {
     return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -510,18 +534,30 @@ header h1 {
     return 'red';
   }
 
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   function updateStats(data) {
     var statEls = document.querySelectorAll('[data-stat]');
     statEls.forEach(function(el) {
       var key = el.getAttribute('data-stat');
-      if (data[key] !== undefined) {
+      if (data[key] !== undefined && data[key] !== null) {
         el.textContent = formatNumber(data[key]);
+      } else if (!data.available) {
+        el.textContent = '—';
       }
     });
     var dot = document.querySelector('.status-dot');
     if (dot) {
       dot.className = 'status-dot ' + (data.available ? 'green' : 'red');
     }
+    var badges = document.querySelectorAll('.unavailable-badge');
+    badges.forEach(function(b) {
+      b.style.display = data.available ? 'none' : 'inline-block';
+    });
   }
 
   function updateQueries(data) {
@@ -530,22 +566,43 @@ header h1 {
       panel.innerHTML = '<div class="empty-state">No queries recorded yet</div>';
       return;
     }
-    var html = '<table class="query-table" id="queries-table"><thead><tr>';
-    html += '<th>Time</th><th>Question</th><th>Tier</th><th>Latency</th><th>Results</th>';
-    html += '</tr></thead><tbody>';
+    var table = document.createElement('table');
+    table.className = 'query-table';
+    table.setAttribute('role', 'table');
+    table.setAttribute('aria-label', 'Recent queries table');
+    var thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Time</th><th>Question</th><th>Tier</th><th>Latency</th><th>Results</th></tr>';
+    table.appendChild(thead);
+    var tbody = document.createElement('tbody');
     data.queries.forEach(function(q) {
-      var time = q.timestamp.length > 19 ? q.timestamp.substring(11, 19) : q.timestamp;
-      var question = q.question.length > 80 ? q.question.substring(0, 80) + '...' : q.question;
-      html += '<tr>';
-      html += '<td class="col-time">' + time + '</td>';
-      html += '<td class="col-question">' + question.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</td>';
-      html += '<td><span class="col-tier">' + q.retrieval_tier + '</span></td>';
-      html += '<td class="col-ms">' + q.latency_ms + 'ms</td>';
-      html += '<td class="col-count">' + q.result_count + '</td>';
-      html += '</tr>';
+      var tr = document.createElement('tr');
+      var tdTime = document.createElement('td');
+      tdTime.className = 'col-time';
+      tdTime.textContent = q.timestamp.length > 19 ? q.timestamp.substring(11, 19) : q.timestamp;
+      var tdQ = document.createElement('td');
+      tdQ.className = 'col-question';
+      tdQ.textContent = q.question.length > 80 ? q.question.substring(0, 80) + '...' : q.question;
+      var tdTier = document.createElement('td');
+      var tierSpan = document.createElement('span');
+      tierSpan.className = 'col-tier';
+      tierSpan.textContent = q.retrieval_tier;
+      tdTier.appendChild(tierSpan);
+      var tdMs = document.createElement('td');
+      tdMs.className = 'col-ms';
+      tdMs.textContent = q.latency_ms + 'ms';
+      var tdCount = document.createElement('td');
+      tdCount.className = 'col-count';
+      tdCount.textContent = q.result_count;
+      tr.appendChild(tdTime);
+      tr.appendChild(tdQ);
+      tr.appendChild(tdTier);
+      tr.appendChild(tdMs);
+      tr.appendChild(tdCount);
+      tbody.appendChild(tr);
     });
-    html += '</tbody></table>';
-    panel.innerHTML = html;
+    table.appendChild(tbody);
+    panel.innerHTML = '';
+    panel.appendChild(table);
   }
 
   function updateSignals(data) {
@@ -558,23 +615,54 @@ header h1 {
     var maxVal = Math.max(scores.bm25 || 0, scores.vector || 0, scores.graph || 0, scores.community || 0);
     if (maxVal === 0) maxVal = 1;
     var channels = [
-      {key: 'bm25', label: 'BM25', cls: 'bm25'},
-      {key: 'vector', label: 'Vector', cls: 'vector'},
-      {key: 'graph', label: 'Graph', cls: 'graph'},
-      {key: 'community', label: 'Community', cls: 'community'}
+      {key: 'bm25', label: 'BM25', color: '#4ecdc4'},
+      {key: 'vector', label: 'Vector', color: '#7c4dff'},
+      {key: 'graph', label: 'Graph', color: '#ff6b6b'},
+      {key: 'community', label: 'Community', color: '#ffd600'}
     ];
-    var html = '<div class="signal-bar-group">';
-    channels.forEach(function(ch) {
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100');
+    svg.setAttribute('viewBox', '0 0 400 100');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Signal breakdown chart');
+    var title = document.createElementNS(svgNS, 'title');
+    title.textContent = 'Signal contribution breakdown';
+    svg.appendChild(title);
+    channels.forEach(function(ch, i) {
       var val = scores[ch.key] || 0;
-      var pct = Math.round(val / maxVal * 100);
-      html += '<div class="signal-row">';
-      html += '<span class="signal-label">' + ch.label + '</span>';
-      html += '<div class="signal-bar-bg"><div class="signal-bar-fill ' + ch.cls + '" style="width:' + pct + '%"></div></div>';
-      html += '<span class="signal-count">' + val + '</span>';
-      html += '</div>';
+      var barH = Math.round(val / maxVal * 60);
+      var x = 20 + i * 100;
+      var rect = document.createElementNS(svgNS, 'rect');
+      rect.setAttribute('x', x);
+      rect.setAttribute('y', 70 - barH);
+      rect.setAttribute('width', '60');
+      rect.setAttribute('height', barH);
+      rect.setAttribute('rx', '2');
+      rect.setAttribute('fill', ch.color);
+      svg.appendChild(rect);
+      var label = document.createElementNS(svgNS, 'text');
+      label.setAttribute('x', x + 30);
+      label.setAttribute('y', '88');
+      label.setAttribute('text-anchor', 'middle');
+      label.setAttribute('fill', '#a8bcc8');
+      label.setAttribute('font-size', '10');
+      label.setAttribute('font-family', 'Inter, sans-serif');
+      label.textContent = ch.label;
+      svg.appendChild(label);
+      var valText = document.createElementNS(svgNS, 'text');
+      valText.setAttribute('x', x + 30);
+      valText.setAttribute('y', 66 - barH);
+      valText.setAttribute('text-anchor', 'middle');
+      valText.setAttribute('fill', '#e8eaed');
+      valText.setAttribute('font-size', '11');
+      valText.setAttribute('font-family', 'JetBrains Mono, monospace');
+      valText.textContent = val;
+      svg.appendChild(valText);
     });
-    html += '</div>';
-    panel.innerHTML = html;
+    panel.innerHTML = '';
+    panel.appendChild(svg);
   }
 
   function updateEval(data) {
@@ -593,7 +681,7 @@ header h1 {
     metrics.forEach(function(m) {
       var val = data[m.key] || 0;
       var cls = evalColor(val);
-      html += '<div class="eval-row"><span class="eval-label">' + m.label + '</span>';
+      html += '<div class="eval-row"><span class="eval-label">' + escapeHtml(m.label) + '</span>';
       html += '<span class="eval-value ' + cls + '">' + val.toFixed(2) + '</span></div>';
     });
     html += '<div class="eval-row"><span class="eval-label">Avg Latency</span>';
@@ -603,11 +691,34 @@ header h1 {
   }
 
   function refresh() {
+    countdown = INTERVAL;
     fetch('/dashboard/api/stats').then(function(r){return r.json();}).then(updateStats).catch(function(){});
     fetch('/dashboard/api/queries').then(function(r){return r.json();}).then(updateQueries).catch(function(){});
     fetch('/dashboard/api/signals').then(function(r){return r.json();}).then(updateSignals).catch(function(){});
     fetch('/dashboard/api/eval').then(function(r){return r.json();}).then(updateEval).catch(function(){});
   }
+
+  function toggleOverlay() {
+    var visible = overlay.style.display === 'flex';
+    overlay.style.display = visible ? 'none' : 'flex';
+    overlay.setAttribute('aria-hidden', visible ? 'true' : 'false');
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'r' || e.key === 'R') {
+      e.preventDefault();
+      refresh();
+    } else if (e.key === '?') {
+      e.preventDefault();
+      toggleOverlay();
+    } else if (e.key === 'Escape') {
+      if (overlay.style.display === 'flex') {
+        toggleOverlay();
+      }
+    }
+  });
 
   setInterval(function() {
     countdown--;

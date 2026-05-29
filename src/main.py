@@ -17,6 +17,7 @@ from starlette.responses import JSONResponse as _StarletteJSONResponse
 
 from src.config import settings, validate_runtime_settings
 from src.dashboard.query_log import QueryLogEntry, query_log
+from src.dashboard.graph_viz import router as graph_viz_router
 from src.dashboard.routes import router as dashboard_router
 from src.ingestion.pipeline import IngestResult, ingest_from_hf, ingest_topic
 from src.infrastructure.job_store import JobStore
@@ -85,6 +86,7 @@ app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=l
 
 # --- Dashboard Router ---
 app.include_router(dashboard_router)
+app.include_router(graph_viz_router)
 
 # --- MCP Server Mount ---
 _mcp_app = _mcp_instance.http_app(path="/", transport="streamable-http")

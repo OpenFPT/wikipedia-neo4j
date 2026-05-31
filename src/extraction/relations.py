@@ -60,7 +60,7 @@ def extract_relations(text: str, use_local: bool = True) -> list[Triple]:
     prompt = EXTRACTION_PROMPT.format(text=text[:2000])  # Cap input length
 
     if use_local:
-        from src.local_llm import chat
+        from src.infrastructure.local_llm import chat
 
         messages = [
             {"role": "system", "content": "You are a relation extraction system. Return only valid JSON."},
@@ -69,7 +69,7 @@ def extract_relations(text: str, use_local: bool = True) -> list[Triple]:
         raw = chat(messages, max_new_tokens=512, temperature=0.1)
     else:
         from src.config import settings
-        from src.llm import _client_pool
+        from src.infrastructure.llm import _client_pool
 
         from google.genai import types
 

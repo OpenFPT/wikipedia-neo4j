@@ -5,8 +5,8 @@ from __future__ import annotations
 from contextlib import contextmanager
 
 
-import src.retrieve as retrieve_mod
-from src.retrieve import _wrrf_fuse, _vector_search, _graph_search, hybrid_retrieve
+import src.retrieval.hybrid as retrieve_mod
+from src.retrieval.hybrid import _wrrf_fuse, _vector_search, _graph_search, hybrid_retrieve
 
 
 # ---------------------------------------------------------------------------

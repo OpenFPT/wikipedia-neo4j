@@ -209,7 +209,7 @@ def load_dataset(path: Path, limit: int | None = None) -> list[dict]:
 
 def execute_tool(tool_name: str, tool_input: dict) -> str:
     """Execute a tool call against the live GraphRAG system."""
-    from src.mcp_tools import register_tools
+    from src.mcp_pkg.tools import register_tools
 
     class FakeMCP:
         def __init__(self):

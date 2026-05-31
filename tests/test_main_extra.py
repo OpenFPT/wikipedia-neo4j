@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import time
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 import src.main as main
-from src.ingest import IngestResult
+from src.ingestion.pipeline import IngestResult
 
 
 class TestRateLimiter:
@@ -170,3 +171,93 @@ class TestQueryEndpoint:
             resp = client.post("/query", json={"question": "What is Neo4j?", "top_k": 3})
 
         assert resp.status_code == 500
+
+
+class TestHybridQueryEndpoint:
+    def test_hybrid_query_success(self, monkeypatch) -> None:
+        monkeypatch.setattr(main.settings, "app_api_key", None)
+
+        def _fake_retrieve(question, top_k):
+            return [
+                {"chunk_id": "c1", "chunk_text": "result", "score": 0.9, "page_title": "P", "page_url": "u"}
+            ]
+
+        monkeypatch.setattr(main, "hybrid_retrieve", _fake_retrieve)
+
+        with TestClient(main.app) as client:
+            resp = client.post("/query/hybrid", json={"question": "test?", "top_k": 5})
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "results" in data
+        assert len(data["results"]) == 1
+
+    def test_hybrid_query_runtime_error(self, monkeypatch) -> None:
+        monkeypatch.setattr(main.settings, "app_api_key", None)
+
+        def _fail(question, top_k):
+            raise RuntimeError("Neo4j connection lost")
+
+        monkeypatch.setattr(main, "hybrid_retrieve", _fail)
+
+        with TestClient(main.app) as client:
+            resp = client.post("/query/hybrid", json={"question": "test?", "top_k": 3})
+
+        assert resp.status_code == 500
+
+    def test_hybrid_query_logs_signal_scores(self, monkeypatch) -> None:
+        monkeypatch.setattr(main.settings, "app_api_key", None)
+
+        def _fake_retrieve(question, top_k):
+            return [
+                {"chunk_id": "c1", "chunk_text": "r", "score": 0.9, "bm25_score": 0.5, "vector_score": 0.4},
+                {"chunk_id": "c2", "chunk_text": "r", "score": 0.8, "graph_rank": 2},
+            ]
+
+        monkeypatch.setattr(main, "hybrid_retrieve", _fake_retrieve)
+
+        with TestClient(main.app) as client:
+            resp = client.post("/query/hybrid", json={"question": "test?", "top_k": 5})
+
+        assert resp.status_code == 200
+
+
+class TestMCPAuthMiddleware:
+    def test_mcp_endpoint_blocked_without_auth(self, monkeypatch) -> None:
+        monkeypatch.setattr(main.settings, "app_api_key", "secret123")
+
+        with TestClient(main.app) as client:
+            resp = client.get("/mcp")
+
+        assert resp.status_code == 401
+
+    def test_mcp_endpoint_allowed_with_correct_auth(self, monkeypatch) -> None:
+        monkeypatch.setattr(main.settings, "app_api_key", "secret123")
+
+        with TestClient(main.app, raise_server_exceptions=False) as client:
+            resp = client.get("/mcp", headers={"Authorization": "Bearer secret123"})
+
+        # Not 401 — auth passed, even if MCP handler errors due to missing lifespan
+        assert resp.status_code != 401
+
+    def test_mcp_endpoint_no_auth_required_when_no_key(self, monkeypatch) -> None:
+        monkeypatch.setattr(main.settings, "app_api_key", None)
+
+        with TestClient(main.app, raise_server_exceptions=False) as client:
+            resp = client.get("/mcp")
+
+        assert resp.status_code != 401
+
+
+class TestReadyEndpointSuccess:
+    @patch("src.main.neo4j_client")
+    def test_ready_when_neo4j_ok(self, mock_neo4j, monkeypatch) -> None:
+        mock_neo4j.verify_connectivity.return_value = None
+
+        with TestClient(main.app) as client:
+            resp = client.get("/ready")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["status"] == "ok"
+        assert data["neo4j"]["ok"] is True

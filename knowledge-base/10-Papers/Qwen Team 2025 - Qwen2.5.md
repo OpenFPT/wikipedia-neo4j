@@ -11,7 +11,7 @@ tags:: [[paper]], [[local-slm]], [[vietnamese-nlp]]
 # [[Qwen Team 2025 - Qwen2.5]]
 
 ## TL;DR
-This technical report details the development, training, and architectural features of the Qwen2.5 multilingual model family. Qwen2.5 represents a major advancement in compact, dense models (ranging from 0.5B to 72B parameters) and mixture-of-experts (MoE) architectures, providing state-of-the-art native support for over 100 languages, complex instruction-following, and robust tool-calling.
+This technical report details the development, training, and architectural features of the Qwen2.5 multilingual model family. Qwen2.5 represents a major advancement in compact, dense models (ranging from 0.5B to 72B parameters) and mixture-of-experts (MoE) architectures, providin--port:8000g state-of-the-art native support for over 100 languages, complex instruction-following, and robust tool-calling.
 
 ## Method
 The models are trained on a massive, highly diverse multilingual dataset spanning web documents, code, mathematics, and books. The authors utilize a modified Transformer architecture with Grouped-Query Attention (GQA) to optimize inference speed and VRAM consumption. They implement advanced byte-level BPE tokenizers and apply multi-stage reinforcement learning from human feedback (RLHF) to optimize native function calling.

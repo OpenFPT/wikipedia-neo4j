@@ -13,7 +13,7 @@ from src.evaluation import (
     save_ragas_results,
 )
 from src.logging_utils import get_logger
-from src.retrieve import _run_fallback_query, _run_generated_query
+from src.retrieval.hybrid import _run_fallback_query, _run_generated_query
 
 logger = get_logger(__name__)
 

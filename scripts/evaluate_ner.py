@@ -417,10 +417,10 @@ def evaluate_against_gold(backends: list[str] | None = None) -> dict[str, Any]:
         os.environ["NER_BACKEND"] = backend
 
         import src.config as cfg_mod
-        import src.ner as ner_mod
+        import src.extraction.ner as ner_mod
         importlib.reload(cfg_mod)
         importlib.reload(ner_mod)
-        from src.ner import extract_entities
+        from src.extraction.ner import extract_entities
 
         tp_entity = 0
         fp_entity = 0

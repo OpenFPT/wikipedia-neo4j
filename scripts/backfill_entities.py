@@ -11,8 +11,8 @@ import uuid
 
 from src.config import settings
 from src.logging_utils import get_logger
-from src.neo4j_client import Neo4jClient
-from src.ner import extract_entities
+from src.infrastructure.neo4j_client import Neo4jClient
+from src.extraction.ner import extract_entities
 
 logger = get_logger(__name__)
 

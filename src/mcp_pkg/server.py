@@ -6,7 +6,7 @@ import argparse
 
 from fastmcp import FastMCP
 
-from src.mcp_tools import register_tools
+from src.mcp_pkg.tools import register_tools
 
 
 def create_mcp_server() -> FastMCP:

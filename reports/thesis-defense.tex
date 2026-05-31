@@ -64,7 +64,7 @@
 \begin{alertblock}{Three Critical Gaps in Vietnamese QA}
 \begin{itemize}
   \item \textbf{Single-hop only} --- no multi-hop graph reasoning in existing systems
-  \item \textbf{Hallucination} --- 57\% unfaithful citations (Liu et al., 2024)
+  \item \textbf{Hallucination} --- LLMs struggle with long-context faithfulness (Liu et al., 2024)
   \item \textbf{API dependency} --- cost, latency, data sovereignty concerns
 \end{itemize}
 \end{alertblock}
@@ -119,9 +119,9 @@ ReflectiveRAG (Verma et al., 2026) & Sufficiency checks + re-retrieval & No KG, 
 \column{0.48\textwidth}
 \begin{exampleblock}{1. GraphRAG System}
 \begin{itemize}
-  \item Typed Neo4j KG + 3 pluggable NER backends
-  \item Hybrid retrieval + cross-encoder reranking
-  \item ReAct agent with 4 deterministic tools
+  \item Typed Neo4j KG + 6 pluggable NER backends
+  \item Hybrid retrieval (WRRF) + cross-encoder reranking
+  \item ReAct agent with 6 deterministic tools
 \end{itemize}
 \end{exampleblock}
 \vspace{0.4em}
@@ -159,7 +159,7 @@ Qwen2.5-7B (4-bit NF4) $\cdot$ Text2Cypher + CyVer $\cdot$ 8GB VRAM
   \draw[arr] (cite) -- (ans);
 
   \node[box, fill=positive!10, below=1.2cm of react, xshift=-2cm] (neo4j) {Neo4j KG};
-  \node[box, fill=emphasis!10, below=1.2cm of react] (vec) {BM25 + Dense};
+  \node[box, fill=emphasis!10, below=1.2cm of react] (vec) {WRRF Fusion};
   \node[box, fill=negative!10, below=1.2cm of react, xshift=2cm] (rerank) {Cross-Encoder};
 
   \draw[arr, dashed] (react) -- (neo4j);
@@ -194,11 +194,14 @@ Qwen2.5-7B (4-bit NF4) $\cdot$ Text2Cypher + CyVer $\cdot$ 8GB VRAM
 \textbf{Current scale:} 998 pages, 19K chunks, 3.3K entities
 
 \column{0.45\textwidth}
-\textbf{3 Pluggable NER Backends}
+\textbf{6 Pluggable NER Backends}
 \begin{itemize}
-  \item \textbf{Simple} --- regex heuristic + keyword type classification
-  \item \textbf{Underthesea} --- BIO tagging, offline Vietnamese NER
-  \item \textbf{PhoNLP} --- VnCoreNLP word segmentation + PhoNLP NER
+  \item \textbf{Simple} --- regex + keyword classification
+  \item \textbf{Underthesea} --- BIO tagging, offline
+  \item \textbf{PhoNLP} --- VnCoreNLP + PhoNLP
+  \item \textbf{PhoBERT} --- transformer pipeline
+  \item \textbf{ViDeBERTa} --- electra-base NER
+  \item \textbf{Wikilink} --- hyperlink extraction (best for bulk, Typed F1=46.9\%)
 \end{itemize}
 \vspace{0.3em}
 All backends $\rightarrow$ \texttt{(name, type)} tuples $\rightarrow$ typed graph labels
@@ -260,12 +263,14 @@ Cross-encoder reranking: \pos{+15.5\%} accuracy (literature benchmark)
 \begin{frame}{Tool-Constrained ReAct Agent}
 \begin{columns}[T]
 \column{0.48\textwidth}
-\textbf{4 Deterministic Tools}
+\textbf{6 Deterministic Tools}
 \begin{itemize}
   \item \texttt{kg\_schema()} --- cached JSON schema
   \item \texttt{kg\_query(cypher)} --- execute \& return rows/errors
   \item \texttt{text\_search(q, k)} --- hybrid BM25 + dense
   \item \texttt{get\_passage(id)} --- raw paragraph text
+  \item \texttt{entity\_neighborhood(e)} --- 1-hop subgraph
+  \item \texttt{path\_search(a, b)} --- shortest path
 \end{itemize}
 
 \column{0.48\textwidth}
@@ -402,8 +407,8 @@ Multi-hop answerable & $\sim$7K & 2--3 & KG walks + LLM rewrite \\
 \end{itemize}
 \end{columns}
 \vspace{0.5em}
-\begin{block}{Success Criteria}
-Token F1 $>$ 0.40 \quad | \quad Context Hit Rate $>$ 0.60 \quad | \quad Abstain Accuracy $>$ 0.60
+\begin{block}{Results vs. Targets}
+Token F1: 0.12 / 0.40 (needs QLoRA) \quad | \quad \pos{Context Hit Rate: 64.7\% $>$ 0.60} \quad | \quad Abstain: pending
 \end{block}
 \end{frame}
 
@@ -426,18 +431,33 @@ Groundedness & Faithfulness \\
 \end{tabular}
 
 \column{0.50\textwidth}
-\textbf{Baselines}
-\begin{itemize}
-  \item[\con{B1}] Vector-only (dense retrieval)
-  \item[\con{B2}] BM25-only (sparse retrieval)
-  \item[\con{B3}] Graph-only (Cypher traversal)
-  \item[\pos{Ours}] Hybrid (graph + text + reranking)
-\end{itemize}
+\textbf{Results (ViQuAD2, $n$=2652)}
+\vspace{4pt}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+\pos{Context Hit Rate} & \pos{64.7\%} \\
+\pos{MRR} & \pos{0.450} \\
+Token F1 & 0.120 \\
+Avg Latency & 51 ms \\
+\bottomrule
+\end{tabular}
 \end{columns}
 \vspace{0.5em}
-\begin{alertblock}{Results (Placeholder)}
-\centering \textit{Awaiting full evaluation run --- targets: F1 $>$ 0.40, Hit Rate $>$ 0.60, Latency $<$ 3s}
+\begin{columns}[T]
+\column{0.48\textwidth}
+\begin{exampleblock}{Retrieval: Target Met}
+Hit Rate 64.7\% $>$ 60\% target \checkmark\\
+MRR 0.45 (rank 1--2 avg) \checkmark\\
+Latency 51ms (well under 3s) \checkmark
+\end{exampleblock}
+\column{0.48\textwidth}
+\begin{alertblock}{Generation: Needs Fine-tuning}
+Token F1 = 0.12 (target 0.40)\\
+\con{Root cause:} base SLM without task-specific fine-tuning; QLoRA planned
 \end{alertblock}
+\end{columns}
 \end{frame}
 
 % SLIDE 17: Demo
@@ -479,22 +499,22 @@ Groundedness & Faithfulness \\
 \column{0.48\textwidth}
 \begin{exampleblock}{Achieved}
 \begin{itemize}
-  \item End-to-end local GraphRAG
-  \item Typed Vietnamese KG (998p, 19K chunks)
-  \item ReAct agent + citation tracking
-  \item Dataset pipeline + ViQuAD2
-  \item Multi-metric evaluation framework
+  \item End-to-end local GraphRAG (16GB RAM, 8GB VRAM)
+  \item Typed Vietnamese KG (6 NER backends)
+  \item ReAct agent + 6 tools + citation tracking
+  \item WRRF hybrid retrieval (64.7\% hit rate)
+  \item ViQuAD2 integration + multi-metric eval
 \end{itemize}
 \end{exampleblock}
 
 \column{0.48\textwidth}
 \begin{alertblock}{Future Directions}
 \begin{itemize}
-  \item QLoRA fine-tuning (Text2Cypher)
+  \item QLoRA fine-tuning (Token F1: 0.12 $\rightarrow$ 0.40+)
   \item DPO alignment (tool compliance)
-  \item Community detection (Louvain)
-  \item Query decomposition (StepChain)
-  \item Scale to 5000+ pages
+  \item Scale to 5000+ pages (full ViWiki)
+  \item Abstain accuracy evaluation
+  \item Multi-trajectory voting optimization
 \end{itemize}
 \end{alertblock}
 \end{columns}

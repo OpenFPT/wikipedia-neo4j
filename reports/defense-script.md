@@ -66,7 +66,7 @@ Our position fills the intersection: local SLM, typed Vietnamese KG, determinist
 
 **Transition:** This leads to our three key contributions.
 
----
+---continue
 
 ## Slide 6: Key Contributions (40s)
 

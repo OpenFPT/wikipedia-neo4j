@@ -5,12 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from neo4j import GraphDatabase
 from qdrant_client import QdrantClient
 from qdrant_client.models import Filter, FieldCondition, MatchValue
 
 from src.config import settings
 from src.logging_utils import get_logger
+from src.neo4j_client import neo4j_client
 
 logger = get_logger(__name__)
 
@@ -29,12 +29,8 @@ class ToolResult:
 
 def kg_schema() -> ToolResult:
     """Return the current Neo4j knowledge graph schema (node labels, relationship types, properties)."""
-    driver = GraphDatabase.driver(
-        settings.neo4j_uri,
-        auth=(settings.neo4j_username, settings.neo4j_password),
-    )
     try:
-        with driver.session() as session:
+        with neo4j_client.session() as session:
             labels = [r["label"] for r in session.run("CALL db.labels() YIELD label RETURN label")]
             rel_types = [r["relationshipType"] for r in session.run(
                 "CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType"
@@ -52,8 +48,6 @@ def kg_schema() -> ToolResult:
         return ToolResult(tool_name="kg_schema", success=True, data=schema)
     except Exception as e:
         return ToolResult(tool_name="kg_schema", success=False, data={}, error=str(e))
-    finally:
-        driver.close()
 
 
 def kg_query(cypher: str, params: dict | None = None) -> ToolResult:
@@ -69,20 +63,14 @@ def kg_query(cypher: str, params: dict | None = None) -> ToolResult:
                 error=f"Write operation detected ({kw}). Only read queries allowed.",
             )
 
-    driver = GraphDatabase.driver(
-        settings.neo4j_uri,
-        auth=(settings.neo4j_username, settings.neo4j_password),
-    )
     try:
-        with driver.session() as session:
+        with neo4j_client.session() as session:
             result = session.run(cypher, **(params or {}))
             rows = [dict(r) for r in result]
 
         return ToolResult(tool_name="kg_query", success=True, data=rows[:50])
     except Exception as e:
         return ToolResult(tool_name="kg_query", success=False, data=[], error=str(e))
-    finally:
-        driver.close()
 
 
 def text_search(
@@ -94,12 +82,8 @@ def text_search(
     results: list[dict[str, Any]] = []
 
     # Neo4j fulltext search
-    driver = GraphDatabase.driver(
-        settings.neo4j_uri,
-        auth=(settings.neo4j_username, settings.neo4j_password),
-    )
     try:
-        with driver.session() as session:
+        with neo4j_client.session() as session:
             records = session.run(
                 """
                 CALL db.index.fulltext.queryNodes('paragraph_text_ft', $query)
@@ -124,8 +108,6 @@ def text_search(
                 })
     except Exception as e:
         logger.warning("Fulltext search failed", extra={"error": str(e)})
-    finally:
-        driver.close()
 
     # Qdrant vector search (if available)
     try:
@@ -168,12 +150,8 @@ def text_search(
 
 def get_passage(paragraph_id: str) -> ToolResult:
     """Retrieve the full text of a specific paragraph by ID."""
-    driver = GraphDatabase.driver(
-        settings.neo4j_uri,
-        auth=(settings.neo4j_username, settings.neo4j_password),
-    )
     try:
-        with driver.session() as session:
+        with neo4j_client.session() as session:
             result = session.run(
                 """
                 MATCH (p:Paragraph {id: $id})
@@ -199,8 +177,6 @@ def get_passage(paragraph_id: str) -> ToolResult:
         return ToolResult(tool_name="get_passage", success=True, data=dict(record))
     except Exception as e:
         return ToolResult(tool_name="get_passage", success=False, data={}, error=str(e))
-    finally:
-        driver.close()
 
 
 # Tool registry for the ReAct agent

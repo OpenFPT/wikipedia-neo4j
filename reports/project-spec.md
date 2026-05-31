@@ -14,23 +14,25 @@ Build a fully local, sovereignty‑preserving Vietnamese KGQA system that answer
 - Local single‑process pipeline (no external APIs).
 - Vietnamese Wikipedia ingestion from the pinned `Keithsel/viwiki-20260523` snapshot, generated from raw MediaWiki XML.
 - Typed KG schema + Cypher execution.
-- Hybrid retrieval (graph + text fallback).
+- WRRF hybrid retrieval (BM25 + vector + graph + community fusion) with cross-encoder reranking.
 - Text2Cypher fine‑tuning with deterministic validation.
 - Dataset generation + QC pipeline.
 
 **Out‑of‑scope**
 - Web search / external retrieval.
 - Training or evaluation on gated datasets (e.g., ViMQA).
-- Multi‑agent orchestration (single‑agent ReAct only).
+- Multi-agent coordination across different LLMs (single-model multi-trajectory only).
 
 ## 3) System Architecture (High‑Level)
-**Flow:** User query → SLM orchestrator → ReAct loop (≤6 steps) → tools → citation verifier → final answer.
+**Flow:** User query → SLM orchestrator → complexity detection → ReAct loop (≤6 steps) or question decomposition + multi-trajectory → tools → WRRF fusion → reranker → citation verifier → final answer.
 
-**Tools (strictly 4):**
+**Tools (6):**
 1. `kg_schema()` → JSON schema (cached).
 2. `kg_query(cypher)` → Neo4j execution results or compiler errors.
 3. `text_search(query, k)` → hybrid BM25 + dense retrieval.
 4. `get_passage(passage_id)` → raw paragraph text.
+5. `entity_neighborhood(entity, hops)` → typed neighbors within k hops.
+6. `path_search(entity_a, entity_b, max_hops)` → shortest paths between entities.
 
 **Storage:**
 - **Neo4j** for KG (typed entities/relations, provenance).
@@ -57,6 +59,7 @@ Build a fully local, sovereignty‑preserving Vietnamese KGQA system that answer
 
 ## 6) Orchestration & Groundedness
 **ReAct loop:** capped at 6 iterations to avoid runaway loops.
+**Complexity detection:** automatic routing — simple questions use standard ReAct, complex multi-hop questions trigger question decomposition and multi-trajectory execution with majority voting.
 **Sufficiency checks:** if KG evidence empty/inconsistent → route to `text_search` or abstain.
 **Citation verification:** final answer must cite `passage_id`s present in retrieval history.
 
@@ -77,7 +80,7 @@ Build a fully local, sovereignty‑preserving Vietnamese KGQA system that answer
 **QC pipeline:** grounding match → NLI entailment → LLM coherence → human spot‑check.
 
 ## 8) Model Strategy
-**Base model:** Sailor2‑8B or Qwen2.5‑7B.
+**Base model:** AITeamVN/Vi-Qwen2-7B-RAG (Vietnamese RAG-optimized Qwen2.5-7B).
 
 **Training:**
 - **QLoRA** (NF4, double quantization, LoRA on all linear layers).
@@ -90,9 +93,10 @@ Build a fully local, sovereignty‑preserving Vietnamese KGQA system that answer
 **Hallucination taxonomy:** intrinsic/extrinsic (ViHallu).
 **Robustness:** incomplete KG tests (BRINK‑style).
 **Baselines:** vector‑only, BM25‑only, graph‑only, hybrid.
+**ViQuAD2.0 benchmark:** 72.6% context hit rate achieved via UIT-ViQuAD2.0 adapter.
 
 ## 10) Deliverables
-1. Local KGQA service with 4 tools and citation verifier.
+1. Local KGQA service with 6 tools, WRRF hybrid retrieval, and citation verifier.
 2. ViWiki‑MHR dataset release + documentation.
 3. Fine‑tuned Text2Cypher SLM + adapters.
 4. Evaluation report with tables/plots.

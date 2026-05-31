@@ -1,0 +1,263 @@
+{
+  "dataset": "data/eval/graph_structural_qa.jsonl",
+  "total_samples": 29,
+  "total_evaluated": 29,
+  "accuracy": 0.931,
+  "errors": 0,
+  "by_type": {
+    "aggregation": {
+      "correct": 15,
+      "total": 15,
+      "accuracy": 1.0
+    },
+    "listing": {
+      "correct": 3,
+      "total": 3,
+      "accuracy": 1.0
+    },
+    "path": {
+      "correct": 3,
+      "total": 5,
+      "accuracy": 0.6
+    },
+    "comparison": {
+      "correct": 6,
+      "total": 6,
+      "accuracy": 1.0
+    }
+  },
+  "details": [
+    {
+      "question": "Tổng cộng có bao nhiêu thực thể Person trong đồ thị tri thức?",
+      "type": "aggregation",
+      "expected": "5134",
+      "actual": "5134",
+      "correct": true,
+      "latency_ms": 17.3
+    },
+    {
+      "question": "Tổng cộng có bao nhiêu thực thể Organization trong đồ thị tri thức?",
+      "type": "aggregation",
+      "expected": "1602",
+      "actual": "1602",
+      "correct": true,
+      "latency_ms": 11.3
+    },
+    {
+      "question": "Tổng cộng có bao nhiêu thực thể Location trong đồ thị tri thức?",
+      "type": "aggregation",
+      "expected": "1348",
+      "actual": "1348",
+      "correct": true,
+      "latency_ms": 11.2
+    },
+    {
+      "question": "Trang nào có nhiều liên kết đi ra nhất?",
+      "type": "aggregation",
+      "expected": "Paris (25 liên kết)",
+      "actual": "25",
+      "correct": true,
+      "latency_ms": 38.5
+    },
+    {
+      "question": "Có bao nhiêu trang liên kết đến trang Pháp?",
+      "type": "aggregation",
+      "expected": "31",
+      "actual": "31",
+      "correct": true,
+      "latency_ms": 19.2
+    },
+    {
+      "question": "Có bao nhiêu trang liên kết đến trang Paris?",
+      "type": "aggregation",
+      "expected": "19",
+      "actual": "19",
+      "correct": true,
+      "latency_ms": 7.8
+    },
+    {
+      "question": "Trang California đề cập đến bao nhiêu tổ chức khác nhau?",
+      "type": "aggregation",
+      "expected": "73",
+      "actual": "73",
+      "correct": true,
+      "latency_ms": 27.4
+    },
+    {
+      "question": "Trang Donald Trump đề cập đến bao nhiêu tổ chức khác nhau?",
+      "type": "aggregation",
+      "expected": "54",
+      "actual": "54",
+      "correct": true,
+      "latency_ms": 25.4
+    },
+    {
+      "question": "Trang Thiểm Tây đề cập đến bao nhiêu thực thể Person?",
+      "type": "aggregation",
+      "expected": "274",
+      "actual": "274",
+      "correct": true,
+      "latency_ms": 25.1
+    },
+    {
+      "question": "Cộng đồng lớn nhất trong đồ thị có bao nhiêu thành viên?",
+      "type": "aggregation",
+      "expected": "467",
+      "actual": "467",
+      "correct": true,
+      "latency_ms": 25.2
+    },
+    {
+      "question": "Có bao nhiêu cộng đồng trong đồ thị tri thức?",
+      "type": "aggregation",
+      "expected": "7",
+      "actual": "7",
+      "correct": true,
+      "latency_ms": 15.8
+    },
+    {
+      "question": "Có bao nhiêu trang trong đồ thị tri thức?",
+      "type": "aggregation",
+      "expected": "164",
+      "actual": "164",
+      "correct": true,
+      "latency_ms": 0.9
+    },
+    {
+      "question": "Có bao nhiêu đoạn văn (chunk) trong đồ thị tri thức?",
+      "type": "aggregation",
+      "expected": "10220",
+      "actual": "10220",
+      "correct": true,
+      "latency_ms": 0.6
+    },
+    {
+      "question": "Thực thể Quốc hội Hoa Kỳ được đề cập trong bao nhiêu đoạn văn?",
+      "type": "aggregation",
+      "expected": "446",
+      "actual": "446",
+      "correct": true,
+      "latency_ms": 21.9
+    },
+    {
+      "question": "Liệt kê các trang liên kết đến trang Pháp.",
+      "type": "listing",
+      "expected": "Bắc Phi, Bức tường Berlin, Canada, Chiến tranh Đông Dương, Chủ nghĩa thực dân, Comoros, Cuba, Donald Trump, Edward II của Anh, François Mitterrand, Hải ly, Kinh tế Hoa Kỳ, Louis XV của Pháp, Louis XVI của Pháp, Luxembourg, Lịch sử Hoa Kỳ, Mali, Mông Cổ, Người Do Thái, Nouvelle-Calédonie, ...",
+      "actual": "20/21 parts matched",
+      "correct": true,
+      "latency_ms": 25.2
+    },
+    {
+      "question": "Liệt kê 5 tổ chức được đề cập nhiều nhất trong đồ thị.",
+      "type": "listing",
+      "expected": "Quốc hội Hoa Kỳ (446), Liên minh châu Âu (326), Đảng Cộng sản Việt Nam (318), Quốc hội Việt Nam (315), Ủy ban Dân tộc Giải phóng Việt Nam (286)",
+      "actual": "446",
+      "correct": true,
+      "latency_ms": 35.3
+    },
+    {
+      "question": "Liệt kê 5 địa điểm được đề cập nhiều nhất trong đồ thị.",
+      "type": "listing",
+      "expected": "Miền Nam Việt Nam (351), Châu Âu (291), Thành phố New York (284), Cộng đồng Kinh tế châu Âu (215), Châu Á (184)",
+      "actual": "351",
+      "correct": true,
+      "latency_ms": 33.0
+    },
+    {
+      "question": "Những tổ chức nào được đề cập cùng với địa điểm Hồ Chí Minh trong cùng đoạn văn?",
+      "type": "path",
+      "expected": "Đoàn Thanh niên Cộng sản Hồ Chí Minh (125), Đảng Cộng sản Việt Nam (121), Quốc hội Việt Nam (121), Ủy ban Dân tộc Giải phóng Việt Nam (114), Quân đội Nhân dân Việt Nam (114)",
+      "actual": "125",
+      "correct": true,
+      "latency_ms": 36.1
+    },
+    {
+      "question": "Liệt kê các trang có thể đến được từ trang Stephen Hawking qua 2 bước liên kết.",
+      "type": "path",
+      "expected": "Tiếng Anh, Việt Nam, ...",
+      "actual": "2/3 parts matched",
+      "correct": true,
+      "latency_ms": 33.5
+    },
+    {
+      "question": "Từ trang Albert Einstein, qua một liên kết trung gian, có thể đến được những trang nào?",
+      "type": "path",
+      "expected": "Qua California đến Tiếng Anh, Việt Nam, ...",
+      "actual": "[{\"intermediate\": \"Nhật Bản\", \"destination\": \"Nhà Minh\"}, {\"intermediate\": \"Nhật Bản\", \"destination\": \"Iran\"}, {\"intermediate\": \"Nhật Bản\", \"destination\": \"Trung Quốc\"}, {\"intermediate\": \"Nhật Bản\", \"",
+      "correct": false,
+      "latency_ms": 37.1
+    },
+    {
+      "question": "Những thực thể nào được đề cập cùng với Đảng Cộng sản Việt Nam và Miền Nam Việt Nam?",
+      "type": "path",
+      "expected": "Các thực thể đồng xuất hiện trong 287 đoạn văn chung",
+      "actual": "[{\"e3.name\": \"Chính trị Việt Nam\", \"labels(e3)\": [\"Entity\"]}, {\"e3.name\": \"Tịnh độ cư sĩ Phật hội Việt Nam\", \"labels(e3)\": [\"Entity\", \"Organization\"]}, {\"e3.name\": \"Sở Cảnh sát Nam Kỳ\", \"labels(e3)\": ",
+      "correct": false,
+      "latency_ms": 62.1
+    },
+    {
+      "question": "Trang nào đề cập nhiều địa điểm nhất?",
+      "type": "comparison",
+      "expected": "California (85 địa điểm)",
+      "actual": "85",
+      "correct": true,
+      "latency_ms": 46.9
+    },
+    {
+      "question": "Trang nào đề cập nhiều tổ chức hơn: California hay Lịch sử Hoa Kỳ?",
+      "type": "comparison",
+      "expected": "California (73) nhiều hơn Lịch sử Hoa Kỳ (55)",
+      "actual": "73",
+      "correct": true,
+      "latency_ms": 62.3
+    },
+    {
+      "question": "Trang nào đề cập nhiều người hơn: Donald Trump hay Albert Einstein?",
+      "type": "comparison",
+      "expected": "Donald Trump (186) nhiều hơn Albert Einstein (129)",
+      "actual": "186",
+      "correct": true,
+      "latency_ms": 33.0
+    },
+    {
+      "question": "Tổ chức nào được đề cập nhiều hơn: Liên minh châu Âu hay Đảng Cộng sản Việt Nam?",
+      "type": "comparison",
+      "expected": "Liên minh châu Âu (326) nhiều hơn Đảng Cộng sản Việt Nam (318)",
+      "actual": "326",
+      "correct": true,
+      "latency_ms": 24.5
+    },
+    {
+      "question": "Địa điểm nào được đề cập nhiều hơn: Châu Âu hay Châu Á?",
+      "type": "comparison",
+      "expected": "Châu Âu (291) nhiều hơn Châu Á (184)",
+      "actual": "291",
+      "correct": true,
+      "latency_ms": 24.8
+    },
+    {
+      "question": "Trang Paris có nhiều liên kết đi ra hơn trang Đức không?",
+      "type": "comparison",
+      "expected": "Paris (25) nhiều hơn Đức (12)",
+      "actual": "25",
+      "correct": true,
+      "latency_ms": 27.1
+    },
+    {
+      "question": "Trang Chiến tranh Đông Dương liên kết đến bao nhiêu trang khác?",
+      "type": "aggregation",
+      "expected": "14",
+      "actual": "14",
+      "correct": true,
+      "latency_ms": 1.2
+    },
+    {
+      "question": "Liên minh châu Âu và Cộng đồng Kinh tế châu Âu được đề cập cùng nhau trong bao nhiêu đoạn văn?",
+      "type": "path",
+      "expected": "207",
+      "actual": "207",
+      "correct": true,
+      "latency_ms": 29.4
+    }
+  ]
+}

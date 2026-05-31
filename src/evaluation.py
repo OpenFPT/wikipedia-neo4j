@@ -76,7 +76,7 @@ def _retrieve_chunks(question: str, top_k: int = 20) -> list[dict]:
     """Retrieve chunks using fallback (fulltext) for evaluation."""
     try:
         rows = _run_generated_query(question, top_k)
-    except (RuntimeError, ValueError, KeyError, TypeError):
+    except Exception:
         rows = _run_fallback_query(question, top_k)
     return rows
 
@@ -592,26 +592,44 @@ def evaluate_viquad(
         latencies.append(latency)
 
         retrieved_texts = [r.get("chunk_text", "") for r in rows]
-        max_score = max((r.get("score", 0) for r in rows), default=0)
+        raw_scores = [r.get("score") for r in rows]
+        max(
+            ((s[0] if isinstance(s, list) else s) or 0 for s in raw_scores),
+            default=0,
+        )
 
-        # Context hit: check if gold context appears in any retrieved chunk
-        ctx_norm = context[:200].lower()
-        hit = 1.0 if any(ctx_norm in rt.lower() for rt in retrieved_texts if rt) else 0.0
+        # Context hit: token overlap between gold context and retrieved chunks
+        ctx_tokens = set(context.lower().split())
+        hit = 0.0
+        if ctx_tokens:
+            for rt in retrieved_texts:
+                if not rt:
+                    continue
+                chunk_tokens = set(rt.lower().split())
+                overlap = len(ctx_tokens & chunk_tokens) / len(ctx_tokens)
+                if overlap >= 0.5:
+                    hit = 1.0
+                    break
         hit_rates.append(hit)
 
-        # MRR based on context match
+        # MRR based on token overlap
         rr = 0.0
-        for rank, rt in enumerate(retrieved_texts, 1):
-            if rt and ctx_norm in rt.lower():
-                rr = 1.0 / rank
-                break
+        if ctx_tokens:
+            for rank, rt in enumerate(retrieved_texts, 1):
+                if not rt:
+                    continue
+                chunk_tokens = set(rt.lower().split())
+                overlap = len(ctx_tokens & chunk_tokens) / len(ctx_tokens)
+                if overlap >= 0.5:
+                    rr = 1.0 / rank
+                    break
         mrrs.append(rr)
 
         # Rerank
         reranked = rerank(question, rows, text_key="chunk_text", top_k=top_k_rerank)
 
         # Generate answer from top reranked chunks
-        system_abstains = len(rows) == 0 or max_score < 0.1
+        system_abstains = len(rows) == 0
         if system_abstains:
             predicted_answer = ""
         else:

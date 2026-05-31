@@ -84,6 +84,106 @@ class TestExtractEntitiesSimple:
             assert len(e) >= 3
 
 
+class TestPhoBERTBackend:
+    def _mock_pipeline_results(self):
+        return [
+            {"word": "Nguyễn Văn A", "entity_group": "PER", "score": 0.95},
+            {"word": "Hà Nội", "entity_group": "LOC", "score": 0.92},
+            {"word": "Vingroup", "entity_group": "ORG", "score": 0.88},
+            {"word": "noise", "entity_group": "MISC", "score": 0.30},
+        ]
+
+    def test_phobert_backend_returns_tuples(self, monkeypatch) -> None:
+        monkeypatch.setattr(ner.settings, "ner_backend", "phobert")
+        monkeypatch.setattr(ner.settings, "ner_confidence_threshold", 0.50)
+
+        def _fake_phobert(text, max_entities=25):
+            return [("Nguyễn Văn A", "Person"), ("Hà Nội", "Location")]
+
+        monkeypatch.setattr(ner, "_extract_entities_phobert", _fake_phobert)
+        result = ner.extract_entities("Nguyễn Văn A sống ở Hà Nội")
+        assert all(isinstance(item, tuple) and len(item) == 2 for item in result)
+
+    def test_confidence_filtering(self, monkeypatch) -> None:
+        monkeypatch.setattr(ner.settings, "ner_confidence_threshold", 0.50)
+
+        mock_results = self._mock_pipeline_results()
+
+        class FakePipeline:
+            def __call__(self, text, **kwargs):
+                return mock_results
+
+        monkeypatch.setattr(ner, "_ner_pipeline", FakePipeline())
+        result = ner._extract_entities_phobert("Nguyễn Văn A sống ở Hà Nội, làm việc tại Vingroup")
+        names = [name for name, _ in result]
+        assert "Nguyễn Văn A" in names
+        assert "Hà Nội" in names
+        assert "noise" not in names
+
+    def test_fallback_on_pipeline_error(self, monkeypatch) -> None:
+        monkeypatch.setattr(ner, "_ner_pipeline", None)
+
+        def _raise_on_load():
+            raise RuntimeError("No model")
+
+        monkeypatch.setattr(ner, "_get_ner_pipeline", _raise_on_load)
+        result = ner._extract_entities_phobert("John Smith works at Google Corporation")
+        assert all(isinstance(item, tuple) and len(item) == 2 for item in result)
+        assert len(result) > 0
+
+    def test_batch_extraction(self, monkeypatch) -> None:
+        monkeypatch.setattr(ner.settings, "ner_backend", "phobert")
+        monkeypatch.setattr(ner.settings, "ner_confidence_threshold", 0.50)
+
+        batch_results = [
+            [{"word": "Hà Nội", "entity_group": "LOC", "score": 0.90}],
+            [{"word": "Vingroup", "entity_group": "ORG", "score": 0.85}],
+        ]
+
+        class FakePipeline:
+            def __call__(self, texts, **kwargs):
+                return batch_results
+
+        monkeypatch.setattr(ner, "_ner_pipeline", FakePipeline())
+        results = ner.extract_entities_batch(["text1", "text2"])
+        assert len(results) == 2
+        assert results[0][0][0] == "Hà Nội"
+        assert results[1][0][0] == "Vingroup"
+
+
+class TestNormalizeEntity:
+    def test_strips_punctuation(self) -> None:
+        assert ner.normalize_entity("  Hà Nội.  ") == "Hà Nội"
+
+    def test_collapses_whitespace(self) -> None:
+        assert ner.normalize_entity("Nguyễn   Văn   A") == "Nguyễn Văn A"
+
+    def test_nfkc_normalization(self) -> None:
+        composed = "Hà Nội"
+        result = ner.normalize_entity(composed)
+        assert result == result  # idempotent after NFKC
+
+
+class TestDisambiguateTypeByContext:
+    def test_location_context(self) -> None:
+        result = ner.disambiguate_type_by_context(
+            "Hồ Chí Minh", "tại thành phố Hồ Chí Minh có nhiều người", "Unknown"
+        )
+        assert result == "Location"
+
+    def test_person_context(self) -> None:
+        result = ner.disambiguate_type_by_context(
+            "Hồ Chí Minh", "Chủ tịch Hồ Chí Minh sinh năm 1890", "Unknown"
+        )
+        assert result == "Person"
+
+    def test_preserves_non_ambiguous_type(self) -> None:
+        result = ner.disambiguate_type_by_context(
+            "Vingroup", "Tập đoàn Vingroup là công ty lớn", "Organization"
+        )
+        assert result == "Organization"
+
+
 class TestUpsertPageFromText:
     def test_upsert_calls_neo4j_correctly(self, monkeypatch) -> None:
         queries_run: list[str] = []

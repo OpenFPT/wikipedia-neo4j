@@ -1,0 +1,107 @@
+{
+  "eval_method": "subagent_mcp",
+  "description": "Multi-hop QA evaluation using Claude subagent with MCP tools (kg_query, search_knowledge_base, explore_entity)",
+  "total_questions": 10,
+  "total_evaluated": 10,
+  "accuracy": 1.0,
+  "correct": 10,
+  "errors": 0,
+  "by_type": {
+    "aggregation": {"correct": 6, "total": 6, "accuracy": 1.0},
+    "comparison": {"correct": 2, "total": 2, "accuracy": 1.0},
+    "path": {"correct": 1, "total": 1, "accuracy": 1.0},
+    "listing": {"correct": 1, "total": 1, "accuracy": 1.0}
+  },
+  "details": [
+    {
+      "question": "Tổng cộng có bao nhiêu thực thể Person trong đồ thị tri thức?",
+      "type": "aggregation",
+      "gold_answers": ["5134"],
+      "predicted": "5134",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Ran MATCH (e:Person) RETURN count(e) — returned 5134 Person-labeled entities."
+    },
+    {
+      "question": "Trang nào có nhiều liên kết đi ra nhất?",
+      "type": "aggregation",
+      "gold_answers": ["Paris (25 liên kết)"],
+      "predicted": "Paris (25 liên kết đi ra)",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Counted outgoing LINKS_TO per Page, ordered descending. Paris tops with 25."
+    },
+    {
+      "question": "Có bao nhiêu trang liên kết đến trang Pháp?",
+      "type": "aggregation",
+      "gold_answers": ["31"],
+      "predicted": "31",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Counted incoming LINKS_TO edges to Page {title:'Pháp'} — 31 pages link to it."
+    },
+    {
+      "question": "Tổ chức nào được nhắc đến nhiều nhất trong toàn bộ đồ thị tri thức?",
+      "type": "aggregation",
+      "gold_answers": ["Quốc hội Hoa Kỳ (446)"],
+      "predicted": "Quốc hội Hoa Kỳ (446 lượt nhắc đến)",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Counted MENTIONS edges from Chunk to Organization entities. Quốc hội Hoa Kỳ leads with 446."
+    },
+    {
+      "question": "Trang nào đề cập nhiều người hơn: Donald Trump hay Albert Einstein?",
+      "type": "comparison",
+      "gold_answers": ["Donald Trump (186)"],
+      "predicted": "Donald Trump (186 người vs 129 người)",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Counted distinct Person entities mentioned via chunks of each page."
+    },
+    {
+      "question": "Có bao nhiêu cộng đồng trong đồ thị tri thức?",
+      "type": "aggregation",
+      "gold_answers": ["7"],
+      "predicted": "7",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "MATCH (c:Community) RETURN count(c) returned 7 community nodes."
+    },
+    {
+      "question": "Cộng đồng lớn nhất trong đồ thị có bao nhiêu thành viên?",
+      "type": "aggregation",
+      "gold_answers": ["467"],
+      "predicted": "467",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "community_00000 has 467 members via HAS_MEMBER relationships."
+    },
+    {
+      "question": "Những tổ chức nào được đề cập cùng với địa điểm Hồ Chí Minh trong cùng đoạn văn? (top 5)",
+      "type": "listing",
+      "gold_answers": ["Đoàn Thanh niên Cộng sản Hồ Chí Minh (125)", "Quốc hội Việt Nam (121)", "Đảng Cộng sản Việt Nam (121)"],
+      "predicted": "Đoàn Thanh niên Cộng sản Hồ Chí Minh (125), Quốc hội Việt Nam (121), Đảng Cộng sản Việt Nam (121), Tịnh độ cư sĩ Phật hội Việt Nam (114), Bộ trưởng Bộ Nội vụ Việt Nam (114)",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Found chunks that MENTION both Location 'Hồ Chí Minh' and Organization entities, counted co-occurrences."
+    },
+    {
+      "question": "Trang Paris và trang Chiến tranh Đông Dương có liên kết chung đến trang nào?",
+      "type": "path",
+      "gold_answers": ["Pháp", "Nhật Bản", "Bắc Phi", "Việt Nam", "Trung Quốc", "Bắc Kinh"],
+      "predicted": "Pháp, Nhật Bản, Bắc Phi, Việt Nam, Trung Quốc, Bắc Kinh",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Found 6 pages that both Paris and Chiến tranh Đông Dương link to via LINKS_TO."
+    },
+    {
+      "question": "Châu Âu và Châu Á, địa điểm nào được nhắc đến nhiều hơn trong đồ thị tri thức?",
+      "type": "comparison",
+      "gold_answers": ["Châu Âu (291)"],
+      "predicted": "Châu Âu (291 lần nhắc đến) nhiều hơn Châu Á (184 lần nhắc đến)",
+      "correct": true,
+      "tool_used": "kg_query",
+      "reasoning": "Counted MENTIONS relationships pointing to each Location entity."
+    }
+  ]
+}

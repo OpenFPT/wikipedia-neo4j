@@ -1,6 +1,23 @@
 # Changelog
 
-## v0.8.0 (current)
+## v0.9.0 (current)
+
+- Added WRRF hybrid retrieval combining BM25, vector, graph, and community signals (`src/retrieve.py`).
+- Added community-based retrieval module with Louvain summaries (`src/community.py`).
+- Added entity resolution for Vietnamese aliases and diacritic variants (`src/entity_resolution.py`).
+- Added LLM-based typed relation extraction with 6 relation types (`src/relation_extract.py`).
+- Added multi-trajectory agent execution with majority voting and question decomposition (`src/agent.py`).
+- Added 2 new agent tools: `entity_neighborhood` and `path_search`.
+- Added UIT-ViQuAD2.0 evaluation adapter achieving 72.6% hit rate (`src/viquad_adapter.py`).
+- Added `phobert`, `videberta`, and `wikilink` NER backends.
+- Added Gradio demo interface (`src/app_gradio.py`).
+- Switched default model to AITeamVN/Vi-Qwen2-7B-RAG.
+- Switched default embedding to GreenNode-Embedding-Large-VN-Mixed-V1 (1024-dim).
+- Added CI parallel jobs, caching, and coverage gate.
+- Fixed agent architecture (proper tool separation, prompt templates).
+- Improved NER entity classification and export data quality.
+
+## v0.8.0
 
 - Added cross-encoder reranking module (`src/reranker.py`) using BAAI/bge-reranker-v2-m3.
 - Added evaluation pipeline (`src/evaluation.py`) with context hit rate, MRR, and latency metrics.

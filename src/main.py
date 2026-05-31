@@ -12,18 +12,24 @@ from contextvars import Token
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse as _StarletteJSONResponse
 
 from src.config import settings, validate_runtime_settings
-from src.ingest import IngestResult, ingest_from_hf, ingest_topic
-from src.job_store import JobStore
+from src.dashboard.query_log import QueryLogEntry, query_log
+from src.dashboard.graph_viz import router as graph_viz_router
+from src.dashboard.routes import router as dashboard_router
+from src.ingestion.pipeline import IngestResult, ingest_from_hf, ingest_topic
+from src.infrastructure.job_store import JobStore
 from src.logging_utils import (
     configure_logging,
     get_logger,
     reset_request_id,
     set_request_id,
 )
-from src.neo4j_client import neo4j_client
-from src.retrieve import query_graph
+from src.mcp_pkg.server import mcp as _mcp_instance
+from src.infrastructure.neo4j_client import neo4j_client
+from src.retrieval.hybrid import hybrid_retrieve, query_graph
 
 
 configure_logging(settings.log_level, json_logs=settings.json_logs)
@@ -50,6 +56,10 @@ class _RateLimiter:
             if len(bucket) >= self.max_requests:
                 return False, 0
             bucket.append(now)
+            if len(self._hits) > 100 and int(now) % 10 == 0:
+                stale = [k for k, v in self._hits.items() if not v]
+                for k in stale:
+                    del self._hits[k]
             return True, self.max_requests - len(bucket)
 
 
@@ -73,6 +83,31 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=lifespan)
+
+# --- Dashboard Router ---
+app.include_router(dashboard_router)
+app.include_router(graph_viz_router)
+
+# --- MCP Server Mount ---
+_mcp_app = _mcp_instance.http_app(path="/", transport="streamable-http")
+app.mount("/mcp", _mcp_app)
+
+
+# --- MCP Auth Middleware ---
+
+
+class _MCPAuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path.startswith("/mcp") and settings.app_api_key:
+            auth = request.headers.get("authorization", "")
+            if not auth.startswith("Bearer ") or auth[7:].strip() != settings.app_api_key:
+                return _StarletteJSONResponse(
+                    {"error": "Unauthorized"}, status_code=401
+                )
+        return await call_next(request)
+
+
+app.add_middleware(_MCPAuthMiddleware)
 
 
 @app.exception_handler(Exception)
@@ -157,6 +192,8 @@ def _persist_job(job: _JobState) -> None:
 def _restore_jobs() -> None:
     """Restore persisted jobs and normalize stale in-progress states."""
     persisted = _job_store.load_all()
+    now = datetime.now(timezone.utc)
+    pruned = 0
     for job_id, payload in persisted.items():
         try:
             job = _JobState(**payload)
@@ -168,9 +205,19 @@ def _restore_jobs() -> None:
             if not job.error:
                 job.error = "Server restarted while job was in progress"
             if not job.finished_at:
-                job.finished_at = datetime.now(timezone.utc).isoformat()
+                job.finished_at = now.isoformat()
+        if job.finished_at and job.status in {"completed", "failed", "interrupted", "cancelled"}:
+            try:
+                finished = datetime.fromisoformat(job.finished_at)
+                if (now - finished).total_seconds() > 86400:
+                    pruned += 1
+                    continue
+            except (ValueError, TypeError):
+                pass
         _jobs[job_id] = job
         _persist_job(job)
+    if pruned:
+        logger.info("Pruned old completed jobs on startup", extra={"pruned": pruned})
 
 
 _restore_jobs()
@@ -297,10 +344,54 @@ def query(req: QueryRequest, request: Request) -> dict:
         logger.info("Query completed", extra={"duration_ms": elapsed_ms})
         reset_request_id(token)
 
+    query_log.append(QueryLogEntry(
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        question=req.question,
+        retrieval_tier="cypher",
+        latency_ms=elapsed_ms,
+        result_count=len(result.citations),
+        signal_scores={},
+    ))
+
     return {
         "answer": result.answer,
         "citations": result.citations,
     }
+
+
+@app.post("/query/hybrid", dependencies=[Depends(_guard)])
+def query_hybrid(req: QueryRequest, request: Request) -> dict:
+    """Hybrid retrieval combining BM25, vector, and graph channels via wRRF."""
+    _request_id_value, token = _with_request_context(request)
+    started = time.perf_counter()
+    try:
+        results = hybrid_retrieve(req.question, req.top_k)
+    except RuntimeError as exc:
+        logger.exception("Hybrid query failed")
+        raise HTTPException(status_code=500, detail=f"Query failed: {exc}") from exc
+    finally:
+        elapsed_ms = int((time.perf_counter() - started) * 1000)
+        logger.info("Hybrid query completed", extra={"duration_ms": elapsed_ms})
+        reset_request_id(token)
+
+    # Log query with signal contribution estimates
+    signal_scores: dict[str, int] = {}
+    for r in results:
+        if isinstance(r, dict):
+            for key in ("bm25", "vector", "graph", "community"):
+                if r.get(f"{key}_score") or r.get(f"{key}_rank"):
+                    signal_scores[key] = signal_scores.get(key, 0) + 1
+
+    query_log.append(QueryLogEntry(
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        question=req.question,
+        retrieval_tier="hybrid",
+        latency_ms=elapsed_ms,
+        result_count=len(results),
+        signal_scores=signal_scores,
+    ))
+
+    return {"results": results}
 
 
 @app.post("/ingest/hf", dependencies=[Depends(_guard)])

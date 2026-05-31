@@ -15,6 +15,9 @@ Entity extraction (`src/ner.py`):
 - `NER_BACKEND=simple` uses a regex heuristic (title-cased words) + keyword-based type classification.
 - `NER_BACKEND=underthesea` uses Underthesea NER (offline) with BIO tag accumulation.
 - `NER_BACKEND=phonlp` uses PhoNLP + VnCoreNLP word segmentation (offline) with BIO tag accumulation.
+- `NER_BACKEND=phobert` uses PhoBERT transformer NER pipeline.
+- `NER_BACKEND=videberta` uses ViDeBERTa (NlpHUST/ner-vietnamese-electra-base).
+- `NER_BACKEND=wikilink` uses Wikipedia hyperlinks for entity extraction (best for bulk ingestion, Typed F1=46.9%).
 
 All backends return `(name, type)` tuples. Type classification maps NER tags (`PER`, `ORG`, `LOC`, `MISC`) to graph labels, with keyword fallback for the simple backend.
 
@@ -32,9 +35,9 @@ Relationships:
 
 - `src/main.py`: FastAPI app, auth/rate-limit guard, job APIs, health/readiness/metrics
 - `src/ingest.py`: Wikipedia API, Hugging Face, and local dataset ingestion pipelines
-- `src/ner.py`: Pluggable NER backends (simple/underthesea/phonlp) and entity type classification
-- `src/retrieve.py`: Retrieval and answer assembly
-- `src/agent.py`: ReAct agent loop with graph tools for multi-hop QA
+- `src/ner.py`: Pluggable NER backends (simple/underthesea/phonlp/phobert/videberta/wikilink) and entity type classification
+- `src/retrieve.py`: WRRF hybrid retrieval (BM25 + vector + graph + community fusion), reranking, legacy Cypher generation fallback
+- `src/agent.py`: ReAct agent with 6 tools, complexity detection, question decomposition, multi-trajectory voting
 - `src/llm.py`: Gemini client pool, embedding generation, Cypher generation/validation
 - `src/local_llm.py`: Local SLM wrapper (Qwen2.5-7B-Instruct, 4-bit NF4 quantization)
 - `src/dataset_gen.py`: KG walk extraction, question template engine, LLM rewrite, and QC pipeline
@@ -42,8 +45,15 @@ Relationships:
 - `src/job_store.py`: Persistent JSON store for async HF jobs
 - `src/config.py`: Pydantic Settings from `.env`, Gemini key loading, runtime validation
 - `src/logging_utils.py`: Structured logging with request-ID context
-- `src/reranker.py`: Cross-encoder reranking (BAAI/bge-reranker-v2-m3) for retrieval results
-- `src/evaluation.py`: Evaluation pipeline — context hit rate, MRR, latency on ViWiki-MHR dataset
+- `src/reranker.py`: Cross-encoder reranking (BAAI/bge-reranker-v2-m3), used in WRRF fusion pipeline
+- `src/evaluation.py`: Evaluation pipeline — context hit rate, MRR, latency on ViWiki-MHR dataset; ViQuAD2.0 support (72.6% hit rate)
+- `src/agent_tools.py`: Agent tool definitions (kg_schema, kg_query, text_search, get_passage, entity_neighborhood, path_search)
+- `src/prompts.py`: Prompt templates for agent, Cypher generation, and rewriting
+- `src/community.py`: Community-based retrieval — Louvain membership lookup, pre-generated summaries, chunk retrieval
+- `src/entity_resolution.py`: Vietnamese entity resolution — diacritic normalization, alias merging, canonical form lookup
+- `src/relation_extract.py`: LLM-based typed relation extraction (6 types: FOUNDED_BY, LOCATED_IN, BORN_IN, MEMBER_OF, PART_OF, CREATED_BY)
+- `src/viquad_adapter.py`: UIT-ViQuAD2.0 HuggingFace adapter for evaluation benchmarking
+- `src/app_gradio.py`: Gradio demo interface for interactive QA
 - `scripts/viwiki_processing/`: raw MediaWiki XML streaming, wikitext cleanup, and cleaned/raw Parquet export for `Keithsel/viwiki-20260523`
 
 ## Query behavior
@@ -52,18 +62,33 @@ Two query modes controlled by `MODEL_MODE`:
 
 ### API mode (`MODEL_MODE=api`, default)
 
-1. Attempt Gemini-generated read-only Cypher.
-2. Validate safety (write-keyword blocklist) and output aliases.
+1. Primary path: WRRF hybrid retrieval (BM25 + vector + graph + community fusion) with cross-encoder reranking.
+2. Legacy fallback: Gemini-generated read-only Cypher, validated for safety (write-keyword blocklist) and output aliases.
 3. Execute against Neo4j.
 4. On invalid generation/runtime shape failure, fallback to hybrid fulltext retrieval.
 
 ### Local agent mode (`MODEL_MODE=local`)
 
-1. ReAct agent loop (`src/agent.py`) with up to 6 iterations.
-2. Agent has 4 tools: `kg_schema`, `kg_query`, `text_search`, `get_passage`.
-3. Agent reasons step-by-step, calling tools and collecting observations.
-4. On convergence, returns final answer with citations.
-5. On timeout, synthesizes answer from collected observations.
+1. Complexity detection classifies the incoming question; complex queries trigger question decomposition into sub-questions.
+2. ReAct agent loop (`src/agent.py`) with up to 6 iterations.
+3. Agent has 6 tools: `kg_schema`, `kg_query`, `text_search`, `get_passage`, `entity_neighborhood`, `path_search`.
+4. Agent reasons step-by-step, calling tools and collecting observations.
+5. For complex queries, multi-trajectory execution runs parallel reasoning paths with majority voting for the final answer.
+6. On convergence, returns final answer with citations.
+7. On timeout, synthesizes answer from collected observations.
+
+## Hybrid retrieval (WRRF)
+
+WRRF (Weighted Reciprocal Rank Fusion) is the primary retrieval strategy in API mode. It combines 4 signals:
+
+1. **BM25 fulltext**: Neo4j fulltext index search over chunk text.
+2. **Vector similarity**: Cosine similarity on chunk embeddings.
+3. **Graph traversal**: Multi-hop entity-linked chunk discovery via graph relationships.
+4. **Community-based retrieval**: Louvain community membership lookup with pre-generated summaries.
+
+Configurable weights via environment variables: `WRRF_WEIGHT_BM25`, `WRRF_WEIGHT_VECTOR`, `WRRF_WEIGHT_GRAPH`, `WRRF_WEIGHT_COMMUNITY`.
+
+After fusion, cross-encoder reranking (`src/reranker.py`, BAAI/bge-reranker-v2-m3) is applied to the merged candidate set before returning final results.
 
 ## Local model
 

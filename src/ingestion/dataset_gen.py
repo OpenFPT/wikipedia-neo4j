@@ -352,7 +352,7 @@ def rewrite_questions_with_llm(
                     qa.question = rewritten_q
                     rewritten += 1
             except Exception as e:
-                logger.debug("Rewrite failed, keeping original", extra={"error": str(e)})
+                logger.warning("Rewrite failed, keeping original", extra={"error": str(e)})
 
     logger.info("LLM rewrite complete", extra={"rewritten": rewritten, "total": len(qa_pairs)})
     return qa_pairs
@@ -447,12 +447,15 @@ def run_qc_pipeline(qa_pairs: list[QAPair]) -> list[QAPair]:
     for qa in qa_pairs:
         if not _check_well_formed(qa):
             rejected["well_formed"] += 1
+            logger.debug("QC rejected (well_formed)", extra={"question": qa.question[:80]})
             continue
         if not _check_grounding(qa, chunks):
             rejected["grounding"] += 1
+            logger.debug("QC rejected (grounding)", extra={"question": qa.question[:80]})
             continue
         if not _check_no_duplicate(qa, seen_questions):
             rejected["duplicate"] += 1
+            logger.debug("QC rejected (duplicate)", extra={"question": qa.question[:80]})
             continue
         passed.append(qa)
 

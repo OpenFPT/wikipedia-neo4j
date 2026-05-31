@@ -1,6 +1,7 @@
-"""Build community structure from entity co-occurrence graph using Louvain detection.
+"""Build community structure from entity co-occurrence graph using Leiden detection.
 
-Generates LLM summaries per community, embeds them, and stores Community nodes in Neo4j.
+Exports entity co-occurrence from Neo4j, runs Leiden clustering via igraph/leidenalg,
+writes community_id back to Entity nodes, generates summaries, and saves to JSONL.
 """
 
 from __future__ import annotations
@@ -12,10 +13,10 @@ import sys
 import time
 from pathlib import Path
 
-import networkx as nx
-from networkx.algorithms.community import louvain_communities
-
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import igraph as ig
+import leidenalg
 
 from src.config import settings
 from src.llm import embed_texts
@@ -61,52 +62,103 @@ def _save_checkpoint(checkpoint_path: Path, processed_ids: set[str]) -> None:
     tmp.rename(checkpoint_path)
 
 
-def build_entity_graph() -> nx.Graph:
-    """Build co-occurrence graph: entities connected if they appear in the same chunk."""
+def build_entity_graph(limit: int | None = None) -> tuple[ig.Graph, list[str]]:
+    """Build co-occurrence graph: entities connected if they appear in the same chunk.
+
+    Returns an igraph Graph and a list mapping vertex indices to entity IDs.
+    """
     logger.info("Building entity co-occurrence graph from Neo4j...")
-    G = nx.Graph()
+
+    edges: list[tuple[str, str]] = []
+    weights: list[int] = []
+
+    query = """
+        MATCH (e1:Entity)<-[:MENTIONS]-(c:Chunk)-[:MENTIONS]->(e2:Entity)
+        WHERE elementId(e1) < elementId(e2)
+        RETURN e1.id AS source, e2.id AS target, count(c) AS weight
+    """
+    if limit:
+        query += f"\nLIMIT {limit * 50}"
 
     with neo4j_client.session() as session:
-        records = session.run(
-            """
-            MATCH (e1:Entity)<-[:MENTIONS]-(c:Chunk)-[:MENTIONS]->(e2:Entity)
-            WHERE elementId(e1) < elementId(e2)
-            RETURN e1.id AS source, e2.id AS target, count(c) AS weight
-            """
-        )
+        records = session.run(query)
         for r in records:
-            G.add_edge(r["source"], r["target"], weight=r["weight"])
+            edges.append((r["source"], r["target"]))
+            weights.append(r["weight"])
 
-    logger.info(f"Entity graph built: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
-    return G
+    if not edges:
+        logger.warning("No co-occurrence edges found")
+        return ig.Graph(), []
+
+    # Build vertex set preserving order
+    vertex_set: dict[str, int] = {}
+    for src, tgt in edges:
+        if src not in vertex_set:
+            vertex_set[src] = len(vertex_set)
+        if tgt not in vertex_set:
+            vertex_set[tgt] = len(vertex_set)
+
+    vertex_ids = [""] * len(vertex_set)
+    for entity_id, idx in vertex_set.items():
+        vertex_ids[idx] = entity_id
+
+    # Build igraph
+    edge_indices = [(vertex_set[s], vertex_set[t]) for s, t in edges]
+    G = ig.Graph(n=len(vertex_set), edges=edge_indices, directed=False)
+    G.es["weight"] = weights
+    G.vs["entity_id"] = vertex_ids
+
+    logger.info(
+        f"Entity graph built: {G.vcount()} nodes, {G.ecount()} edges"
+    )
+    return G, vertex_ids
 
 
 def detect_communities(
-    G: nx.Graph, resolution: float = 1.0, min_size: int = 3
-) -> list[set[str]]:
-    """Run Louvain community detection and filter by minimum size."""
-    if G.number_of_nodes() == 0:
+    G: ig.Graph, resolution: float = 1.0, min_size: int = 3
+) -> list[list[int]]:
+    """Run Leiden community detection and filter by minimum size.
+
+    Returns list of communities, each a list of vertex indices.
+    """
+    if G.vcount() == 0:
         logger.warning("Empty graph, no communities to detect")
         return []
 
-    logger.info(f"Running Louvain community detection (resolution={resolution})...")
-    communities = louvain_communities(G, weight="weight", resolution=resolution, seed=42)
+    logger.info(f"Running Leiden community detection (resolution={resolution})...")
 
-    filtered = [c for c in communities if len(c) >= min_size]
+    partition = leidenalg.find_partition(
+        G,
+        leidenalg.RBConfigurationVertexPartition,
+        weights="weight",
+        resolution_parameter=resolution,
+        seed=42,
+        n_iterations=-1,
+    )
+
+    # Group vertex indices by community
+    community_map: dict[int, list[int]] = {}
+    for vertex_idx, comm_id in enumerate(partition.membership):
+        community_map.setdefault(comm_id, []).append(vertex_idx)
+
+    # Filter by min size and sort by size descending
+    filtered = [members for members in community_map.values() if len(members) >= min_size]
     filtered.sort(key=len, reverse=True)
 
     logger.info(
-        f"Detected {len(communities)} communities, {len(filtered)} with >= {min_size} members"
+        f"Detected {len(community_map)} communities, "
+        f"{len(filtered)} with >= {min_size} members"
     )
     return filtered
 
 
-def _get_community_context(entity_ids: set[str], max_entities: int = 20, max_passages: int = 5) -> tuple[list[str], list[str]]:
+def _get_community_context(
+    entity_ids: list[str], max_entities: int = 20, max_passages: int = 5
+) -> tuple[list[str], list[str]]:
     """Fetch entity names and sample passages for a community."""
-    id_list = sorted(entity_ids)[:max_entities * 2]
+    id_list = entity_ids[: max_entities * 2]
 
     with neo4j_client.session() as session:
-        # Get entity names
         entity_records = session.run(
             """
             MATCH (e:Entity)
@@ -120,7 +172,6 @@ def _get_community_context(entity_ids: set[str], max_entities: int = 20, max_pas
         )
         entities = [f"{r['name']} ({r['type'] or 'Entity'})" for r in entity_records]
 
-        # Get sample passages from chunks mentioning these entities
         passage_records = session.run(
             """
             MATCH (c:Chunk)-[:MENTIONS]->(e:Entity)
@@ -197,17 +248,56 @@ def generate_summary(entities: list[str], passages: list[str]) -> str:
     return _generate_summary_gemini(entities, passages)
 
 
+def write_community_ids_to_entities(
+    communities: list[list[int]], vertex_ids: list[str], dry_run: bool = False
+) -> int:
+    """Write community_id property back to Entity nodes in Neo4j.
+
+    Returns total entities updated.
+    """
+    total = 0
+    batch_size = 500
+
+    for comm_idx, members in enumerate(communities):
+        entity_ids = [vertex_ids[v] for v in members]
+
+        if dry_run:
+            total += len(entity_ids)
+            continue
+
+        for i in range(0, len(entity_ids), batch_size):
+            batch = entity_ids[i : i + batch_size]
+            with neo4j_client.session() as session:
+                session.run(
+                    """
+                    UNWIND $ids AS eid
+                    MATCH (e:Entity {id: eid})
+                    SET e.community_id = $community_id
+                    """,
+                    ids=batch,
+                    community_id=comm_idx,
+                )
+            total += len(batch)
+
+    logger.info(f"Updated community_id on {total} entity nodes (dry_run={dry_run})")
+    return total
+
+
 def store_communities(
     communities: list[dict],
     batch_size: int = 100,
+    dry_run: bool = False,
 ) -> int:
     """Write Community nodes and HAS_MEMBER relationships to Neo4j."""
+    if dry_run:
+        logger.info(f"[DRY RUN] Would store {len(communities)} Community nodes")
+        return len(communities)
+
     total = 0
 
     for i in range(0, len(communities), batch_size):
         batch = communities[i : i + batch_size]
 
-        # Create/update Community nodes
         with neo4j_client.session() as session:
             session.run(
                 """
@@ -230,7 +320,6 @@ def store_communities(
                 ],
             )
 
-        # Create HAS_MEMBER relationships
         for c in batch:
             with neo4j_client.session() as session:
                 session.run(
@@ -249,34 +338,57 @@ def store_communities(
     return total
 
 
+def save_summaries_jsonl(communities: list[dict], output_path: Path) -> None:
+    """Save community summaries to JSONL file."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        for c in communities:
+            record = {
+                "community_id": c["id"],
+                "level": c["level"],
+                "summary": c["summary"],
+                "member_count": c["member_count"],
+                "top_entities": c.get("top_entities", []),
+                "entity_ids": c["entity_ids"],
+            }
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    logger.info(f"Saved {len(communities)} community summaries to {output_path}")
+
+
 def run(
     limit: int | None = None,
     min_size: int = 3,
     batch_size: int = 10,
     resolution: float = 1.0,
+    dry_run: bool = False,
 ) -> None:
     """Main pipeline: detect communities, summarize, embed, store."""
     checkpoint_path = Path("data/export/communities.checkpoint.json")
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-    processed_ids = _load_checkpoint(checkpoint_path)
+    summaries_path = Path("data/communities/summaries.jsonl")
+    summaries_path.parent.mkdir(parents=True, exist_ok=True)
 
+    processed_ids = _load_checkpoint(checkpoint_path)
     if processed_ids:
         logger.info(f"Resuming: {len(processed_ids)} communities already processed")
 
-    # Step 1: Build graph and detect communities
-    G = build_entity_graph()
-    communities_sets = detect_communities(G, resolution=resolution, min_size=min_size)
+    # Step 1: Build graph and detect communities with Leiden
+    G, vertex_ids = build_entity_graph(limit=limit)
+    communities_indices = detect_communities(G, resolution=resolution, min_size=min_size)
 
     if limit:
-        communities_sets = communities_sets[:limit]
+        communities_indices = communities_indices[:limit]
 
-    logger.info(f"Processing {len(communities_sets)} communities...")
+    logger.info(f"Processing {len(communities_indices)} communities...")
 
-    # Step 2: Generate summaries and embeddings
+    # Step 2: Write community_id back to Entity nodes
+    write_community_ids_to_entities(communities_indices, vertex_ids, dry_run=dry_run)
+
+    # Step 3: Generate summaries and embeddings
     results: list[dict] = []
     processed_count = 0
 
-    for idx, entity_ids in enumerate(communities_sets):
+    for idx, member_indices in enumerate(communities_indices):
         if _STOP:
             logger.info("Stopping due to SIGINT")
             break
@@ -285,6 +397,8 @@ def run(
 
         if community_id in processed_ids:
             continue
+
+        entity_ids = [vertex_ids[v] for v in member_indices]
 
         # Get context for this community
         entities, passages = _get_community_context(entity_ids)
@@ -295,18 +409,22 @@ def run(
             continue
 
         # Generate summary
-        try:
-            summary = generate_summary(entities, passages)
-        except Exception as exc:
-            logger.warning(f"Summary generation failed for {community_id}: {exc}")
+        if dry_run:
             summary = ", ".join(entities[:10])
+        else:
+            try:
+                summary = generate_summary(entities, passages)
+            except Exception as exc:
+                logger.warning(f"Summary generation failed for {community_id}: {exc}")
+                summary = ", ".join(entities[:10])
 
         # Generate embedding
-        try:
-            embedding = embed_texts([summary])[0]
-        except Exception as exc:
-            logger.warning(f"Embedding failed for {community_id}: {exc}")
-            embedding = None
+        embedding: list[float] | None = None
+        if not dry_run:
+            try:
+                embedding = embed_texts([summary])[0]
+            except Exception as exc:
+                logger.warning(f"Embedding failed for {community_id}: {exc}")
 
         results.append(
             {
@@ -315,7 +433,8 @@ def run(
                 "summary": summary,
                 "embedding": embedding,
                 "member_count": len(entity_ids),
-                "entity_ids": sorted(entity_ids),
+                "entity_ids": entity_ids,
+                "top_entities": entities[:10],
             }
         )
 
@@ -324,45 +443,61 @@ def run(
 
         # Batch store and checkpoint
         if len(results) >= batch_size:
-            stored = store_communities(results)
+            stored = store_communities(results, dry_run=dry_run)
             logger.info(f"Stored {stored} communities (total processed: {processed_count})")
-            _save_checkpoint(checkpoint_path, processed_ids)
+            if not dry_run:
+                _save_checkpoint(checkpoint_path, processed_ids)
             results = []
 
         # Rate limit for API calls
-        if settings.model_mode != "local" and settings.embedding_backend != "local":
+        if not dry_run and settings.model_mode != "local" and settings.embedding_backend != "local":
             time.sleep(0.5)
 
     # Store remaining
     if results:
-        stored = store_communities(results)
+        stored = store_communities(results, dry_run=dry_run)
         logger.info(f"Stored {stored} remaining communities")
-        _save_checkpoint(checkpoint_path, processed_ids)
+        if not dry_run:
+            _save_checkpoint(checkpoint_path, processed_ids)
 
-    logger.info(f"Community detection complete. Processed {processed_count} new communities.")
+    # Save summaries to JSONL for the community retrieval module
+    if results or processed_count > 0:
+        save_summaries_jsonl(
+            [r for r in results if r.get("summary")],
+            summaries_path,
+        )
+
+    logger.info(
+        f"Community detection complete. Processed {processed_count} new communities. "
+        f"(dry_run={dry_run})"
+    )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Build community structure from entity co-occurrence graph"
+        description="Build community structure from entity co-occurrence graph using Leiden"
     )
     parser.add_argument("--limit", type=int, default=None, help="Max communities to process")
     parser.add_argument("--min-size", type=int, default=3, help="Min entities per community")
     parser.add_argument("--batch-size", type=int, default=10, help="Batch size for Neo4j writes")
     parser.add_argument(
-        "--resolution", type=float, default=1.0, help="Louvain resolution parameter"
+        "--resolution", type=float, default=1.0, help="Leiden resolution parameter"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Preview without writing to Neo4j or calling LLM"
     )
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, _handle_sigint)
 
     logger.info(
-        "Starting community detection",
+        "Starting Leiden community detection",
         extra={
             "limit": args.limit,
             "min_size": args.min_size,
             "batch_size": args.batch_size,
             "resolution": args.resolution,
+            "dry_run": args.dry_run,
         },
     )
 
@@ -371,6 +506,7 @@ def main() -> None:
         min_size=args.min_size,
         batch_size=args.batch_size,
         resolution=args.resolution,
+        dry_run=args.dry_run,
     )
 
 

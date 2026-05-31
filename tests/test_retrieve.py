@@ -47,7 +47,8 @@ def test_query_graph_uses_generated_query_when_valid(monkeypatch) -> None:
             "chunk_id": "c1",
         }
     ]
-    assert result.answer.startswith("Deterministic demo answer")
+    assert result.answer.startswith("Dựa trên thông tin tìm được:")
+    assert result.retrieval_tier == "generated"
 
 
 def test_query_graph_falls_back_when_generated_query_invalid(monkeypatch) -> None:

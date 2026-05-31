@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     neo4j_password: str = "please-change-me"
     qdrant_url: str = "http://localhost:6333"
     ner_backend: str = "simple"
+    ner_model_id: str = "NlpHUST/ner-vietnamese-electra-base"
+    ner_confidence_threshold: float = 0.50
     openai_api_key: str | None = None
 
     gemini_key_file: str = ".gemini_key.txt"
@@ -26,6 +28,8 @@ class Settings(BaseSettings):
     embedding_backend: str = "local"
     local_embedding_model: str = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
     embedding_dim: int = 1024
+
+    videberta_model_id: str = "NlpHUST/ner-vietnamese-electra-base"
 
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
@@ -49,15 +53,10 @@ class Settings(BaseSettings):
 
     neo4j_use_search_clause: bool = False
 
-    lora_adapter_path: str | None = None
+    agent_n_trajectories: int = 1
+    agent_temperature_scaled: float = 0.7
 
-    min_text_length: int = 200
-    ingest_batch_size: int = 100
-    embed_batch_size: int = 50
-    neo4j_page_batch: int = 5000
-    neo4j_chunk_batch: int = 2000
-    neo4j_entity_batch: int = 1000
-    log_dir: str = "logs"
+    lora_adapter_path: str | None = None
 
     @field_validator("rate_limit_per_minute")
     @classmethod
@@ -79,8 +78,10 @@ class Settings(BaseSettings):
     @classmethod
     def validate_ner_backend(cls, value: str) -> str:
         backend = (value or "").strip().lower()
-        if backend not in {"simple", "underthesea", "phonlp"}:
-            raise ValueError("ner_backend must be 'simple', 'underthesea', or 'phonlp'")
+        if backend not in {"simple", "underthesea", "phonlp", "phobert", "videberta", "wikilink"}:
+            raise ValueError(
+                "ner_backend must be 'simple', 'underthesea', 'phonlp', 'phobert', 'videberta', or 'wikilink'"
+            )
         return backend
 
     @field_validator("model_mode")

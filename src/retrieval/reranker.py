@@ -13,11 +13,15 @@ _reranker: CrossEncoder | None = None
 _RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
 
 
-def _get_reranker() -> CrossEncoder:
+def _get_reranker() -> CrossEncoder | None:
     global _reranker
     if _reranker is None:
-        logger.info("Loading cross-encoder reranker", extra={"model": _RERANKER_MODEL})
-        _reranker = CrossEncoder(_RERANKER_MODEL, max_length=512)
+        try:
+            logger.info("Loading cross-encoder reranker", extra={"model": _RERANKER_MODEL})
+            _reranker = CrossEncoder(_RERANKER_MODEL, max_length=512, device="cuda")
+        except Exception as e:
+            logger.error("Failed to load reranker model", extra={"error": str(e)})
+            return None
     return _reranker
 
 
@@ -49,6 +53,10 @@ def rerank(
         min_score = settings.rerank_min_score
 
     model = _get_reranker()
+    if model is None:
+        logger.warning("Reranker unavailable, returning documents unranked")
+        return documents[:top_k]
+
     pairs: list[tuple[str, str]] = [(query, (doc.get(text_key) or "")[:512]) for doc in documents]
     scores = model.predict(pairs)  # type: ignore[arg-type]
 
@@ -59,6 +67,10 @@ def rerank(
     filtered = [d for d in ranked if d["rerank_score"] >= min_score]
 
     if not filtered and ranked:
+        logger.warning(
+            "All results below rerank threshold, returning top-1 as fallback",
+            extra={"min_score": min_score, "top_score": ranked[0]["rerank_score"]},
+        )
         filtered = ranked[:1]
 
     logger.info(

@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from src.config import settings
-from src.llm import assert_readonly_cypher, embed_texts, generate_readonly_cypher, _client_pool
+from src.infrastructure.llm import assert_readonly_cypher, embed_texts, generate_readonly_cypher, _client_pool
 from src.logging_utils import get_logger
 from neo4j.exceptions import CypherSyntaxError
-from src.neo4j_client import neo4j_client
+from src.infrastructure.neo4j_client import neo4j_client
 
 
 logger = get_logger(__name__)
@@ -650,7 +650,7 @@ def _run_generated_query(question: str, top_k: int) -> list[dict]:
 def query_graph(question: str, top_k: int = 4) -> QueryResult:
     """Query graph and synthesize a deterministic answer with citations."""
     if settings.model_mode == "local":
-        from src.agent import agent_query
+        from src.orchestration.agent import agent_query
 
         return agent_query(question, top_k)
 
@@ -669,7 +669,7 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
             retrieval_tier=retrieval_tier,
         )
 
-    from src.reranker import rerank
+    from src.retrieval.reranker import rerank
 
     reranked = rerank(question, rows, text_key="chunk_text", top_k=top_k)
 

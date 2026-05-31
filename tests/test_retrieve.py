@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-import src.retrieve as retrieve
+import src.retrieval.hybrid as retrieve
 
 
 class _FakeSession:

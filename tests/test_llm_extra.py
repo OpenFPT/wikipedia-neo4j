@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-import src.llm as llm
+import src.infrastructure.llm as llm
 
 
 def test_strip_code_fence() -> None:

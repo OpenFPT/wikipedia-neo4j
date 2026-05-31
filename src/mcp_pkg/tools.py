@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 
 from src.logging_utils import get_logger
-from src.neo4j_client import neo4j_client
-from src.retrieve import hybrid_retrieve
+from src.infrastructure.neo4j_client import neo4j_client
+from src.retrieval.hybrid import hybrid_retrieve
 
 logger = get_logger(__name__)
 
@@ -192,7 +192,7 @@ def register_tools(mcp) -> None:  # noqa: ANN001
         """
         logger.info("MCP tool: answer_question", extra={"question": question})
         try:
-            from src.agent import run_agent_scaled
+            from src.orchestration.agent import run_agent_scaled
 
             result = run_agent_scaled(question)
             return {

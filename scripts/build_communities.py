@@ -19,9 +19,9 @@ import igraph as ig
 import leidenalg
 
 from src.config import settings
-from src.llm import embed_texts
+from src.infrastructure.llm import embed_texts
 from src.logging_utils import configure_logging, get_logger
-from src.neo4j_client import neo4j_client
+from src.infrastructure.neo4j_client import neo4j_client
 
 configure_logging(
     settings.log_level, settings.json_logs, log_dir=settings.log_dir, task_name="communities"
@@ -227,7 +227,7 @@ def _generate_summary_gemini(entities: list[str], passages: list[str]) -> str:
 
 def _generate_summary_local(entities: list[str], passages: list[str]) -> str:
     """Generate community summary using local model."""
-    from src.local_llm import chat
+    from src.infrastructure.local_llm import chat
 
     prompt = COMMUNITY_SUMMARY_PROMPT.format(
         entities="\n".join(f"- {e}" for e in entities),

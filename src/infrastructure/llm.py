@@ -141,7 +141,7 @@ def _build_cypher_user_prompt(question: str) -> str:
 
 def _generate_cypher_local(question: str) -> str:
     """Generate Cypher using the local SLM."""
-    from src.local_llm import chat
+    from src.infrastructure.local_llm import chat
 
     messages = [
         {"role": "system", "content": _CYPHER_SYSTEM_PROMPT},

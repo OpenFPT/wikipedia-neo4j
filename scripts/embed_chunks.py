@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.config import settings
-from src.llm import embed_texts_batch
+from src.infrastructure.llm import embed_texts_batch
 from src.logging_utils import configure_logging, get_logger
 
 configure_logging(settings.log_level, settings.json_logs, log_dir=settings.log_dir, task_name="embed")

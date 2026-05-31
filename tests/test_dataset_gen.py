@@ -6,7 +6,7 @@ import json
 import tempfile
 from contextlib import contextmanager
 
-import src.dataset_gen as dg
+import src.ingestion.dataset_gen as dg
 
 
 class _FakeRecords:
@@ -256,3 +256,227 @@ class TestRunQCPipeline:
         result = dg.run_qc_pipeline([good, bad_short])
         assert len(result) == 1
         assert result[0].qa_id == "q1"
+
+
+class TestRewriteQuestionsWithLLM:
+    def test_rewrites_questions(self, monkeypatch) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Vint Cerf", walk_id="w1", hops=2,
+            question_type="2hop_person", evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+
+        def _fake_chat(messages, max_new_tokens=128, temperature=0.3):
+            return "Người sáng lập Internet là ai?"
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
+
+        result = dg.rewrite_questions_with_llm([qa], batch_size=1)
+        assert result[0].question == "Người sáng lập Internet là ai?"
+
+    def test_skips_unanswerable(self, monkeypatch) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập XYZ?",
+            answer="Không có thông tin", walk_id="w1", hops=2,
+            question_type="unanswerable", evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+
+        call_count = [0]
+
+        def _fake_chat(messages, max_new_tokens=128, temperature=0.3):
+            call_count[0] += 1
+            return "rewritten"
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
+
+        result = dg.rewrite_questions_with_llm([qa], batch_size=1)
+        assert call_count[0] == 0
+        assert result[0].question == "Ai là người sáng lập XYZ?"
+
+    def test_skips_when_not_local(self, monkeypatch) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Vint Cerf", walk_id="w1", hops=2,
+            question_type="2hop_person", evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        result = dg.rewrite_questions_with_llm([qa], use_local_model=False)
+        assert result[0].question == "Ai là người sáng lập Internet?"
+
+    def test_handles_chat_error(self, monkeypatch) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Vint Cerf", walk_id="w1", hops=2,
+            question_type="2hop_person", evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+
+        def _fail_chat(messages, max_new_tokens=128, temperature=0.3):
+            raise RuntimeError("model error")
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fail_chat)
+
+        result = dg.rewrite_questions_with_llm([qa], batch_size=1)
+        assert result[0].question == "Ai là người sáng lập Internet?"
+
+
+class TestIsValidRewriteExtra:
+    def test_appends_question_mark(self) -> None:
+        assert dg._is_valid_rewrite("Ai là người sáng lập?", "Người sáng lập là ai")
+
+
+class TestCheckGroundingExtra:
+    def test_unanswerable_always_passes(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập XYZ?",
+            answer="Không có thông tin", walk_id="w1", hops=2,
+            question_type="unanswerable", evidence_chunk_ids=[], source_pages=["A"],
+        )
+        assert dg._check_grounding(qa, {}) is True
+
+    def test_grounded_answer(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Vint Cerf là cha đẻ của Internet",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        chunks = {"c1": "Vint Cerf là cha đẻ của Internet và mạng máy tính toàn cầu"}
+        assert dg._check_grounding(qa, chunks) is True
+
+    def test_ungrounded_answer(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Xyz abc def ghij",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        chunks = {"c1": "Vint Cerf là cha đẻ của Internet"}
+        assert dg._check_grounding(qa, chunks) is False
+
+
+class TestExtractKeyTerms:
+    def test_extracts_capitalized_terms(self) -> None:
+        terms = dg._extract_key_terms("Vint Cerf là cha đẻ của Internet")
+        assert "Vint Cerf" in terms or "Internet" in terms
+
+    def test_empty_text(self) -> None:
+        terms = dg._extract_key_terms("")
+        assert terms == []
+
+
+class TestCheckWellFormedExtra:
+    def test_question_equals_answer(self) -> None:
+        qa = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Ai là người sáng lập Internet?",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        assert dg._check_well_formed(qa) is False
+
+
+class TestRunQCPipelineExtra:
+    def test_rejects_grounding_and_duplicate(self, monkeypatch) -> None:
+        good = dg.QAPair(
+            qa_id="q1", question="Ai là người sáng lập Internet?",
+            answer="Vint Cerf là cha đẻ của Internet.",
+            walk_id="w1", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        duplicate = dg.QAPair(
+            qa_id="q2", question="Ai là người sáng lập Internet?",
+            answer="Vint Cerf là cha đẻ của Internet.",
+            walk_id="w2", hops=2, question_type="2hop_person",
+            evidence_chunk_ids=["c1"], source_pages=["A"],
+        )
+        ungrounded = dg.QAPair(
+            qa_id="q3", question="Thủ đô của Pháp là gì?",
+            answer="Xyz abc short",
+            walk_id="w3", hops=2, question_type="2hop_location",
+            evidence_chunk_ids=["c2"], source_pages=["B"],
+        )
+        monkeypatch.setattr(dg.neo4j_client, "session", _mock_session([
+            {"id": "c1", "text": "Vint Cerf là cha đẻ của Internet và mạng máy tính toàn cầu"},
+            {"id": "c2", "text": "Paris là thủ đô của nước Pháp"},
+        ]))
+        result = dg.run_qc_pipeline([good, duplicate, ungrounded])
+        assert len(result) == 1
+        assert result[0].qa_id == "q1"
+
+
+class TestGenerateDataset:
+    def test_full_pipeline(self, monkeypatch, tmp_path) -> None:
+        walks_2hop = [
+            dg.KGWalk(
+                walk_id="w1", hops=2, pages=["A", "B"],
+                entities=[{"name": "E1", "type": "Person"}],
+                path_description="A → E1 → B",
+                evidence_chunks=["c1"],
+            )
+        ]
+        walks_3hop = []
+        broken_walks = []
+
+        monkeypatch.setattr(dg, "extract_2hop_walks", lambda limit: walks_2hop)
+        monkeypatch.setattr(dg, "extract_3hop_walks", lambda limit: walks_3hop)
+        monkeypatch.setattr(dg, "extract_broken_walks", lambda limit: broken_walks)
+
+        qa_list = [
+            dg.QAPair(
+                qa_id="q1", question="Ai là người sáng lập Internet?",
+                answer="Vint Cerf là cha đẻ của Internet.",
+                walk_id="w1", hops=2, question_type="2hop_person",
+                evidence_chunk_ids=["c1"], source_pages=["A", "B"],
+            )
+        ]
+        monkeypatch.setattr(dg, "generate_qa_from_walks", lambda w: qa_list)
+        monkeypatch.setattr(dg, "generate_unanswerable_qa", lambda w: [])
+
+        out = str(tmp_path / "output.jsonl")
+        stats = dg.generate_dataset(
+            two_hop_limit=10, three_hop_limit=10, broken_limit=10,
+            output_path=out, rewrite=False, qc=False,
+        )
+        assert stats["total"] == 1
+        assert stats["2hop"] == 1
+        assert stats["output_path"] == out
+
+    def test_with_rewrite_and_qc(self, monkeypatch, tmp_path) -> None:
+        walks_2hop = []
+        monkeypatch.setattr(dg, "extract_2hop_walks", lambda limit: walks_2hop)
+        monkeypatch.setattr(dg, "extract_3hop_walks", lambda limit: [])
+        monkeypatch.setattr(dg, "extract_broken_walks", lambda limit: [])
+
+        qa_list = [
+            dg.QAPair(
+                qa_id="q1", question="Ai là người sáng lập Internet?",
+                answer="Vint Cerf là cha đẻ của Internet.",
+                walk_id="w1", hops=2, question_type="2hop_person",
+                evidence_chunk_ids=["c1"], source_pages=["A"],
+            )
+        ]
+        monkeypatch.setattr(dg, "generate_qa_from_walks", lambda w: qa_list)
+        monkeypatch.setattr(dg, "generate_unanswerable_qa", lambda w: [])
+        monkeypatch.setattr(dg, "rewrite_questions_with_llm", lambda qa: qa)
+        monkeypatch.setattr(dg, "run_qc_pipeline", lambda qa: qa)
+
+        out = str(tmp_path / "output2.jsonl")
+        stats = dg.generate_dataset(
+            two_hop_limit=5, three_hop_limit=5, broken_limit=5,
+            output_path=out, rewrite=True, qc=True,
+        )
+        assert stats["total"] == 1
+
+
+class TestGenerateAnswerFromChunks:
+    def test_fallback_when_no_chunks(self) -> None:
+        walk = dg.KGWalk(
+            walk_id="w1", hops=2, pages=["A"],
+            entities=[{"name": "E1", "type": "Person"}],
+            path_description="A → E1",
+            evidence_chunks=["missing_chunk"],
+        )
+        answer = dg._generate_answer_from_chunks(walk, {})
+        assert "E1" in answer

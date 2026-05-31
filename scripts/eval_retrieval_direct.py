@@ -21,7 +21,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.retrieve import hybrid_retrieve
+from src.retrieval.hybrid import hybrid_retrieve
 
 
 def normalize(text: str) -> str:

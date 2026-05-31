@@ -17,8 +17,8 @@ from tqdm import tqdm
 
 from src.config import settings
 from src.logging_utils import configure_logging, get_logger
-from src.ner import extract_entities
-from src.text_utils import chunk_text_v2, entity_grounded_in_text, extract_wikilinks, normalize_vietnamese, strip_wiki_markup
+from src.extraction.ner import extract_entities
+from src.ingestion.text_utils import chunk_text_v2, entity_grounded_in_text, extract_wikilinks, normalize_vietnamese, strip_wiki_markup
 
 configure_logging(settings.log_level, settings.json_logs, log_dir=settings.log_dir, task_name="export")
 logger = get_logger(__name__)

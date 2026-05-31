@@ -16,7 +16,7 @@ from __future__ import annotations
 import argparse
 
 from src.logging_utils import get_logger
-from src.neo4j_client import neo4j_client
+from src.infrastructure.neo4j_client import neo4j_client
 
 logger = get_logger(__name__)
 

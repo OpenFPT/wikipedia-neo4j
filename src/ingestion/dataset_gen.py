@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from src.logging_utils import get_logger
-from src.neo4j_client import neo4j_client
+from src.infrastructure.neo4j_client import neo4j_client
 
 logger = get_logger(__name__)
 
@@ -332,7 +332,7 @@ def rewrite_questions_with_llm(
         logger.info("LLM rewrite skipped (use_local_model=False)")
         return qa_pairs
 
-    from src.local_llm import chat
+    from src.infrastructure.local_llm import chat
 
     rewritten = 0
     for i in range(0, len(qa_pairs), batch_size):

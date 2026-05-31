@@ -7,7 +7,7 @@ from contextlib import contextmanager
 
 import pytest
 
-import src.retrieve as retrieve
+import src.retrieval.hybrid as retrieve
 
 
 class _FakeSession:

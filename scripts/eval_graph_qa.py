@@ -18,8 +18,8 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.neo4j_client import neo4j_client
-from src.mcp_tools import _validate_readonly_cypher
+from src.infrastructure.neo4j_client import neo4j_client
+from src.mcp_pkg.tools import _validate_readonly_cypher
 
 
 def normalize_answer(text: str) -> str:

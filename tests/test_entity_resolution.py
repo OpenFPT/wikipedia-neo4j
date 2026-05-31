@@ -1,6 +1,6 @@
 """Tests for entity resolution module."""
 
-from src.entity_resolution import (
+from src.extraction.entity_resolution import (
     EntityResolver,
     ResolvedEntity,
     normalize_key,

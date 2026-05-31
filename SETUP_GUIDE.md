@@ -169,3 +169,46 @@ Thêm `-v` để xóa data volumes:
 ```bash
 docker compose down -v
 ```
+
+---
+
+## Deploy lên AuraDB (Cloud)
+
+Thay vì chạy Neo4j local bằng Docker, có thể dùng Neo4j AuraDB Free tier (managed cloud).
+
+### Tạo AuraDB instance
+
+1. Đăng nhập https://console.neo4j.io
+2. Chọn **Create Free Instance**
+3. Chọn region gần nhất (Singapore/Asia)
+4. Lưu lại Connection URI, Username, Password (chỉ hiện 1 lần!)
+
+### Cấu hình `.env`
+
+```env
+NEO4J_URI=neo4j+s://<instance-id>.databases.neo4j.io
+NEO4J_USERNAME=neo4j
+NEO4J_PASSWORD=<password-from-auradb>
+```
+
+Lưu ý: AuraDB dùng scheme `neo4j+s://` (TLS encrypted), không phải `bolt://`.
+
+### Deploy
+
+```bash
+make deploy-cloud
+```
+
+Hoặc chạy thủ công:
+
+```bash
+uv run python -m scripts.setup_neo4j_schema
+uv run python -m scripts.run_ingestion
+```
+
+### Giới hạn AuraDB Free tier
+
+- 200K nodes, 400K relationships
+- Không hỗ trợ APOC (project không cần)
+- Vector indexes: hỗ trợ (1024-dim cosine)
+- Fulltext indexes: hỗ trợ

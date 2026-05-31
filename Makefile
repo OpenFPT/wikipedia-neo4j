@@ -1,4 +1,4 @@
-.PHONY: help install check lint typecheck test docs run up down logs schema download ingest demo weekly-slides weekly-slides-pdf
+.PHONY: help install check lint typecheck test docs run up down logs schema download ingest demo weekly-slides weekly-slides-pdf deploy-cloud
 
 help:
 	@echo "Available targets:"
@@ -16,6 +16,7 @@ help:
 	@echo "  schema    - setup Neo4j schema"
 	@echo "  download  - download Vietnamese Wikipedia dump"
 	@echo "  ingest    - run ingestion pipeline"
+	@echo "  deploy-cloud - setup schema + ingest to AuraDB"
 
 install:
 	uv sync --all-groups
@@ -63,3 +64,8 @@ ingest:
 
 demo:
 	uv run python -m src.app_gradio
+
+deploy-cloud:
+	@echo "Deploying to AuraDB (ensure .env has NEO4J_URI=neo4j+s://...)"
+	uv run python -m scripts.setup_neo4j_schema
+	uv run python -m scripts.run_ingestion

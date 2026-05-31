@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 .env
 .gemini_key.txt
+docs/Neo4j-*.txt
 .codex
 .claude/
 .coverage

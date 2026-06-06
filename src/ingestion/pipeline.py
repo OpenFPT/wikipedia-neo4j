@@ -10,11 +10,11 @@ from typing import Callable
 import wikipedia
 from datasets import load_dataset, load_from_disk
 
-from src.llm import embed_texts
+from src.infrastructure.llm import embed_texts
 from src.logging_utils import get_logger
-from src.neo4j_client import neo4j_client
-from src.ner import extract_entities
-from src.text_utils import chunk_text_v2
+from src.infrastructure.neo4j_client import neo4j_client
+from src.extraction.ner import extract_entities
+from src.ingestion.text_utils import chunk_text_v2
 
 
 logger = get_logger(__name__)

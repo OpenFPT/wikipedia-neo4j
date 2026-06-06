@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.job_store import JobStore
+from src.infrastructure.job_store import JobStore
 
 
 def test_upsert_persists_payload(tmp_path: Path) -> None:

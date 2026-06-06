@@ -7,11 +7,11 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.config import settings
-from src.llm import assert_readonly_cypher
+from src.infrastructure.llm import assert_readonly_cypher
 from src.logging_utils import get_logger
-from src.neo4j_client import neo4j_client
+from src.infrastructure.neo4j_client import neo4j_client
 from src.prompts import COMPLEXITY_DETECTION_PROMPT, DECOMPOSE_QUESTION_PROMPT, SYNTHESIS_PROMPT
-from src.retrieve import QueryResult
+from src.retrieval.hybrid import QueryResult
 
 logger = get_logger(__name__)
 
@@ -291,7 +291,7 @@ _TOOLS = {
 def _detect_complexity(question: str) -> int:
     """Detect question complexity (1-5) using LLM."""
     try:
-        from src.local_llm import chat
+        from src.infrastructure.local_llm import chat
 
         prompt = COMPLEXITY_DETECTION_PROMPT.format(question=question)
         response = chat(
@@ -314,7 +314,7 @@ def _detect_complexity(question: str) -> int:
 def _decompose_question(question: str) -> list[str] | None:
     """Decompose a complex question into sub-questions."""
     try:
-        from src.local_llm import chat
+        from src.infrastructure.local_llm import chat
 
         prompt = DECOMPOSE_QUESTION_PROMPT.format(question=question)
         response = chat(
@@ -344,7 +344,7 @@ def _synthesize_answers(
 ) -> str:
     """Synthesize answers from sub-questions into a final answer."""
     try:
-        from src.local_llm import chat
+        from src.infrastructure.local_llm import chat
 
         sub_qa_text = "\n".join(
             [f"Q{i+1}: {q}\nA{i+1}: {a}" for i, (q, a) in enumerate(sub_qa_pairs)]
@@ -459,7 +459,7 @@ def agent_query(question: str, top_k: int = 4) -> QueryResult:
 
 def _agent_query_standard(question: str, top_k: int = 4) -> QueryResult:
     """Standard ReAct agent loop without decomposition."""
-    from src.local_llm import chat
+    from src.infrastructure.local_llm import chat
 
     messages: list[dict[str, str]] = [
         {"role": "system", "content": _SYSTEM_PROMPT},
@@ -720,7 +720,7 @@ def _run_trajectory(question: str, trajectory_id: int, temperature: float) -> Qu
     Each trajectory uses a slightly modified system prompt to encourage
     exploration of different graph paths.
     """
-    from src.local_llm import chat
+    from src.infrastructure.local_llm import chat
 
     # Build system prompt with optional diversity nudge
     nudge = _DIVERSITY_NUDGES[trajectory_id % len(_DIVERSITY_NUDGES)]

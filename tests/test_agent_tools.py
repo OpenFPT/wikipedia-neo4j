@@ -6,8 +6,8 @@ import json
 from contextlib import contextmanager
 
 
-import src.agent as agent_mod
-from src.retrieve import QueryResult
+import src.orchestration.agent as agent_mod
+from src.retrieval.hybrid import QueryResult
 
 
 # ---------------------------------------------------------------------------
@@ -436,3 +436,178 @@ class TestRunAgentScaled:
 
         result = agent_mod.run_agent_scaled("Test", n_trajectories=2)
         assert "Không tìm thấy" in result.answer
+
+
+# ---------------------------------------------------------------------------
+# Tests: _tool_kg_query
+# ---------------------------------------------------------------------------
+
+
+class TestToolKgQuery:
+    def test_returns_results(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            agent_mod.neo4j_client, "session",
+            _make_fake_session_factory([{"name": "Hà Nội", "type": "Location"}]),
+        )
+        result = agent_mod._tool_kg_query(
+            "MATCH (e:Entity) RETURN e.name AS page_title, e.type AS page_url, "
+            "e.name AS chunk_id, e.name AS chunk_text, 1.0 AS score LIMIT $top_k"
+        )
+        data = json.loads(result)
+        assert data[0]["name"] == "Hà Nội"
+
+    def test_no_results(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            agent_mod.neo4j_client, "session",
+            _make_fake_session_factory([]),
+        )
+        result = agent_mod._tool_kg_query(
+            "MATCH (e:Entity) RETURN e.name AS page_title, e.type AS page_url, "
+            "e.name AS chunk_id, e.name AS chunk_text, 1.0 AS score LIMIT $top_k"
+        )
+        assert "No results" in result
+
+    def test_rejects_write_query(self) -> None:
+        result = agent_mod._tool_kg_query("CREATE (n:Node {name: 'x'})")
+        assert "Error" in result
+
+    def test_handles_db_exception(self, monkeypatch) -> None:
+        @contextmanager
+        def _failing_session():
+            raise RuntimeError("connection lost")
+            yield  # noqa: unreachable
+
+        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
+        result = agent_mod._tool_kg_query(
+            "MATCH (e:Entity) RETURN e.name AS page_title, e.type AS page_url, "
+            "e.name AS chunk_id, e.name AS chunk_text, 1.0 AS score LIMIT $top_k"
+        )
+        assert "Error" in result
+
+
+# ---------------------------------------------------------------------------
+# Tests: _tool_text_search
+# ---------------------------------------------------------------------------
+
+
+class TestToolTextSearch:
+    def test_returns_results(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            agent_mod.neo4j_client, "session",
+            _make_fake_session_factory([
+                {"page_title": "Test", "page_url": "http://x", "chunk_id": "c1", "chunk_text": "text", "score": 0.9}
+            ]),
+        )
+        result = agent_mod._tool_text_search("test query")
+        data = json.loads(result)
+        assert data[0]["page_title"] == "Test"
+
+    def test_no_results(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            agent_mod.neo4j_client, "session",
+            _make_fake_session_factory([]),
+        )
+        result = agent_mod._tool_text_search("nothing")
+        assert "No results" in result
+
+    def test_handles_exception(self, monkeypatch) -> None:
+        @contextmanager
+        def _failing_session():
+            raise RuntimeError("timeout")
+            yield  # noqa: unreachable
+
+        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
+        result = agent_mod._tool_text_search("test")
+        assert "Error" in result
+
+
+# ---------------------------------------------------------------------------
+# Tests: _tool_get_passage
+# ---------------------------------------------------------------------------
+
+
+class TestToolGetPassage:
+    def test_returns_passage(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            agent_mod.neo4j_client, "session",
+            _make_fake_session_factory([
+                {"page_title": "Page1", "page_url": "http://x", "chunk_text": "Some content"}
+            ]),
+        )
+        result = agent_mod._tool_get_passage("c1")
+        data = json.loads(result)
+        assert data["chunk_text"] == "Some content"
+
+    def test_chunk_not_found(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            agent_mod.neo4j_client, "session",
+            _make_fake_session_factory([]),
+        )
+        result = agent_mod._tool_get_passage("missing")
+        assert "not found" in result
+
+    def test_handles_exception(self, monkeypatch) -> None:
+        @contextmanager
+        def _failing_session():
+            raise RuntimeError("db error")
+            yield  # noqa: unreachable
+
+        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
+        result = agent_mod._tool_get_passage("c1")
+        assert "Error" in result
+
+
+# ---------------------------------------------------------------------------
+# Tests: _check_sufficiency
+# ---------------------------------------------------------------------------
+
+
+class TestCheckSufficiencyExtra:
+    def test_no_valid_observations(self) -> None:
+        is_suff, conf = agent_mod._check_sufficiency(
+            ["Error: something", "No results found.", ""], "question"
+        )
+        assert is_suff is False
+        assert conf == 0.0
+
+    def test_sufficient_with_chunks(self) -> None:
+        obs = [
+            json.dumps([
+                {"chunk_id": "c1", "text": "a"},
+                {"chunk_id": "c2", "text": "b"},
+                {"chunk_id": "c3", "text": "c"},
+            ]),
+        ]
+        is_suff, conf = agent_mod._check_sufficiency(obs, "question")
+        assert is_suff is True
+        assert conf >= 0.5
+
+    def test_dict_observation_with_chunk_id(self) -> None:
+        obs = [json.dumps({"chunk_id": "c1", "text": "data"})]
+        is_suff, conf = agent_mod._check_sufficiency(obs, "question")
+        assert conf > 0.0
+
+    def test_non_json_observations(self) -> None:
+        obs = ["Some plain text observation that is valid"]
+        is_suff, conf = agent_mod._check_sufficiency(obs, "question")
+        assert conf > 0.0
+
+
+# ---------------------------------------------------------------------------
+# Tests: _parse_agent_response
+# ---------------------------------------------------------------------------
+
+
+class TestParseAgentResponseExtra:
+    def test_parses_code_fenced_json(self) -> None:
+        raw = '```json\n{"action": "text_search", "action_input": "test"}\n```'
+        result = agent_mod._parse_agent_response(raw)
+        assert result["action"] == "text_search"
+
+    def test_returns_none_for_no_json(self) -> None:
+        result = agent_mod._parse_agent_response("This is just plain text with no JSON")
+        assert result is None
+
+    def test_returns_none_for_invalid_json(self) -> None:
+        result = agent_mod._parse_agent_response("{invalid json content here}")
+        assert result is None

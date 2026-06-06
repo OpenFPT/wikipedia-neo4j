@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 from fastmcp import FastMCP
 
-from src.mcp_tools import register_tools
+from src.mcp_pkg.tools import register_tools
 
 
 def _create_test_mcp() -> FastMCP:
@@ -47,7 +47,7 @@ def test_graph_schema_resource_registered():
     assert any("schema" in u for u in uris)
 
 
-@patch("src.mcp_tools.hybrid_retrieve")
+@patch("src.mcp_pkg.tools.hybrid_retrieve")
 def test_search_knowledge_base_returns_results(mock_retrieve):
     mock_retrieve.return_value = [
         {
@@ -66,7 +66,7 @@ def test_search_knowledge_base_returns_results(mock_retrieve):
     mock_retrieve.assert_called_once_with("Hồ Chí Minh sinh năm nào?", top_k=3)
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_get_graph_stats_returns_counts(mock_neo4j):
     mock_session = MagicMock()
     mock_record = {"pages": 100, "chunks": 500, "entities": 200}
@@ -82,7 +82,7 @@ def test_get_graph_stats_returns_counts(mock_neo4j):
     assert result["entities"] == 200
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_explore_entity_handles_not_found(mock_neo4j):
     mock_session = MagicMock()
     mock_session.run.return_value = iter([])
@@ -96,7 +96,7 @@ def test_explore_entity_handles_not_found(mock_neo4j):
     assert result["neighbors"] == []
 
 
-@patch("src.mcp_tools.hybrid_retrieve")
+@patch("src.mcp_pkg.tools.hybrid_retrieve")
 def test_search_handles_error_gracefully(mock_retrieve):
     mock_retrieve.side_effect = RuntimeError("Neo4j connection failed")
 
@@ -107,7 +107,7 @@ def test_search_handles_error_gracefully(mock_retrieve):
     assert result["total"] == 0
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_find_path_returns_path(mock_neo4j):
     mock_session = MagicMock()
     mock_record = {"nodes": ["A", "B", "C"], "relations": ["KNOWS", "LOCATED_IN"]}
@@ -122,7 +122,7 @@ def test_find_path_returns_path(mock_neo4j):
     assert result["hops"] == 2
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_find_path_no_path(mock_neo4j):
     mock_session = MagicMock()
     mock_session.run.return_value.single.return_value = None
@@ -136,7 +136,7 @@ def test_find_path_no_path(mock_neo4j):
     assert "No path found" in result["message"]
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_find_path_handles_error(mock_neo4j):
     mock_neo4j.session.return_value.__enter__ = MagicMock(
         side_effect=RuntimeError("connection lost")
@@ -149,7 +149,7 @@ def test_find_path_handles_error(mock_neo4j):
     assert "error" in result
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_list_entity_types(mock_neo4j):
     mock_session = MagicMock()
     mock_session.run.return_value = iter([
@@ -166,7 +166,7 @@ def test_list_entity_types(mock_neo4j):
     assert result["entity_types"][0]["type"] == "Person"
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_list_entity_types_handles_error(mock_neo4j):
     mock_neo4j.session.return_value.__enter__ = MagicMock(
         side_effect=RuntimeError("db error")
@@ -180,7 +180,7 @@ def test_list_entity_types_handles_error(mock_neo4j):
     assert result["total_types"] == 0
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_source_trace_returns_context(mock_neo4j):
     mock_session = MagicMock()
     mock_record = {
@@ -206,7 +206,7 @@ def test_source_trace_returns_context(mock_neo4j):
     assert len(result["neighbors"]) == 3
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_source_trace_not_found(mock_neo4j):
     mock_session = MagicMock()
     mock_session.run.return_value.single.return_value = None
@@ -219,7 +219,7 @@ def test_source_trace_not_found(mock_neo4j):
     assert "Chunk not found" in result.get("error", "")
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_source_trace_handles_error(mock_neo4j):
     mock_neo4j.session.return_value.__enter__ = MagicMock(
         side_effect=RuntimeError("timeout")
@@ -232,7 +232,7 @@ def test_source_trace_handles_error(mock_neo4j):
     assert "error" in result
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_kg_query_valid_read(mock_neo4j):
     mock_session = MagicMock()
     mock_session.run.return_value = iter([
@@ -272,7 +272,7 @@ def test_kg_query_rejects_multi_statement():
     assert "Multiple statements" in result["error"]
 
 
-@patch("src.mcp_tools.neo4j_client")
+@patch("src.mcp_pkg.tools.neo4j_client")
 def test_kg_query_handles_db_error(mock_neo4j):
     mock_session = MagicMock()
     mock_session.run.side_effect = RuntimeError("syntax error")
@@ -312,7 +312,7 @@ def test_get_community_summary_handles_error(mock_comm):
     assert "error" in result
 
 
-@patch("src.agent.run_agent_scaled")
+@patch("src.orchestration.agent.run_agent_scaled")
 def test_answer_question_success(mock_agent):
     mock_result = MagicMock()
     mock_result.answer = "Hồ Chí Minh sinh năm 1890"
@@ -327,7 +327,7 @@ def test_answer_question_success(mock_agent):
     assert result["retrieval_tier"] == "simple"
 
 
-@patch("src.agent.run_agent_scaled", side_effect=RuntimeError("model unavailable"))
+@patch("src.orchestration.agent.run_agent_scaled", side_effect=RuntimeError("model unavailable"))
 def test_answer_question_handles_error(mock_agent):
     mcp = _create_test_mcp()
     tool_fn = _get_tool_fn(mcp, "answer_question")
@@ -337,14 +337,14 @@ def test_answer_question_handles_error(mock_agent):
 
 
 def test_validate_readonly_cypher_allows_read():
-    from src.mcp_tools import _validate_readonly_cypher
+    from src.mcp_pkg.tools import _validate_readonly_cypher
 
     _validate_readonly_cypher("MATCH (n) RETURN n LIMIT 10")
     _validate_readonly_cypher("MATCH (a)-[r]->(b) WHERE a.name = 'test' RETURN a, r, b")
 
 
 def test_validate_readonly_cypher_blocks_writes():
-    from src.mcp_tools import _validate_readonly_cypher
+    from src.mcp_pkg.tools import _validate_readonly_cypher
     import pytest
 
     with pytest.raises(ValueError, match="Write operation"):
@@ -362,7 +362,7 @@ def test_validate_readonly_cypher_blocks_writes():
 
 
 def test_validate_readonly_cypher_blocks_empty():
-    from src.mcp_tools import _validate_readonly_cypher
+    from src.mcp_pkg.tools import _validate_readonly_cypher
     import pytest
 
     with pytest.raises(ValueError, match="empty"):
@@ -372,7 +372,7 @@ def test_validate_readonly_cypher_blocks_empty():
 
 
 def test_validate_readonly_cypher_blocks_multi_statement():
-    from src.mcp_tools import _validate_readonly_cypher
+    from src.mcp_pkg.tools import _validate_readonly_cypher
     import pytest
 
     with pytest.raises(ValueError, match="Multiple statements"):
@@ -380,9 +380,33 @@ def test_validate_readonly_cypher_blocks_multi_statement():
 
 
 def test_mcp_server_module_importable():
-    from src.mcp_server import create_mcp_server, mcp
+    from src.mcp_pkg.server import create_mcp_server, mcp
 
     assert mcp is not None
     server = create_mcp_server()
     tools = asyncio.run(server.list_tools())
     assert len(tools) == 9
+
+
+def test_mcp_server_main_stdio(monkeypatch):
+    """Test that main() parses args and calls mcp.run with stdio transport."""
+    from unittest.mock import patch as mock_patch
+
+    monkeypatch.setattr("sys.argv", ["mcp_server"])
+
+    with mock_patch("src.mcp_pkg.server.mcp") as mock_mcp:
+        from src.mcp_pkg.server import main
+        main()
+        mock_mcp.run.assert_called_once_with(transport="stdio")
+
+
+def test_mcp_server_main_http(monkeypatch):
+    """Test that main() parses args and calls mcp.run with HTTP transport."""
+    from unittest.mock import patch as mock_patch
+
+    monkeypatch.setattr("sys.argv", ["mcp_server", "--transport", "streamable-http", "--port", "9000", "--host", "0.0.0.0"])
+
+    with mock_patch("src.mcp_pkg.server.mcp") as mock_mcp:
+        from src.mcp_pkg.server import main
+        main()
+        mock_mcp.run.assert_called_once_with(transport="streamable-http", host="0.0.0.0", port=9000)

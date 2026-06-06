@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.relation_extract import RELATION_TYPES, Triple, _parse_triples, extract_relations_batch
+from src.extraction.relations import RELATION_TYPES, Triple, _parse_triples, extract_relations_batch
 
 
 class TestParseTriples:
@@ -108,7 +108,7 @@ class TestExtractRelationsBatch:
 
     def test_batch_with_mock(self, monkeypatch):
         """Test batch extraction with mocked extract_relations."""
-        import src.relation_extract as mod
+        import src.extraction.relations as mod
 
         call_count = 0
 
@@ -126,7 +126,7 @@ class TestExtractRelationsBatch:
 
     def test_batch_handles_failures(self, monkeypatch):
         """Test that batch extraction handles individual failures gracefully."""
-        import src.relation_extract as mod
+        import src.extraction.relations as mod
 
         def mock_extract(text, use_local=True):
             if "fail" in text:

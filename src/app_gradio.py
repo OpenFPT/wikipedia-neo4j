@@ -7,7 +7,7 @@ import time
 
 import gradio as gr
 
-from src.agent_tools import kg_query, text_search, ToolResult
+from src.orchestration.tools import kg_query, text_search, ToolResult
 from src.logging_utils import get_logger
 
 logger = get_logger(__name__)

@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.config import settings
 from src.logging_utils import configure_logging, get_logger
-from src.neo4j_client import neo4j_client
+from src.infrastructure.neo4j_client import neo4j_client
 
 configure_logging(settings.log_level, settings.json_logs, log_dir=settings.log_dir, task_name="load")
 logger = get_logger(__name__)

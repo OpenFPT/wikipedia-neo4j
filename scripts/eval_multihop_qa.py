@@ -19,7 +19,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.agent import run_agent_scaled
+from src.orchestration.agent import run_agent_scaled
 
 
 MULTIHOP_QUESTIONS = [

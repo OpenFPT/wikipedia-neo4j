@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.neo4j_client import neo4j_client
+from src.infrastructure.neo4j_client import neo4j_client
 
 
 def _query_single(cypher: str) -> int:

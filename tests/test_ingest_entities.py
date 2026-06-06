@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-import src.ingest as ingest
-import src.ner as ner
+import src.ingestion.pipeline as ingest
+import src.extraction.ner as ner
 
 
 class TestClassifyEntityType:

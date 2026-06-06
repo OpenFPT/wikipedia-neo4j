@@ -51,7 +51,7 @@ class TestRetrieveForAblation:
         _retrieve_for_ablation("q", "no_multi_hop", top_k=5)
         mock_fallback.assert_called_once_with("q", 5)
 
-    @patch("src.neo4j_client.neo4j_client")
+    @patch("src.infrastructure.neo4j_client.neo4j_client")
     def test_text_only_uses_text_cypher(self, mock_client):
         mock_session = MagicMock()
         mock_client.session.return_value.__enter__ = MagicMock(return_value=mock_session)
@@ -64,7 +64,7 @@ class TestRetrieveForAblation:
         assert "chunk_text_ft" in call_args[0][0]
         assert "entity_alias_ft" not in call_args[0][0]
 
-    @patch("src.neo4j_client.neo4j_client")
+    @patch("src.infrastructure.neo4j_client.neo4j_client")
     def test_graph_only_uses_entity_cypher(self, mock_client):
         mock_session = MagicMock()
         mock_client.session.return_value.__enter__ = MagicMock(return_value=mock_session)
@@ -123,7 +123,7 @@ class TestEvaluateAblation:
         mock_retrieve.return_value = [{"chunk_id": "c1", "chunk_text": "text", "page_id": "p1"}]
         mock_rerank.return_value = [{"chunk_id": "c1", "chunk_text": "text", "page_id": "p1"}]
 
-        with patch("src.retrieve._expand_via_links", return_value=[]):
+        with patch("src.retrieval.hybrid._expand_via_links", return_value=[]):
             metrics = evaluate_ablation(mode="full_hybrid", limit=1)
         mock_rerank.assert_called()
         assert metrics.context_hit_rate == 1.0

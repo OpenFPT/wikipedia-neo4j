@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-import src.neo4j_client as neo4j_mod
+import src.infrastructure.neo4j_client as neo4j_mod
 
 
 class TestNeo4jClientInit:

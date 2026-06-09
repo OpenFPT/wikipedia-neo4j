@@ -21,7 +21,7 @@ def _force_api_mode(monkeypatch):
 @pytest.fixture(autouse=True)
 def _mock_reranker(monkeypatch):
     """Bypass cross-encoder model loading in tests."""
-    import src.reranker as reranker_mod
+    import src.retrieval.reranker as reranker_mod
 
     def _passthrough(_query, documents, text_key="chunk_text", top_k=5):
         return documents[:top_k]

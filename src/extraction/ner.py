@@ -557,7 +557,7 @@ def _extract_entities_wikilink(
     raw_text: str, max_entities: int = 500
 ) -> list[tuple[str, str]]:
     """Extract entities from [[wiki links]] in raw Wikipedia markup."""
-    from src.text_utils import extract_wikilinks
+    from src.ingestion.text_utils import extract_wikilinks
 
     links = extract_wikilinks(raw_text)
     results: list[tuple[str, str]] = []

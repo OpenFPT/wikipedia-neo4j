@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.retrieve import _wrrf_fusion
+from src.retrieval.hybrid import _wrrf_fusion
 
 
 def _make_row(chunk_id: str, page_title: str = "P", score: float = 1.0) -> dict:

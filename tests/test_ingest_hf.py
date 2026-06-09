@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import src.ingest as ingest
+import src.ingestion.pipeline as ingest
 
 
 @dataclass

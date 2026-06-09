@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from src.logging_utils import get_logger
-from src.reranker import rerank
-from src.retrieve import _run_fallback_query, _run_generated_query
+from src.retrieval.reranker import rerank
+from src.retrieval.hybrid import _run_fallback_query, _run_generated_query
 
 logger = get_logger(__name__)
 
@@ -390,7 +390,7 @@ def _retrieve_for_ablation(question: str, mode: str, top_k: int) -> list[dict]:
         no_reranking — full hybrid (reranking skipped at caller level)
         no_multi_hop — full hybrid (multi-hop skipped at caller level)
     """
-    from src.neo4j_client import neo4j_client
+    from src.infrastructure.neo4j_client import neo4j_client
 
     if mode == "text_only":
         with neo4j_client.session() as session:
@@ -451,7 +451,7 @@ def evaluate_ablation(
 
         # Apply multi-hop expansion unless mode disables it
         if mode not in ("no_multi_hop", "text_only", "graph_only", "no_reranking") and rows:
-            from src.retrieve import _expand_via_links
+            from src.retrieval.hybrid import _expand_via_links
 
             page_ids: list[str] = [
                 r["page_id"] for r in rows if r.get("page_id")

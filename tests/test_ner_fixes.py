@@ -1,13 +1,13 @@
 """Regression tests for NER data quality fixes."""
 
-from src.ner import (
+from src.extraction.ner import (
     classify_entity_type,
     classify_disambiguation_hint,
     normalize_entity,
     strip_disambiguation,
     _extract_entities_wikilink,
 )
-from src.text_utils import strip_wiki_markup
+from src.ingestion.text_utils import strip_wiki_markup
 
 
 class TestTruncatedNames:

@@ -5,7 +5,7 @@ import uuid
 
 from datasets import load_from_disk
 
-from src.ingest import _upsert_page_from_text
+from src.ingestion.pipeline import _upsert_page_from_text
 from src.logging_utils import get_logger
 
 

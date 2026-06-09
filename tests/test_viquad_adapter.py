@@ -111,3 +111,39 @@ class TestLoadViquad:
         assert len(result) == 2
         assert result[0]["id"] == "hf1"
         assert result[1]["is_impossible"] is True
+
+
+class TestExportEvalJsonl:
+    def test_export_creates_file(self, tmp_path, monkeypatch) -> None:
+        cache_dir = tmp_path / "viquad2"
+        monkeypatch.setattr(viquad, "VIQUAD_CACHE_DIR", cache_dir)
+
+        fake_rows = [
+            {"id": "e1", "question": "Q?", "context": "C", "title": "T", "answers": {"text": ["A"]}, "is_impossible": False},
+            {"id": "e2", "question": "Q2?", "context": "C2", "title": "T2", "answers": {"text": []}, "is_impossible": True},
+        ]
+        monkeypatch.setattr(viquad, "load_dataset", lambda *a, **kw: fake_rows)
+
+        out = tmp_path / "output" / "test.jsonl"
+        result_path = viquad.export_eval_jsonl(split="validation", output=out)
+
+        assert result_path == out
+        assert out.exists()
+        lines = [line for line in out.read_text().strip().split("\n") if line.strip()]
+        assert len(lines) == 2
+        parsed = json.loads(lines[0])
+        assert parsed["id"] == "e1"
+        assert parsed["gold_answers"] == ["A"]
+
+    def test_export_default_path(self, tmp_path, monkeypatch) -> None:
+        cache_dir = tmp_path / "viquad2"
+        monkeypatch.setattr(viquad, "VIQUAD_CACHE_DIR", cache_dir)
+
+        fake_rows = [
+            {"id": "e1", "question": "Q?", "context": "C", "title": "T", "answers": {"text": ["A"]}, "is_impossible": False},
+        ]
+        monkeypatch.setattr(viquad, "load_dataset", lambda *a, **kw: fake_rows)
+
+        result_path = viquad.export_eval_jsonl(split="validation")
+        assert result_path == cache_dir / "validation.jsonl"
+        assert result_path.exists()

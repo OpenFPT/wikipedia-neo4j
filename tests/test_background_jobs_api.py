@@ -5,7 +5,7 @@ import time
 from fastapi.testclient import TestClient
 
 import src.main as main
-from src.ingest import IngestResult
+from src.ingestion.pipeline import IngestResult
 
 
 def test_start_and_get_hf_job_completed(monkeypatch) -> None:

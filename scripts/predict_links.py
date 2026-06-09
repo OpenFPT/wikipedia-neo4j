@@ -16,9 +16,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from google.genai import types
 
 from src.config import settings
-from src.llm import _client_pool, _is_retryable_gemini_error
+from src.infrastructure.llm import _client_pool, _is_retryable_gemini_error
 from src.logging_utils import configure_logging, get_logger
-from src.neo4j_client import Neo4jClient
+from src.infrastructure.neo4j_client import Neo4jClient
 
 configure_logging(settings.log_level, settings.json_logs, log_dir=settings.log_dir, task_name="predict_links")
 logger = get_logger(__name__)

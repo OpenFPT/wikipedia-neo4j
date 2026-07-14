@@ -11,8 +11,10 @@ from jinja2 import Environment, FileSystemLoader
 from src.dashboard.data import (
     fetch_eval_metrics,
     fetch_graph_stats,
+    fetch_qa_stats,
     fetch_recent_queries,
     fetch_signal_breakdown,
+    fetch_top_bridged_pages,
     fetch_wrrf_weights,
 )
 
@@ -41,6 +43,8 @@ def dashboard_page(request: Request) -> HTMLResponse:
     signals = fetch_signal_breakdown()
     eval_metrics = fetch_eval_metrics()
     weights = fetch_wrrf_weights()
+    qa_stats = fetch_qa_stats()
+    top_bridged = fetch_top_bridged_pages()
 
     html = template.render(
         stats=stats,
@@ -48,6 +52,8 @@ def dashboard_page(request: Request) -> HTMLResponse:
         signals=signals,
         eval_metrics=eval_metrics,
         weights=weights,
+        qa_stats=qa_stats,
+        top_bridged=top_bridged,
     )
     return HTMLResponse(content=html)
 
@@ -76,3 +82,15 @@ def api_eval() -> JSONResponse:
     """Return evaluation metrics as JSON."""
     data = fetch_eval_metrics()
     return JSONResponse(content=data or {"available": False})
+
+
+@router.get("/api/qa-stats", response_class=JSONResponse)
+def api_qa_stats() -> JSONResponse:
+    """Return multi-hop QA benchmark statistics as JSON."""
+    return JSONResponse(content=fetch_qa_stats())
+
+
+@router.get("/api/top-bridged", response_class=JSONResponse)
+def api_top_bridged() -> JSONResponse:
+    """Return the most frequently bridged pages as JSON."""
+    return JSONResponse(content={"pages": fetch_top_bridged_pages()})

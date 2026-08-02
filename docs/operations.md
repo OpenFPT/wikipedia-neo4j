@@ -62,6 +62,26 @@ python -m compileall -q src tests
 uv run mkdocs build
 ```
 
+## Wikidata enrichment from PowerShell
+
+Use this when Python HTTPS is blocked but PowerShell can still reach Wikidata or Neo4j Aura.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\enrich_wikidata.ps1 -BatchSize 50
+```
+
+Notes:
+
+- The script reads `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD` from `.env` by default.
+- `ExecutionMode=auto` prefers `cypher-shell` when available and falls back to Neo4j HTTPS query API when it is not.
+- Writes are idempotent: `MERGE` on `(:Entity {name})` and on semantic `Entity -> Entity` edges.
+- `Page -> HAS_CHUNK -> Chunk -> MENTIONS -> Entity` is unchanged; the script only adds semantic edges and optional page literals.
+- Dry-run example:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\enrich_wikidata.ps1 -Limit 20 -DryRun
+```
+
 ## About MkDocs Material warning banner
 
 Material may print an informational warning about MkDocs 2.0 changes.

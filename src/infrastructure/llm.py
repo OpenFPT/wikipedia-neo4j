@@ -59,16 +59,27 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
     """Generate embeddings for texts with key-rotation fallback."""
     if settings.embedding_backend == "local":
         return _embed_texts_local(texts)
+    from google.genai import types
+
+    # gemini-embedding-001 defaults to 3072 dims; pin to settings.embedding_dim
+    # (via Matryoshka truncation) so output matches the configured vector index.
+    embed_config = types.EmbedContentConfig(output_dimensionality=settings.embedding_dim)
+
     clients = _client_pool()
     last_error: Exception | None = None
 
     for i, client in enumerate(clients, start=1):
         try:
             vectors: list[list[float]] = []
-            for text in texts:
+            for j, text in enumerate(texts):
+                if j > 0:
+                    # Free-tier embed_content quota is ~100 req/min; space individual
+                    # calls out so a single batch can't burn through it on its own.
+                    time.sleep(0.7)
                 resp = client.models.embed_content(
                     model=settings.gemini_model_embedding,
                     contents=text,
+                    config=embed_config,
                 )
                 emb_list = getattr(resp, "embeddings", None)
                 if not emb_list:

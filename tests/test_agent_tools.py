@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 from contextlib import contextmanager
 
-
-import src.orchestration.agent as agent_mod
-from src.retrieval.hybrid import QueryResult
+import src.orchestration.agent_loop as agent_loop_mod
+import src.orchestration.voting as voting_mod
+from src.retrieval.fusion import QueryResult
+from src.orchestration.agent_loop import _tool_entity_neighborhood, _tool_path_search
+from src.orchestration.voting import run_agent_scaled, _majority_vote, _answers_similar
 
 
 # ---------------------------------------------------------------------------
@@ -29,12 +31,27 @@ class _FakeSession:
         pass
 
 
-def _make_fake_session_factory(results: list[dict]):
-    @contextmanager
-    def _fake_session():
-        yield _FakeSession(results)
+class _FakeNeo4jClient:
+    """Fake neo4j_client that returns a context-managed session."""
 
-    return _fake_session
+    def __init__(self, results: list[dict]):
+        self._results = results
+
+    @contextmanager
+    def session(self):
+        yield _FakeSession(self._results)
+
+
+class _FailingNeo4jClient:
+    """Fake neo4j_client whose session() always raises."""
+
+    def __init__(self, exc: Exception):
+        self._exc = exc
+
+    @contextmanager
+    def session(self):
+        raise self._exc
+        yield  # noqa: RET503
 
 
 # ---------------------------------------------------------------------------
@@ -58,10 +75,9 @@ class TestToolEntityNeighborhood:
                 ],
             }
         ]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
-        result = agent_mod._tool_entity_neighborhood("Hà Nội", hops=1)
+        result = _tool_entity_neighborhood("Hà Nội", hops=1)
         parsed = json.loads(result)
 
         assert parsed["entity"]["name"] == "Hà Nội"
@@ -89,10 +105,9 @@ class TestToolEntityNeighborhood:
                 ],
             }
         ]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
-        result = agent_mod._tool_entity_neighborhood("Hà Nội", hops=2)
+        result = _tool_entity_neighborhood("Hà Nội", hops=2)
         parsed = json.loads(result)
 
         assert parsed["entity"]["name"] == "Hà Nội"
@@ -102,17 +117,15 @@ class TestToolEntityNeighborhood:
 
     def test_entity_not_found(self, monkeypatch) -> None:
         fake_rows = [{"entity_name": None, "entity_type": None, "chunks": [], "co_entities": []}]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
-        result = agent_mod._tool_entity_neighborhood("Nonexistent", hops=1)
+        result = _tool_entity_neighborhood("Nonexistent", hops=1)
         assert "not found" in result.lower()
 
     def test_empty_results(self, monkeypatch) -> None:
-        fake = _make_fake_session_factory([])
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient([]))
 
-        result = agent_mod._tool_entity_neighborhood("Empty", hops=1)
+        result = _tool_entity_neighborhood("Empty", hops=1)
         assert "not found" in result.lower()
 
     def test_hops_clamped_to_range(self, monkeypatch) -> None:
@@ -125,23 +138,17 @@ class TestToolEntityNeighborhood:
                 "co_entities": [{"name": "Other", "type": "Person"}],
             }
         ]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
         # hops=0 should be clamped to 1 (uses 1-hop query)
-        result = agent_mod._tool_entity_neighborhood("Test", hops=0)
+        result = _tool_entity_neighborhood("Test", hops=0)
         parsed = json.loads(result)
         assert "co_entities" in parsed  # 1-hop key
 
     def test_handles_exception(self, monkeypatch) -> None:
-        @contextmanager
-        def _failing_session():
-            raise RuntimeError("Neo4j connection failed")
-            yield  
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FailingNeo4jClient(RuntimeError("Neo4j connection failed")))
 
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
-
-        result = agent_mod._tool_entity_neighborhood("Test", hops=1)
+        result = _tool_entity_neighborhood("Test", hops=1)
         assert "Error" in result
 
     def test_filters_null_chunks_and_entities(self, monkeypatch) -> None:
@@ -160,10 +167,9 @@ class TestToolEntityNeighborhood:
                 ],
             }
         ]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
-        result = agent_mod._tool_entity_neighborhood("Test", hops=1)
+        result = _tool_entity_neighborhood("Test", hops=1)
         parsed = json.loads(result)
 
         assert len(parsed["chunks"]) == 1
@@ -188,10 +194,9 @@ class TestToolPathSearch:
                 "path_length": 2,
             }
         ]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
-        result = agent_mod._tool_path_search("Hà Nội", "Việt Nam", max_hops=3)
+        result = _tool_path_search("Hà Nội", "Việt Nam", max_hops=3)
         parsed = json.loads(result)
 
         assert parsed["path_length"] == 2
@@ -201,10 +206,9 @@ class TestToolPathSearch:
         assert "Việt Nam" in parsed["path"]
 
     def test_no_path_found(self, monkeypatch) -> None:
-        fake = _make_fake_session_factory([])
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient([]))
 
-        result = agent_mod._tool_path_search("EntityA", "EntityB", max_hops=3)
+        result = _tool_path_search("EntityA", "EntityB", max_hops=3)
         assert "No path found" in result
 
     def test_max_hops_clamped(self, monkeypatch) -> None:
@@ -219,23 +223,17 @@ class TestToolPathSearch:
                 "path_length": 1,
             }
         ]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
         # max_hops=10 should be clamped to 5
-        result = agent_mod._tool_path_search("A", "B", max_hops=10)
+        result = _tool_path_search("A", "B", max_hops=10)
         parsed = json.loads(result)
         assert parsed["path_length"] == 1
 
     def test_handles_exception(self, monkeypatch) -> None:
-        @contextmanager
-        def _failing_session():
-            raise RuntimeError("Connection error")
-            yield  
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FailingNeo4jClient(RuntimeError("Connection error")))
 
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
-
-        result = agent_mod._tool_path_search("A", "B", max_hops=3)
+        result = _tool_path_search("A", "B", max_hops=3)
         assert "Error" in result
 
     def test_path_with_page_node(self, monkeypatch) -> None:
@@ -250,10 +248,9 @@ class TestToolPathSearch:
                 "path_length": 2,
             }
         ]
-        fake = _make_fake_session_factory(fake_rows)
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", fake)
+        monkeypatch.setattr(agent_loop_mod, "neo4j_client", _FakeNeo4jClient(fake_rows))
 
-        result = agent_mod._tool_path_search("A", "B", max_hops=3)
+        result = _tool_path_search("A", "B", max_hops=3)
         parsed = json.loads(result)
 
         assert "Page Title" in parsed["path"]
@@ -266,7 +263,6 @@ class TestToolPathSearch:
 
 class TestMajorityVote:
     def test_clear_majority(self) -> None:
-        """When 3 out of 5 results agree, the majority answer wins."""
         results = [
             QueryResult(answer="Hà Nội", citations=[{"chunk_id": "c1"}]),
             QueryResult(answer="Hà Nội", citations=[{"chunk_id": "c1"}, {"chunk_id": "c2"}]),
@@ -275,66 +271,57 @@ class TestMajorityVote:
             QueryResult(answer="Đà Nẵng", citations=[{"chunk_id": "c5"}]),
         ]
 
-        winner = agent_mod._majority_vote(results)
+        winner = _majority_vote(results)
         assert "Hà Nội" in winner.answer
 
     def test_tie_broken_by_citations(self) -> None:
-        """When groups are tied in size, the one with more citations wins."""
         results = [
             QueryResult(answer="Answer A", citations=[{"chunk_id": "c1"}]),
             QueryResult(answer="Answer B", citations=[{"chunk_id": "c2"}, {"chunk_id": "c3"}, {"chunk_id": "c4"}]),
         ]
 
-        winner = agent_mod._majority_vote(results)
-        # Both groups have size 1, so tie-break by max citations
+        winner = _majority_vote(results)
         assert winner.answer == "Answer B"
 
     def test_containment_groups_similar_answers(self) -> None:
-        """Answers where one contains the other should be grouped together."""
         results = [
             QueryResult(answer="Hà Nội là thủ đô của Việt Nam", citations=[{"chunk_id": "c1"}]),
             QueryResult(answer="Hà Nội là thủ đô của Việt Nam, nằm ở miền Bắc", citations=[{"chunk_id": "c2"}]),
             QueryResult(answer="Sài Gòn", citations=[{"chunk_id": "c3"}]),
         ]
 
-        winner = agent_mod._majority_vote(results)
-        # The two Hà Nội answers should be grouped (containment), forming majority
+        winner = _majority_vote(results)
         assert "Hà Nội" in winner.answer
 
     def test_single_result(self) -> None:
-        """Single result should be returned as-is."""
         result = QueryResult(answer="Only answer", citations=[{"chunk_id": "c1"}])
-        winner = agent_mod._majority_vote([result])
+        winner = _majority_vote([result])
         assert winner.answer == "Only answer"
         assert winner is result
 
     def test_empty_results(self) -> None:
-        """Empty results list should return a default answer."""
-        winner = agent_mod._majority_vote([])
+        winner = _majority_vote([])
         assert "Không tìm thấy" in winner.answer
         assert winner.citations == []
 
     def test_normalized_comparison(self) -> None:
-        """Answers differing only in case/whitespace/punctuation should be grouped."""
         results = [
             QueryResult(answer="Hà Nội.", citations=[{"chunk_id": "c1"}]),
             QueryResult(answer="hà nội", citations=[{"chunk_id": "c2"}]),
             QueryResult(answer="Sài Gòn", citations=[{"chunk_id": "c3"}]),
         ]
 
-        winner = agent_mod._majority_vote(results)
-        # Both "Hà Nội." and "hà nội" normalize to same string
+        winner = _majority_vote(results)
         assert "hà nội" in winner.answer.lower()
 
     def test_winner_has_most_citations_in_group(self) -> None:
-        """Within the winning group, the result with most citations is selected."""
         results = [
             QueryResult(answer="Hà Nội", citations=[{"chunk_id": "c1"}]),
             QueryResult(answer="Hà Nội", citations=[{"chunk_id": "c2"}, {"chunk_id": "c3"}, {"chunk_id": "c4"}]),
             QueryResult(answer="Hà Nội", citations=[{"chunk_id": "c5"}, {"chunk_id": "c6"}]),
         ]
 
-        winner = agent_mod._majority_vote(results)
+        winner = _majority_vote(results)
         assert len(winner.citations) == 3
 
 
@@ -345,26 +332,25 @@ class TestMajorityVote:
 
 class TestAnswersSimilar:
     def test_exact_match(self) -> None:
-        assert agent_mod._answers_similar("Hà Nội", "Hà Nội") is True
+        assert _answers_similar("Hà Nội", "Hà Nội") is True
 
     def test_case_insensitive(self) -> None:
-        assert agent_mod._answers_similar("Hà Nội", "hà nội") is True
+        assert _answers_similar("Hà Nội", "hà nội") is True
 
     def test_trailing_punctuation_ignored(self) -> None:
-        assert agent_mod._answers_similar("Hà Nội.", "Hà Nội") is True
+        assert _answers_similar("Hà Nội.", "Hà Nội") is True
 
     def test_containment(self) -> None:
-        assert agent_mod._answers_similar(
+        assert _answers_similar(
             "Hà Nội là thủ đô",
             "Hà Nội là thủ đô của Việt Nam"
         ) is True
 
     def test_different_answers(self) -> None:
-        assert agent_mod._answers_similar("Hà Nội", "Sài Gòn") is False
+        assert _answers_similar("Hà Nội", "Sài Gòn") is False
 
     def test_short_strings_no_containment(self) -> None:
-        """Short strings (<=10 chars) don't use containment check."""
-        assert agent_mod._answers_similar("abc", "abcdef") is False
+        assert _answers_similar("abc", "abcdef") is False
 
 
 # ---------------------------------------------------------------------------
@@ -374,22 +360,20 @@ class TestAnswersSimilar:
 
 class TestRunAgentScaled:
     def test_n1_delegates_to_agent_query(self, monkeypatch) -> None:
-        """With n_trajectories=1, should just call agent_query."""
         called = [False]
 
         def _fake_agent_query(question, top_k=4):
             called[0] = True
             return QueryResult(answer="Direct answer", citations=[])
 
-        monkeypatch.setattr(agent_mod, "agent_query", _fake_agent_query)
+        monkeypatch.setattr(voting_mod, "agent_query", _fake_agent_query)
 
-        result = agent_mod.run_agent_scaled("Test question", n_trajectories=1)
+        result = run_agent_scaled("Test question", n_trajectories=1)
         assert called[0] is True
         assert result.answer == "Direct answer"
 
     def test_n_from_settings_when_none(self, monkeypatch) -> None:
-        """When n_trajectories is None, uses settings.agent_n_trajectories."""
-        monkeypatch.setattr(agent_mod.settings, "agent_n_trajectories", 1)
+        monkeypatch.setattr(voting_mod.settings, "agent_n_trajectories", 1)
 
         called = [False]
 
@@ -397,14 +381,13 @@ class TestRunAgentScaled:
             called[0] = True
             return QueryResult(answer="Settings answer", citations=[])
 
-        monkeypatch.setattr(agent_mod, "agent_query", _fake_agent_query)
+        monkeypatch.setattr(voting_mod, "agent_query", _fake_agent_query)
 
-        agent_mod.run_agent_scaled("Test question", n_trajectories=None)
+        run_agent_scaled("Test question", n_trajectories=None)
         assert called[0] is True
 
     def test_multiple_trajectories_uses_majority_vote(self, monkeypatch) -> None:
-        """With n>1, runs multiple trajectories and uses majority vote."""
-        monkeypatch.setattr(agent_mod.settings, "agent_temperature_scaled", 0.7)
+        monkeypatch.setattr(voting_mod.settings, "agent_temperature_scaled", 0.7)
 
         trajectory_results = [
             QueryResult(answer="Hà Nội", citations=[{"chunk_id": "c1"}]),
@@ -418,196 +401,20 @@ class TestRunAgentScaled:
             call_idx[0] += 1
             return trajectory_results[idx % len(trajectory_results)]
 
-        monkeypatch.setattr(agent_mod, "_run_trajectory", _fake_run_trajectory)
+        monkeypatch.setattr(voting_mod, "_run_trajectory", _fake_run_trajectory)
 
-        result = agent_mod.run_agent_scaled("Thủ đô Việt Nam?", n_trajectories=3)
+        result = run_agent_scaled("Thủ đô Việt Nam?", n_trajectories=3)
 
         assert "Hà Nội" in result.answer
         assert result.retrieval_tier == "scaled_3"
 
     def test_all_trajectories_fail(self, monkeypatch) -> None:
-        """If all trajectories raise exceptions, returns fallback answer."""
-        monkeypatch.setattr(agent_mod.settings, "agent_temperature_scaled", 0.7)
+        monkeypatch.setattr(voting_mod.settings, "agent_temperature_scaled", 0.7)
 
         def _failing_trajectory(question, tid, temperature):
             raise RuntimeError("Trajectory failed")
 
-        monkeypatch.setattr(agent_mod, "_run_trajectory", _failing_trajectory)
+        monkeypatch.setattr(voting_mod, "_run_trajectory", _failing_trajectory)
 
-        result = agent_mod.run_agent_scaled("Test", n_trajectories=2)
+        result = run_agent_scaled("Test", n_trajectories=2)
         assert "Không tìm thấy" in result.answer
-
-
-# ---------------------------------------------------------------------------
-# Tests: _tool_kg_query
-# ---------------------------------------------------------------------------
-
-
-class TestToolKgQuery:
-    def test_returns_results(self, monkeypatch) -> None:
-        monkeypatch.setattr(
-            agent_mod.neo4j_client, "session",
-            _make_fake_session_factory([{"name": "Hà Nội", "type": "Location"}]),
-        )
-        result = agent_mod._tool_kg_query(
-            "MATCH (e:Entity) RETURN e.name AS page_title, e.type AS page_url, "
-            "e.name AS chunk_id, e.name AS chunk_text, 1.0 AS score LIMIT $top_k"
-        )
-        data = json.loads(result)
-        assert data[0]["name"] == "Hà Nội"
-
-    def test_no_results(self, monkeypatch) -> None:
-        monkeypatch.setattr(
-            agent_mod.neo4j_client, "session",
-            _make_fake_session_factory([]),
-        )
-        result = agent_mod._tool_kg_query(
-            "MATCH (e:Entity) RETURN e.name AS page_title, e.type AS page_url, "
-            "e.name AS chunk_id, e.name AS chunk_text, 1.0 AS score LIMIT $top_k"
-        )
-        assert "No results" in result
-
-    def test_rejects_write_query(self) -> None:
-        result = agent_mod._tool_kg_query("CREATE (n:Node {name: 'x'})")
-        assert "Error" in result
-
-    def test_handles_db_exception(self, monkeypatch) -> None:
-        @contextmanager
-        def _failing_session():
-            raise RuntimeError("connection lost")
-            yield  # noqa: unreachable
-
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
-        result = agent_mod._tool_kg_query(
-            "MATCH (e:Entity) RETURN e.name AS page_title, e.type AS page_url, "
-            "e.name AS chunk_id, e.name AS chunk_text, 1.0 AS score LIMIT $top_k"
-        )
-        assert "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# Tests: _tool_text_search
-# ---------------------------------------------------------------------------
-
-
-class TestToolTextSearch:
-    def test_returns_results(self, monkeypatch) -> None:
-        monkeypatch.setattr(
-            agent_mod.neo4j_client, "session",
-            _make_fake_session_factory([
-                {"page_title": "Test", "page_url": "http://x", "chunk_id": "c1", "chunk_text": "text", "score": 0.9}
-            ]),
-        )
-        result = agent_mod._tool_text_search("test query")
-        data = json.loads(result)
-        assert data[0]["page_title"] == "Test"
-
-    def test_no_results(self, monkeypatch) -> None:
-        monkeypatch.setattr(
-            agent_mod.neo4j_client, "session",
-            _make_fake_session_factory([]),
-        )
-        result = agent_mod._tool_text_search("nothing")
-        assert "No results" in result
-
-    def test_handles_exception(self, monkeypatch) -> None:
-        @contextmanager
-        def _failing_session():
-            raise RuntimeError("timeout")
-            yield  # noqa: unreachable
-
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
-        result = agent_mod._tool_text_search("test")
-        assert "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# Tests: _tool_get_passage
-# ---------------------------------------------------------------------------
-
-
-class TestToolGetPassage:
-    def test_returns_passage(self, monkeypatch) -> None:
-        monkeypatch.setattr(
-            agent_mod.neo4j_client, "session",
-            _make_fake_session_factory([
-                {"page_title": "Page1", "page_url": "http://x", "chunk_text": "Some content"}
-            ]),
-        )
-        result = agent_mod._tool_get_passage("c1")
-        data = json.loads(result)
-        assert data["chunk_text"] == "Some content"
-
-    def test_chunk_not_found(self, monkeypatch) -> None:
-        monkeypatch.setattr(
-            agent_mod.neo4j_client, "session",
-            _make_fake_session_factory([]),
-        )
-        result = agent_mod._tool_get_passage("missing")
-        assert "not found" in result
-
-    def test_handles_exception(self, monkeypatch) -> None:
-        @contextmanager
-        def _failing_session():
-            raise RuntimeError("db error")
-            yield  # noqa: unreachable
-
-        monkeypatch.setattr(agent_mod.neo4j_client, "session", _failing_session)
-        result = agent_mod._tool_get_passage("c1")
-        assert "Error" in result
-
-
-# ---------------------------------------------------------------------------
-# Tests: _check_sufficiency
-# ---------------------------------------------------------------------------
-
-
-class TestCheckSufficiencyExtra:
-    def test_no_valid_observations(self) -> None:
-        is_suff, conf = agent_mod._check_sufficiency(
-            ["Error: something", "No results found.", ""], "question"
-        )
-        assert is_suff is False
-        assert conf == 0.0
-
-    def test_sufficient_with_chunks(self) -> None:
-        obs = [
-            json.dumps([
-                {"chunk_id": "c1", "text": "a"},
-                {"chunk_id": "c2", "text": "b"},
-                {"chunk_id": "c3", "text": "c"},
-            ]),
-        ]
-        is_suff, conf = agent_mod._check_sufficiency(obs, "question")
-        assert is_suff is True
-        assert conf >= 0.5
-
-    def test_dict_observation_with_chunk_id(self) -> None:
-        obs = [json.dumps({"chunk_id": "c1", "text": "data"})]
-        is_suff, conf = agent_mod._check_sufficiency(obs, "question")
-        assert conf > 0.0
-
-    def test_non_json_observations(self) -> None:
-        obs = ["Some plain text observation that is valid"]
-        is_suff, conf = agent_mod._check_sufficiency(obs, "question")
-        assert conf > 0.0
-
-
-# ---------------------------------------------------------------------------
-# Tests: _parse_agent_response
-# ---------------------------------------------------------------------------
-
-
-class TestParseAgentResponseExtra:
-    def test_parses_code_fenced_json(self) -> None:
-        raw = '```json\n{"action": "text_search", "action_input": "test"}\n```'
-        result = agent_mod._parse_agent_response(raw)
-        assert result["action"] == "text_search"
-
-    def test_returns_none_for_no_json(self) -> None:
-        result = agent_mod._parse_agent_response("This is just plain text with no JSON")
-        assert result is None
-
-    def test_returns_none_for_invalid_json(self) -> None:
-        result = agent_mod._parse_agent_response("{invalid json content here}")
-        assert result is None

@@ -34,8 +34,13 @@ class Settings(BaseSettings):
     phonlp_model_dir: str = ".phonlp"
     vncorenlp_dir: str = ".vncorenlp"
 
+    # local: HuggingFace model in-process (may require torch/bnb)
+    # api: Gemini API
+    # ollama: local Ollama server (http://127.0.0.1:11434)
     model_mode: str = "local"
     local_model_id: str = "AITeamVN/Vi-Qwen2-7B-RAG"
+    ollama_base_url: str = "http://127.0.0.1:11434"
+    ollama_model: str = "qwen2.5:7b-instruct"
 
     app_api_key: str | None = None
     rate_limit_per_minute: int = 120
@@ -96,8 +101,8 @@ class Settings(BaseSettings):
     @classmethod
     def validate_model_mode(cls, value: str) -> str:
         mode = (value or "").strip().lower()
-        if mode not in {"local", "api"}:
-            raise ValueError("model_mode must be 'local' or 'api'")
+        if mode not in {"local", "api", "ollama"}:
+            raise ValueError("model_mode must be 'local', 'ollama', or 'api'")
         return mode
 
     @field_validator("neo4j_uri", "neo4j_username", "neo4j_password", mode="before")

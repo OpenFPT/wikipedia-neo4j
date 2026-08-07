@@ -140,8 +140,8 @@ def _build_cypher_user_prompt(question: str) -> str:
 
 
 def _generate_cypher_local(question: str) -> str:
-    """Generate Cypher using the local SLM."""
-    from src.infrastructure.local_llm import chat
+    """Generate Cypher using the configured local chat backend (HF or Ollama)."""
+    from src.infrastructure.chat_model import chat
 
     messages = [
         {"role": "system", "content": _CYPHER_SYSTEM_PROMPT},
@@ -202,7 +202,7 @@ def _generate_cypher_gemini(question: str) -> str:
 
 def generate_readonly_cypher(question: str) -> str:
     """Generate a read-only Cypher query for a natural-language question."""
-    if settings.model_mode == "local":
+    if settings.model_mode in {"local", "ollama"}:
         return _generate_cypher_local(question)
     return _generate_cypher_gemini(question)
 

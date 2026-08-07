@@ -1,146 +1,108 @@
-"""Gradio web demo: query → reasoning trace → cited answer."""
+"""Gradio chat demo backed by the GraphRAG pipeline (Neo4j + Qdrant + LLM)."""
 
 from __future__ import annotations
 
-import json
-import time
+import sys
+from pathlib import Path
+import os
 
 import gradio as gr
 
-from src.orchestration.tools import kg_query, text_search, ToolResult
-from src.logging_utils import get_logger
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
-logger = get_logger(__name__)
-
-
-def format_tool_result(result: ToolResult) -> str:
-    """Format a tool result for display."""
-    if not result.success:
-        return f"[Error] {result.error}"
-    if isinstance(result.data, list):
-        return json.dumps(result.data[:5], ensure_ascii=False, indent=2)
-    if isinstance(result.data, dict):
-        return json.dumps(result.data, ensure_ascii=False, indent=2)
-    return str(result.data)
+from src.retrieval.hybrid import query_graph
 
 
-def process_query(question: str, top_k: int = 5) -> tuple[str, str, str]:
-    """Process a question through the agent pipeline.
+def _answer(question: str) -> str:
+    # Keep retrieval grounded: use only the latest user message.
+    result = query_graph(question, top_k=4)
+    # De-dup citations by page_url for a cleaner UI.
+    seen: set[str] = set()
+    deduped = []
+    for c in (result.citations or []):
+        url = str(c.get("page_url", "") or "")
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        deduped.append(c)
 
-    Returns: (answer, reasoning_trace, citations)
-    """
-    if not question.strip():
-        return "Please enter a question.", "", ""
-
-    trace_steps = []
-    start = time.time()
-
-    # Step 1: Text search for relevant passages
-    trace_steps.append("**Step 1:** Searching for relevant passages...")
-    search_result = text_search(question, top_k=top_k)
-    passages: list[dict] = search_result.data if search_result.success and isinstance(search_result.data, list) else []
-
-    if passages:
-        trace_steps.append(f"  Found {len(passages)} passages")
-        for i, p in enumerate(passages[:3]):
-            trace_steps.append(f"  [{i+1}] {p.get('article_title', 'Unknown')} (score: {p.get('score', 0):.3f})")
-
-    # Step 2: Try KG query for structured answer
-    trace_steps.append("\n**Step 2:** Querying knowledge graph...")
-    kg_result = kg_query(
-        "MATCH (e)-[r]->(t) WHERE toLower(e.name) CONTAINS toLower($q) "
-        "RETURN e.name AS source, type(r) AS relation, t.name AS target LIMIT 5",
-        params={"q": question},
-    )
-    kg_data: list[dict] = kg_result.data if kg_result.success and isinstance(kg_result.data, list) else []
-
-    if kg_data:
-        trace_steps.append(f"  Found {len(kg_data)} KG triples")
-        for triple in kg_data[:3]:
-            trace_steps.append(f"  {triple.get('source', '?')} --[{triple.get('relation', '?')}]--> {triple.get('target', '?')}")
-    else:
-        trace_steps.append("  No KG results found")
-
-    # Step 3: Synthesize answer
-    trace_steps.append("\n**Step 3:** Synthesizing answer...")
-    elapsed = time.time() - start
-
-    # Build answer from retrieved context
-    answer_parts = []
-    if kg_data:
-        answer_parts.append("From Knowledge Graph:")
-        for triple in kg_data[:3]:
-            answer_parts.append(f"  - {triple.get('source', '')} → {triple.get('relation', '')} → {triple.get('target', '')}")
-
-    if passages:
-        answer_parts.append("\nFrom Text Retrieval:")
-        for p in passages[:2]:
-            text_snippet = p.get("text", "")[:200]
-            answer_parts.append(f"  [{p.get('article_title', '')}]: {text_snippet}...")
-
-    if not answer_parts:
-        answer = "Could not find relevant information. Try rephrasing your question or ingesting more data."
-    else:
-        answer = "\n".join(answer_parts)
-
-    trace_steps.append(f"\n**Done** in {elapsed:.2f}s")
-    reasoning_trace = "\n".join(trace_steps)
-
-    # Citations
-    citations_parts = []
-    if passages:
-        for p in passages[:5]:
-            citations_parts.append(f"- **{p.get('article_title', 'Unknown')}** (paragraph: {p.get('paragraph_id', '')[:8]}...)")
-    citations = "\n".join(citations_parts) if citations_parts else "No citations available."
-
-    return answer, reasoning_trace, citations
+    citations = "\n".join(
+        f"- {c.get('page_title','')} ({c.get('page_url','')})" for c in deduped
+    ) or "No citations."
+    return f"{result.answer}\n\nCitations:\n{citations}"
 
 
-def build_demo() -> gr.Blocks:
-    """Build the Gradio interface."""
-    with gr.Blocks(title="ViWiki-MHR Demo", theme=gr.themes.Soft()) as demo:
-        gr.Markdown("# ViWiki-MHR: Vietnamese Multi-Hop Reasoning")
-        gr.Markdown("Ask questions about Vietnamese Wikipedia. The system uses Knowledge Graph + Text Retrieval.")
+def _normalize_history(chat_history):
+    # Gradio Chatbot expects list[{"role","content"}], but legacy tuple history can
+    # slip through depending on wiring/version. Normalize to avoid postprocess errors.
+    if not chat_history:
+        return []
 
-        with gr.Row():
-            with gr.Column(scale=2):
-                question_input = gr.Textbox(
-                    label="Question (Vietnamese)",
-                    placeholder="Ví dụ: Ai là người sáng lập Đảng Cộng sản Việt Nam?",
-                    lines=2,
-                )
-                top_k_slider = gr.Slider(minimum=1, maximum=10, value=5, step=1, label="Top-K Results")
-                submit_btn = gr.Button("Ask", variant="primary")
+    normalized: list[dict] = []
+    for item in chat_history:
+        if isinstance(item, dict):
+            role = item.get("role")
+            content = item.get("content")
+            if role in ("user", "assistant") and content is not None:
+                normalized.append({"role": role, "content": str(content)})
+            continue
 
-            with gr.Column(scale=3):
-                answer_output = gr.Textbox(label="Answer", lines=8)
+        if isinstance(item, (tuple, list)) and len(item) == 2:
+            user_msg, bot_msg = item
+            if user_msg is not None and str(user_msg).strip():
+                normalized.append({"role": "user", "content": str(user_msg)})
+            if bot_msg is not None and str(bot_msg).strip():
+                normalized.append({"role": "assistant", "content": str(bot_msg)})
+            continue
 
-        with gr.Row():
-            with gr.Column():
-                trace_output = gr.Markdown(label="Reasoning Trace")
-            with gr.Column():
-                citations_output = gr.Markdown(label="Citations")
+    return normalized
 
-        submit_btn.click(
-            fn=process_query,
-            inputs=[question_input, top_k_slider],
-            outputs=[answer_output, trace_output, citations_output],
-        )
-        question_input.submit(
-            fn=process_query,
-            inputs=[question_input, top_k_slider],
-            outputs=[answer_output, trace_output, citations_output],
-        )
 
-        gr.Markdown("---")
-        gr.Markdown("Built with Gradio | ViWiki-MHR Project")
-
-    return demo
+def _on_submit(message: str, chat_history):
+    message = (message or "").strip()
+    if not message:
+        return "", chat_history
+    resp = _answer(message)
+    chat_history = _normalize_history(chat_history) + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": resp},
+    ]
+    return "", chat_history
 
 
 def main() -> None:
-    demo = build_demo()
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    with gr.Blocks(title="Wikipedia Neo4j GraphRAG Chat") as demo:
+        gr.Markdown("# Wikipedia Neo4j GraphRAG Chat")
+        gr.Markdown(
+            "Hỏi bằng tiếng Việt/English đều được. Câu trả lời luôn kèm trích dẫn từ Wikipedia (Neo4j)."
+        )
+        gr.Markdown("UI build: `dedup-citations-v2`")
+
+        # Explicitly use messages format to match our {role,content} history payload.
+        chatbot = gr.Chatbot(label="Chat", height=520, type="messages")
+        msg = gr.Textbox(
+            label="Câu hỏi",
+            placeholder="Ví dụ: Hồ Chí Minh là ai?",
+            lines=2,
+        )
+        send = gr.Button("Gửi", variant="primary")
+
+        send.click(_on_submit, inputs=[msg, chatbot], outputs=[msg, chatbot])
+        msg.submit(_on_submit, inputs=[msg, chatbot], outputs=[msg, chatbot])
+
+    # Prefer 7860, but fall back if something else is already bound.
+    base_port = int(os.environ.get("GRADIO_SERVER_PORT", "7860"))
+    last_err: Exception | None = None
+    for port in range(base_port, base_port + 11):
+        try:
+            demo.launch(server_name="0.0.0.0", server_port=port, share=False)
+            return
+        except OSError as e:
+            last_err = e
+            continue
+    raise last_err or RuntimeError("Failed to launch Gradio server.")
 
 
 if __name__ == "__main__":

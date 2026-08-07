@@ -78,6 +78,14 @@ uv run python -m scripts.setup_neo4j_schema
 
 Tạo constraints + indexes cho các node types: Article, Paragraph, Person, Organization, Location, Work, Event.
 
+## (Tuỳ chọn) Kiểm tra kết nối Neo4j Aura nhanh
+
+Nếu bạn dùng Neo4j Aura (cloud) hoặc muốn check `.env` đang đúng, chạy:
+
+```bash
+uv run python -m scripts.check_neo4j_connection
+```
+
 ---
 
 ## Bước 4: Download dữ liệu Wikipedia

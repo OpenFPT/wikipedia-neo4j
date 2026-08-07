@@ -1,0 +1,437 @@
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
+
+export type Locale = "en" | "vi";
+
+const en = {
+  appName: "Knowledge",
+  demo: "Demo",
+  back: "Back",
+  cancel: "Cancel",
+  close: "Close",
+  continue: "Continue",
+  create: "Create",
+  connect: "Connect",
+  done: "Done",
+  save: "Save",
+  delete: "Delete",
+  retry: "Try again",
+  ready: "Ready",
+  indexing: "Indexing",
+  offline: "Offline",
+  connected: "Connected",
+  imported: "Imported",
+  recommended: "Recommended",
+  local: "Local",
+  hosted: "Hosted",
+  newChat: "New chat",
+  searchChats: "Search chats",
+  knowledgeBases: "Knowledge bases",
+  chats: "Chat",
+  noChats: "No chats yet",
+  noMatchingChats: "No matching chats",
+  more: "More options",
+  renameChat: "Rename chat",
+  renameChatDescription: "Choose a clear name for this chat.",
+  chatName: "Chat name",
+  deleteChat: "Delete chat",
+  deleteChatDescription: "“{title}” and its messages will be removed.",
+  deleteAllChats: "Delete all chats",
+  deleteAllChatsDescription: "All chats and their messages will be removed.",
+  settings: "Settings",
+  collapseSidebar: "Collapse sidebar",
+  expandSidebar: "Expand sidebar",
+  openNavigation: "Open navigation",
+  closeNavigation: "Close navigation",
+  modelsAndProviders: "Models and providers",
+  english: "English",
+  vietnamese: "Tiếng Việt",
+  welcomeTitle: "How can I help you today?",
+  welcomeDescription:
+    "Choose a knowledge base or start a regular conversation.",
+  messagePlaceholder: "Message Knowledge",
+  followupPlaceholder: "Ask a follow-up…",
+  attachDocument: "Add documents",
+  sendMessage: "Send message",
+  assistantName: "Knowledge",
+  generating: "Generating response…",
+  copy: "Copy",
+  copied: "Copied",
+  retrievedSources: "Retrieved {count} sources",
+  completedIn: "Completed in {seconds}s",
+  simulationFailed: "The simulated request failed. Try again.",
+  noKnowledge: "No knowledge",
+  allKnowledgeBases: "All knowledge bases",
+  selectKnowledgeBase: "Choose knowledge base",
+  unavailable: "Unavailable",
+  context: "Context",
+  evidence: "Evidence",
+  graph: "Graph",
+  retrievalDetails: "Retrieval details",
+  retrievalRun: "Retrieval run",
+  sourcesWillAppear: "Evidence will appear after retrieval.",
+  found: "{count} found",
+  searchKnowledge: "Search knowledge",
+  searchStage: "Searching knowledge bases",
+  understandStage: "Understanding your question",
+  graphStage: "Following related context",
+  fusionStage: "Combining ranked evidence",
+  generateStage: "Writing the answer",
+  prepareStage: "Preparing the conversation",
+  selectedNode: "Selected node",
+  connectedNodes: "{count} connected nodes",
+  answerPath: "Path in answer",
+  zoomIn: "Zoom in",
+  zoomOut: "Zoom out",
+  resetView: "Reset view",
+  graphCanvas: "Knowledge graph",
+  graphInstructions:
+    "Drag to pan, use the controls to zoom, and select a node for details.",
+  graphRag: "GraphRAG",
+  neo4j: "Neo4j",
+  knowledgeGraph: "Knowledge graph",
+  vectorSearch: "Vector search",
+  entities: "Entities",
+  relations: "Relations",
+  contextNode: "Context",
+  answer: "Answer",
+  sourcePassage: "Source passage",
+  evidenceNode: "Evidence",
+  knowledgeTitle: "Knowledge bases",
+  knowledgeDescription:
+    "Create separate spaces for documents or connect hosted knowledge.",
+  newKnowledgeBase: "New knowledge base",
+  createKnowledgeBase: "Create knowledge base",
+  localKnowledgeBase: "Local documents",
+  hostedKnowledgeBase: "Hosted connection",
+  knowledgeBaseName: "Name",
+  knowledgeBaseNamePlaceholder: "e.g. Product research",
+  endpoint: "Endpoint",
+  endpointPlaceholder: "https://knowledge.example.com",
+  addDocuments: "Add documents",
+  documentFormats: "PDF, Markdown, or plain text",
+  documents: "Documents",
+  chunks: "chunks",
+  updatedToday: "Updated today",
+  reindex: "Reindex",
+  remove: "Remove",
+  noKnowledgeBases: "No knowledge bases yet",
+  noKnowledgeDescription:
+    "Create one from your documents or connect a hosted source.",
+  graphPreview: "Graph preview",
+  indexingFile: "Extracting content and building connections…",
+  unsupportedFile: "Only PDF, Markdown, and text files are supported.",
+  importedFile: "{name} was added",
+  sourcesConnected: "{count} sources connected",
+  kbThesisDescription: "Private notes and papers for the current thesis.",
+  kbWikiDescription: "A hosted Vietnamese Wikipedia knowledge graph.",
+  kbProductDescription: "Product briefs currently being indexed.",
+  models: "Models",
+  onDevice: "On device",
+  providers: "Providers",
+  manageModels: "Manage models and providers",
+  modelDescription: "Choose local models or connect a provider account.",
+  installedModels: "Available models",
+  providerConnections: "Provider connections",
+  addLocalModel: "Import GGUF",
+  connectProvider: "Connect provider",
+  apiKey: "API key",
+  apiKeyPlaceholder: "Enter API key",
+  baseUrl: "Base URL",
+  saveConnection: "Save connection",
+  connectionSaved: "Provider connection saved",
+  modelReady: "Ready to use",
+  modelAvailable: "Available to download",
+  download: "Download",
+  load: "Load",
+  appearance: "Appearance",
+  light: "Light",
+  dark: "Dark",
+  useLightTheme: "Use light theme",
+  useDarkTheme: "Use dark theme",
+  interfaceLanguage: "Interface language",
+  welcomeToKnowledge: "Welcome to Knowledge",
+  onboardingIntro:
+    "Set up how you want to chat. You can change everything later.",
+  chooseLanguage: "Choose your language",
+  chooseModel: "Choose a model",
+  modelStepDescription:
+    "Use the recommended local model or a connected provider.",
+  addFirstKnowledge: "Add your first knowledge base",
+  knowledgeStepDescription:
+    "Start with the included demo or continue without knowledge.",
+  useDemoKnowledge: "Use demo knowledge",
+  continueWithoutKnowledge: "Continue without knowledge",
+  startChat: "Start chatting",
+  stepOf: "Step {step} of {total}",
+  threadArchitecture: "GraphRAG and Neo4j",
+  threadEvaluation: "Evaluate retrieval evidence",
+  threadModel: "Recommended model setup",
+  normalConversation: "Regular conversation",
+  allKnowledgeDescription: "Search every available knowledge base.",
+  singleKnowledgeDescription: "Search only {name}.",
+  answerUngrounded:
+    "This simulated response uses the selected model without retrieving from a knowledge base. Your question was: “{subject}”.",
+  answerUngroundedFollowup:
+    "Choose a knowledge base from the composer when you want an answer grounded in your own or connected sources.",
+  answerGrounded:
+    "The simulated retrieval searched {knowledge} for “{subject}”. It found passages that connect semantic similarity with graph relationships, then supplied the strongest evidence to the selected model. [1]",
+  answerGroundedFollowup:
+    "The graph path adds surrounding context that a flat search can miss, while ranked fusion prevents a single source from dominating the answer. [2]",
+  error: "Error",
+  somethingWentWrong: "Something went wrong",
+  errorDescription:
+    "The application hit an unexpected error. Reload and try again.",
+  relaunchApp: "Relaunch app",
+  pageNotFound: "Page not found",
+  pageNotFoundDescription: "The page you requested does not exist.",
+} as const;
+
+export type MessageKey = keyof typeof en;
+
+const vi: Record<MessageKey, string> = {
+  appName: "Knowledge",
+  demo: "Mô phỏng",
+  back: "Quay lại",
+  cancel: "Hủy",
+  close: "Đóng",
+  continue: "Tiếp tục",
+  create: "Tạo",
+  connect: "Kết nối",
+  done: "Xong",
+  save: "Lưu",
+  delete: "Xóa",
+  retry: "Thử lại",
+  ready: "Sẵn sàng",
+  indexing: "Đang lập chỉ mục",
+  offline: "Ngoại tuyến",
+  connected: "Đã kết nối",
+  imported: "Đã nhập",
+  recommended: "Đề xuất",
+  local: "Cục bộ",
+  hosted: "Trực tuyến",
+  newChat: "Cuộc trò chuyện mới",
+  searchChats: "Tìm cuộc trò chuyện",
+  knowledgeBases: "Kho tri thức",
+  chats: "Trò chuyện",
+  noChats: "Chưa có cuộc trò chuyện",
+  noMatchingChats: "Không có cuộc trò chuyện phù hợp",
+  more: "Tùy chọn khác",
+  renameChat: "Đổi tên cuộc trò chuyện",
+  renameChatDescription: "Đặt một tên dễ nhận biết cho cuộc trò chuyện này.",
+  chatName: "Tên cuộc trò chuyện",
+  deleteChat: "Xóa cuộc trò chuyện",
+  deleteChatDescription: "“{title}” và các tin nhắn sẽ bị xóa.",
+  deleteAllChats: "Xóa tất cả cuộc trò chuyện",
+  deleteAllChatsDescription: "Tất cả cuộc trò chuyện và tin nhắn sẽ bị xóa.",
+  settings: "Cài đặt",
+  collapseSidebar: "Thu gọn thanh bên",
+  expandSidebar: "Mở rộng thanh bên",
+  openNavigation: "Mở điều hướng",
+  closeNavigation: "Đóng điều hướng",
+  modelsAndProviders: "Mô hình và nhà cung cấp",
+  english: "English",
+  vietnamese: "Tiếng Việt",
+  welcomeTitle: "Hôm nay tôi có thể giúp gì cho bạn?",
+  welcomeDescription:
+    "Chọn một kho tri thức hoặc bắt đầu trò chuyện thông thường.",
+  messagePlaceholder: "Nhắn cho Knowledge",
+  followupPlaceholder: "Hỏi thêm…",
+  attachDocument: "Thêm tài liệu",
+  sendMessage: "Gửi tin nhắn",
+  assistantName: "Knowledge",
+  generating: "Đang tạo câu trả lời…",
+  copy: "Sao chép",
+  copied: "Đã sao chép",
+  retrievedSources: "Đã truy xuất {count} nguồn",
+  completedIn: "Hoàn tất trong {seconds} giây",
+  simulationFailed: "Yêu cầu mô phỏng thất bại. Vui lòng thử lại.",
+  noKnowledge: "Không dùng kho tri thức",
+  allKnowledgeBases: "Tất cả kho tri thức",
+  selectKnowledgeBase: "Chọn kho tri thức",
+  unavailable: "Không khả dụng",
+  context: "Ngữ cảnh",
+  evidence: "Nguồn",
+  graph: "Đồ thị",
+  retrievalDetails: "Chi tiết truy xuất",
+  retrievalRun: "Lần truy xuất",
+  sourcesWillAppear: "Nguồn sẽ xuất hiện sau khi truy xuất.",
+  found: "Tìm thấy {count}",
+  searchKnowledge: "Tìm trong kho tri thức",
+  searchStage: "Đang tìm trong kho tri thức",
+  understandStage: "Đang hiểu câu hỏi",
+  graphStage: "Đang theo các ngữ cảnh liên quan",
+  fusionStage: "Đang kết hợp bằng chứng đã xếp hạng",
+  generateStage: "Đang viết câu trả lời",
+  prepareStage: "Đang chuẩn bị cuộc trò chuyện",
+  selectedNode: "Nút đang chọn",
+  connectedNodes: "{count} nút liên kết",
+  answerPath: "Đường dẫn trong câu trả lời",
+  zoomIn: "Phóng to",
+  zoomOut: "Thu nhỏ",
+  resetView: "Đặt lại khung nhìn",
+  graphCanvas: "Đồ thị tri thức",
+  graphInstructions:
+    "Kéo để di chuyển, dùng nút điều khiển để thu phóng và chọn một nút để xem chi tiết.",
+  graphRag: "GraphRAG",
+  neo4j: "Neo4j",
+  knowledgeGraph: "Đồ thị tri thức",
+  vectorSearch: "Tìm kiếm véc-tơ",
+  entities: "Thực thể",
+  relations: "Quan hệ",
+  contextNode: "Ngữ cảnh",
+  answer: "Câu trả lời",
+  sourcePassage: "Đoạn nguồn",
+  evidenceNode: "Bằng chứng",
+  knowledgeTitle: "Kho tri thức",
+  knowledgeDescription:
+    "Tạo không gian riêng cho tài liệu hoặc kết nối kho tri thức trực tuyến.",
+  newKnowledgeBase: "Kho tri thức mới",
+  createKnowledgeBase: "Tạo kho tri thức",
+  localKnowledgeBase: "Tài liệu cục bộ",
+  hostedKnowledgeBase: "Kết nối trực tuyến",
+  knowledgeBaseName: "Tên",
+  knowledgeBaseNamePlaceholder: "Ví dụ: Nghiên cứu sản phẩm",
+  endpoint: "Địa chỉ kết nối",
+  endpointPlaceholder: "https://knowledge.example.com",
+  addDocuments: "Thêm tài liệu",
+  documentFormats: "PDF, Markdown hoặc văn bản thuần",
+  documents: "Tài liệu",
+  chunks: "đoạn",
+  updatedToday: "Cập nhật hôm nay",
+  reindex: "Lập chỉ mục lại",
+  remove: "Xóa",
+  noKnowledgeBases: "Chưa có kho tri thức",
+  noKnowledgeDescription:
+    "Tạo từ tài liệu của bạn hoặc kết nối một nguồn trực tuyến.",
+  graphPreview: "Xem trước đồ thị",
+  indexingFile: "Đang trích xuất nội dung và xây dựng liên kết…",
+  unsupportedFile: "Chỉ hỗ trợ tệp PDF, Markdown và văn bản.",
+  importedFile: "Đã thêm {name}",
+  sourcesConnected: "Đã kết nối {count} nguồn",
+  kbThesisDescription: "Ghi chú và tài liệu riêng cho luận văn hiện tại.",
+  kbWikiDescription:
+    "Đồ thị tri thức Wikipedia tiếng Việt được lưu trữ trực tuyến.",
+  kbProductDescription: "Các tài liệu sản phẩm đang được lập chỉ mục.",
+  models: "Mô hình",
+  onDevice: "Trên thiết bị",
+  providers: "Nhà cung cấp",
+  manageModels: "Quản lý mô hình và nhà cung cấp",
+  modelDescription: "Chọn mô hình cục bộ hoặc kết nối tài khoản nhà cung cấp.",
+  installedModels: "Mô hình khả dụng",
+  providerConnections: "Kết nối nhà cung cấp",
+  addLocalModel: "Nhập GGUF",
+  connectProvider: "Kết nối nhà cung cấp",
+  apiKey: "Khóa API",
+  apiKeyPlaceholder: "Nhập khóa API",
+  baseUrl: "URL cơ sở",
+  saveConnection: "Lưu kết nối",
+  connectionSaved: "Đã lưu kết nối nhà cung cấp",
+  modelReady: "Sẵn sàng sử dụng",
+  modelAvailable: "Có thể tải xuống",
+  download: "Tải xuống",
+  load: "Nạp",
+  appearance: "Giao diện",
+  light: "Sáng",
+  dark: "Tối",
+  useLightTheme: "Dùng giao diện sáng",
+  useDarkTheme: "Dùng giao diện tối",
+  interfaceLanguage: "Ngôn ngữ giao diện",
+  welcomeToKnowledge: "Chào mừng đến với Knowledge",
+  onboardingIntro:
+    "Thiết lập cách bạn muốn trò chuyện. Bạn có thể thay đổi mọi thứ sau.",
+  chooseLanguage: "Chọn ngôn ngữ",
+  chooseModel: "Chọn mô hình",
+  modelStepDescription:
+    "Dùng mô hình cục bộ được đề xuất hoặc nhà cung cấp đã kết nối.",
+  addFirstKnowledge: "Thêm kho tri thức đầu tiên",
+  knowledgeStepDescription:
+    "Bắt đầu với dữ liệu mô phỏng hoặc tiếp tục mà không dùng kho tri thức.",
+  useDemoKnowledge: "Dùng kho tri thức mô phỏng",
+  continueWithoutKnowledge: "Tiếp tục không dùng kho tri thức",
+  startChat: "Bắt đầu trò chuyện",
+  stepOf: "Bước {step}/{total}",
+  threadArchitecture: "GraphRAG và Neo4j",
+  threadEvaluation: "Đánh giá bằng chứng truy xuất",
+  threadModel: "Thiết lập mô hình đề xuất",
+  normalConversation: "Trò chuyện thông thường",
+  allKnowledgeDescription: "Tìm trong mọi kho tri thức khả dụng.",
+  singleKnowledgeDescription: "Chỉ tìm trong {name}.",
+  answerUngrounded:
+    "Câu trả lời mô phỏng này dùng mô hình đã chọn mà không truy xuất kho tri thức. Câu hỏi của bạn là: “{subject}”.",
+  answerUngroundedFollowup:
+    "Chọn một kho tri thức trong ô soạn tin khi bạn muốn câu trả lời dựa trên nguồn riêng hoặc nguồn đã kết nối.",
+  answerGrounded:
+    "Hệ thống mô phỏng đã tìm trong {knowledge} cho câu hỏi “{subject}”. Nó kết nối độ tương đồng ngữ nghĩa với quan hệ trên đồ thị, rồi gửi bằng chứng mạnh nhất cho mô hình đã chọn. [1]",
+  answerGroundedFollowup:
+    "Đường dẫn đồ thị bổ sung ngữ cảnh mà tìm kiếm phẳng có thể bỏ sót, trong khi việc hợp nhất thứ hạng giúp một nguồn không lấn át câu trả lời. [2]",
+  error: "Lỗi",
+  somethingWentWrong: "Đã xảy ra lỗi",
+  errorDescription: "Ứng dụng gặp lỗi ngoài dự kiến. Hãy tải lại và thử lại.",
+  relaunchApp: "Khởi động lại ứng dụng",
+  pageNotFound: "Không tìm thấy trang",
+  pageNotFoundDescription: "Trang bạn yêu cầu không tồn tại.",
+};
+
+const localeKey = "knowledge-locale";
+
+type TranslationParams = Record<string, number | string>;
+
+interface I18nValue {
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
+  t: (key: MessageKey, params?: TranslationParams) => string;
+}
+
+const I18nContext = createContext<I18nValue | null>(null);
+
+export function translate(
+  locale: Locale,
+  key: MessageKey,
+  params: TranslationParams = {}
+) {
+  let value: string = locale === "vi" ? vi[key] : en[key];
+  for (const [name, replacement] of Object.entries(params)) {
+    value = value.replaceAll(`{${name}}`, String(replacement));
+  }
+  return value;
+}
+
+function getInitialLocale(): Locale {
+  const stored = localStorage.getItem(localeKey);
+  return stored === "vi" ? "vi" : "en";
+}
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [locale, setLocale] = useState<Locale>(getInitialLocale);
+
+  useLayoutEffect(() => {
+    document.documentElement.lang = locale;
+    localStorage.setItem(localeKey, locale);
+  }, [locale]);
+
+  const value = useMemo<I18nValue>(
+    () => ({
+      locale,
+      setLocale,
+      t: (key, params) => translate(locale, key, params),
+    }),
+    [locale]
+  );
+
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+export function useI18n() {
+  const context = useContext(I18nContext);
+  if (!context) {
+    throw new Error("useI18n must be used within I18nProvider");
+  }
+  return context;
+}

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 from sentence_transformers import CrossEncoder
 
 from src.config import settings
@@ -10,17 +12,36 @@ from src.logging_utils import get_logger
 logger = get_logger(__name__)
 
 _reranker: CrossEncoder | None = None
-_RERANKER_MODEL = "BAAI/bge-reranker-v2-m3"
+_RERANKER_MODEL = os.environ.get("RERANKER_MODEL", "BAAI/bge-reranker-v2-m3")
+
+
+def _pick_device() -> str:
+    # Default to CPU; only use CUDA when it's actually available.
+    # This avoids the common "Failed to load reranker model" on machines without GPU.
+    env = (os.environ.get("RERANKER_DEVICE") or "").strip().lower()
+    if env in {"cpu", "cuda"}:
+        return env
+    try:
+        import torch
+
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
 
 
 def _get_reranker() -> CrossEncoder | None:
     global _reranker
     if _reranker is None:
         try:
+            device = _pick_device()
             logger.info("Loading cross-encoder reranker", extra={"model": _RERANKER_MODEL})
-            _reranker = CrossEncoder(_RERANKER_MODEL, max_length=512, device="cuda")
+            _reranker = CrossEncoder(_RERANKER_MODEL, max_length=512, device=device)
         except Exception as e:
-            logger.error("Failed to load reranker model", extra={"error": str(e)})
+            # Keep logs actionable: include exception type and repr().
+            logger.exception(
+                "Failed to load reranker model",
+                extra={"error": str(e), "error_repr": repr(e), "model": _RERANKER_MODEL},
+            )
             return None
     return _reranker
 

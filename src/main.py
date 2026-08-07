@@ -9,8 +9,11 @@ from collections import deque
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from contextvars import Token
+import json
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse as _StarletteJSONResponse
@@ -84,6 +87,20 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Wikipedia Neo4j GraphRAG Demo", version="0.1.0", lifespan=lifespan)
 
+# Allow the Vite/Tauri frontend in `app/` to call the API from the browser.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:1420",
+        "http://127.0.0.1:1420",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # --- Dashboard Router ---
 app.include_router(dashboard_router)
 app.include_router(graph_viz_router)
@@ -131,6 +148,19 @@ class QueryRequest(BaseModel):
 
     question: str = Field(min_length=3, max_length=1000)
     top_k: int = Field(default=4, ge=1, le=20)
+
+
+class ChatMessage(BaseModel):
+    role: str = Field(pattern="^(user|assistant|system)$")
+    content: str = Field(min_length=1, max_length=5000)
+
+
+class ChatRequest(BaseModel):
+    """Simple chat payload; last user message is treated as the question."""
+
+    messages: list[ChatMessage] = Field(min_length=1, max_length=50)
+    top_k: int = Field(default=4, ge=1, le=20)
+    debug: bool = Field(default=False, description="Include retrieval debug info in response.")
 
 
 class HFDatasetIngestRequest(BaseModel):
@@ -356,7 +386,53 @@ def query(req: QueryRequest, request: Request) -> dict:
     return {
         "answer": result.answer,
         "citations": result.citations,
+        "retrieval_tier": getattr(result, "retrieval_tier", "unknown"),
     }
+
+
+@app.post("/chat", dependencies=[Depends(_guard)])
+def chat(req: ChatRequest, request: Request) -> dict:
+    """Chat with the Wikipedia graph.
+
+    We keep this intentionally simple and robust:
+    - Retrieval uses only the latest user message (best for precision).
+    - The response always includes citations pointing back to Wikipedia pages/chunks.
+    """
+    # Pick the last user message as the question.
+    question = ""
+    for m in reversed(req.messages):
+        if m.role == "user":
+            question = m.content.strip()
+            break
+    if len(question) < 3:
+        raise HTTPException(status_code=400, detail="No user message found in chat history")
+
+    resp = query(QueryRequest(question=question, top_k=req.top_k), request)
+    if req.debug:
+        resp["debug"] = {"retrieval_tier": resp.get("retrieval_tier", "unknown")}
+
+    # Collect hard-fail/abstain queries for improving templates later.
+    # This is intentionally best-effort and never blocks the request.
+    try:
+        ans = str(resp.get("answer") or "").strip()
+        if ans in {
+            "Không đủ thông tin trong dữ liệu hiện có.",
+            "Không tìm thấy thông tin liên quan trong dữ liệu hiện có.",
+        }:
+            log_path = Path(settings.log_dir) / "unanswered.jsonl"
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "ts": datetime.now(timezone.utc).isoformat(),
+                "question": question,
+                "answer": ans,
+                "retrieval_tier": resp.get("retrieval_tier"),
+                "citations": resp.get("citations") or [],
+            }
+            with log_path.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+    return resp
 
 
 @app.post("/query/hybrid", dependencies=[Depends(_guard)])

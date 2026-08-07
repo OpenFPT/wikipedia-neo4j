@@ -3,15 +3,110 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
+import unicodedata
 
 from src.config import settings
 from src.infrastructure.llm import assert_readonly_cypher, embed_texts, generate_readonly_cypher, _client_pool
 from src.logging_utils import get_logger
 from neo4j.exceptions import CypherSyntaxError
 from src.infrastructure.neo4j_client import neo4j_client
+from src.retrieval.planner import plan as plan_query
+from src.retrieval.templates import build_fulltext_query, pick_template
 
 
 logger = get_logger(__name__)
+
+_PAGE_INDEX_CACHE: dict[str, dict] | None = None
+
+
+def _load_page_index() -> dict[str, dict]:
+    """Build (and cache) a simple accent-insensitive Page title index."""
+    global _PAGE_INDEX_CACHE
+    if _PAGE_INDEX_CACHE is not None:
+        return _PAGE_INDEX_CACHE
+
+    idx: dict[str, dict] = {}
+    with neo4j_client.session() as session:
+        records = session.run("MATCH (p:Page) RETURN p.id AS id, p.title AS title, p.url AS url")
+        for r in records:
+            title = r.get("title") or ""
+            key = _normalize_for_tokens(title)
+            if not key:
+                continue
+            # Keep first; collisions are rare and not fatal.
+            idx.setdefault(key, {"id": r.get("id"), "title": title, "url": r.get("url")})
+
+    _PAGE_INDEX_CACHE = idx
+    return idx
+
+
+_Q_STOPWORDS = {
+    "la",
+    "ai",
+    "gi",
+    "cai",
+    "cach",
+    "nao",
+    "o",
+    "tai",
+    "trong",
+    "bao",
+    "nhieu",
+    "mot",
+    "nhung",
+    "cua",
+    "co",
+    "khong",
+}
+
+
+def _extract_subject_phrase(question: str) -> str:
+    toks = _normalize_for_tokens(question).split()
+    toks = [t for t in toks if t not in _Q_STOPWORDS]
+    # Keep a short phrase; good for person/place/page names.
+    return " ".join(toks[:6]).strip()
+
+
+def _resolve_page_by_title(question: str) -> dict | None:
+    """Try to resolve a Page by accent-insensitive title match."""
+    subject = _extract_subject_phrase(question)
+    if not subject:
+        return None
+
+    idx = _load_page_index()
+
+    # Exact key match
+    if subject in idx:
+        return idx[subject]
+
+    # Substring match (pick shortest title that contains the subject)
+    matches = []
+    for key, meta in idx.items():
+        if subject and subject in key:
+            matches.append((len(key), meta))
+    if not matches:
+        return None
+    matches.sort(key=lambda x: x[0])
+    return matches[0][1]
+
+
+def _strip_accents(s: str) -> str:
+    # NFKD + drop combining marks
+    s = unicodedata.normalize("NFKD", s)
+    return "".join(ch for ch in s if not unicodedata.combining(ch))
+
+
+def _normalize_for_tokens(s: str) -> str:
+    s = _strip_accents(s or "").lower()
+    s = re.sub(r"[^a-z0-9\s]", " ", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def _key_terms(question: str) -> set[str]:
+    toks = _normalize_for_tokens(question).split()
+    return {t for t in toks if len(t) >= 4}
 
 
 @dataclass
@@ -79,6 +174,19 @@ ORDER BY score DESC
 LIMIT $top_k
 """
 
+_TITLE_CYPHER = """
+CALL db.index.fulltext.queryNodes('page_title_ft', $q) YIELD node, score
+MATCH (node:Page)-[:HAS_CHUNK]->(c:Chunk)
+RETURN node.title AS page_title,
+       node.url AS page_url,
+       node.id AS page_id,
+       c.id AS chunk_id,
+       c.text AS chunk_text,
+       score AS title_score
+ORDER BY score DESC
+LIMIT $top_k
+"""
+
 _VECTOR_CYPHER = """
 CALL db.index.vector.queryNodes('chunk_embedding_idx', $top_k, $embedding)
 YIELD node AS c, score AS similarity
@@ -137,14 +245,72 @@ ORDER BY score DESC
 LIMIT $top_k
 """
 
+_PAGE_CHUNKS_CYPHER = """
+MATCH (p:Page {id: $page_id})-[:HAS_CHUNK]->(c:Chunk)
+RETURN p.title AS page_title,
+       p.url AS page_url,
+       p.id AS page_id,
+       c.id AS chunk_id,
+       c.text AS chunk_text,
+       1.0 AS score
+ORDER BY c.sequence_number ASC
+LIMIT $top_k
+"""
+
 
 def _run_bm25_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
     """Execute BM25 fulltext search."""
+    q1 = (question or "").strip()
+    q2 = _strip_accents(q1)
+    queries = [q1]
+    if q2 and q2 != q1:
+        queries.append(q2)
+
+    rows: list[dict] = []
     with neo4j_client.session() as session:
-        records = session.run(_BM25_CYPHER, q=question, top_k=top_k)
-        rows = [dict(r) for r in records]
+        for q in queries:
+            records = session.run(_BM25_CYPHER, q=q, top_k=top_k)
+            rows.extend(dict(r) for r in records)
+
+    # Dedup by chunk_id, keep max bm25_score
+    best: dict[str, dict] = {}
+    for r in rows:
+        cid = r.get("chunk_id")
+        if not cid:
+            continue
+        if cid not in best or (r.get("bm25_score", 0) > best[cid].get("bm25_score", 0)):
+            best[cid] = r
+    rows = list(best.values())
+    rows.sort(key=lambda x: x.get("bm25_score", 0), reverse=True)
+    rows = rows[:top_k]
     logger.info("BM25 retrieval executed", extra={"rows": len(rows)})
     return rows
+
+
+def _run_title_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
+    """Execute fulltext search over Page titles, returning their chunks."""
+    q1 = (question or "").strip()
+    q2 = _strip_accents(q1)
+    queries = [q1]
+    if q2 and q2 != q1:
+        queries.append(q2)
+
+    rows: list[dict] = []
+    with neo4j_client.session() as session:
+        for q in queries:
+            records = session.run(_TITLE_CYPHER, q=q, top_k=top_k)
+            rows.extend(dict(r) for r in records)
+
+    best: dict[str, dict] = {}
+    for r in rows:
+        cid = r.get("chunk_id")
+        if not cid:
+            continue
+        if cid not in best or (r.get("title_score", 0) > best[cid].get("title_score", 0)):
+            best[cid] = r
+    rows = list(best.values())
+    rows.sort(key=lambda x: x.get("title_score", 0), reverse=True)
+    return rows[:top_k]
 
 
 def _run_vector_query(
@@ -190,9 +356,28 @@ def _run_vector_query_cypher25(
 def _run_graph_query(question: str, top_k: int) -> list[dict]:  # pragma: no cover
     """Execute graph-based entity search."""
     try:
+        q1 = (question or "").strip()
+        q2 = _strip_accents(q1)
+        queries = [q1]
+        if q2 and q2 != q1:
+            queries.append(q2)
+
+        rows: list[dict] = []
         with neo4j_client.session() as session:
-            records = session.run(_GRAPH_CYPHER, q=question, top_k=top_k)
-            rows = [dict(r) for r in records]
+            for q in queries:
+                records = session.run(_GRAPH_CYPHER, q=q, top_k=top_k)
+                rows.extend(dict(r) for r in records)
+
+        best: dict[str, dict] = {}
+        for r in rows:
+            cid = r.get("chunk_id")
+            if not cid:
+                continue
+            if cid not in best or (r.get("graph_score", 0) > best[cid].get("graph_score", 0)):
+                best[cid] = r
+        rows = list(best.values())
+        rows.sort(key=lambda x: x.get("graph_score", 0), reverse=True)
+        rows = rows[:top_k]
         logger.info("Graph retrieval executed", extra={"rows": len(rows)})
         return rows
     except Exception as e:
@@ -533,6 +718,7 @@ def _run_fallback_query(question: str, top_k: int) -> list[dict]:
         query_embedding = None
 
     bm25_results = _run_bm25_query(question, top_k * 3)
+    title_results = _run_title_query(question, top_k * 3)
     vector_results = (
         _run_vector_query(question, top_k * 3, query_embedding=query_embedding)
         if query_embedding
@@ -545,8 +731,14 @@ def _run_fallback_query(question: str, top_k: int) -> list[dict]:
         else []
     )
 
-    all_results = [bm25_results, vector_results, graph_results]
-    all_weights = [settings.wrrf_weight_bm25, settings.wrrf_weight_vector, settings.wrrf_weight_graph]
+    all_results = [bm25_results, title_results, vector_results, graph_results]
+    # Title matches are useful but can be broad; keep a smaller weight.
+    all_weights = [
+        settings.wrrf_weight_bm25,
+        settings.wrrf_weight_bm25 * 0.6,
+        settings.wrrf_weight_vector,
+        settings.wrrf_weight_graph,
+    ]
 
     if community_results:
         all_results.append(community_results)
@@ -594,6 +786,147 @@ def _expand_via_links(page_ids: list[str], question: str, top_k: int) -> list[di
     return rows
 
 
+def _split_sentences(text: str) -> list[str]:
+    text = (text or "").strip()
+    if not text:
+        return []
+    parts = re.split(r"(?<=[\.\?\!])\s+", text)
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _fix_mojibake(s: str) -> str:
+    """
+    Best-effort fix for common UTF-8-as-Latin1 mojibake (e.g. 'Minh MÃ¡ng').
+    If it doesn't look like mojibake or decoding fails, return original.
+    """
+    s = "" if s is None else str(s)
+    # Heuristic markers seen in typical mojibake for Vietnamese/UTF-8 text on Windows.
+    # We intentionally include a few broad markers ('Ä', 'Æ') that show up in
+    # UTF-8 mis-decoded as Latin-1/CP1252 (e.g. 'Ä' for 'đ').
+    markers = ("Ã", "Â", "â", "Ä", "Æ", "Å", "áº", "á»", "áť", "º", "»", "¿")
+    if not any(m in s for m in markers):
+        return s
+
+    def _repair(codec: str) -> str:
+        try:
+            return s.encode(codec, errors="ignore").decode("utf-8", errors="ignore")
+        except Exception:
+            return ""
+
+    # Try the most common mappings first.
+    candidates = [_repair("latin1"), _repair("cp1252")]
+    candidates = [c for c in candidates if c]
+    if not candidates:
+        return s
+
+    def _has_vietnamese(t: str) -> bool:
+        # Vietnamese-specific letters live in a few blocks:
+        # - Latin-1 Supplement: a lot of accented vowels (à, á, â, ê, ô, ...)
+        # - Latin Extended-A/B: ă, đ, ơ, ư (and uppercase variants)
+        # - Vietnamese block: ạ, ả, ấ, ề, ễ, ộ, ỵ, ...
+        if any(ch in t for ch in ("đ", "Đ", "ă", "Ă", "ơ", "Ơ", "ư", "Ư")):
+            return True
+        return any(
+            (0x00C0 <= ord(ch) <= 0x00FF) or (0x1EA0 <= ord(ch) <= 0x1EFF)
+            for ch in t
+        )
+
+    # Prefer candidates that "recover" Vietnamese codepoints.
+    for c in candidates:
+        if _has_vietnamese(c):
+            return c
+
+    # Otherwise, pick the candidate that most reduces mojibake markers, but avoid
+    # returning a heavily truncated string (which can happen with error="ignore").
+    def _score(t: str) -> int:
+        return sum(t.count(m) for m in markers)
+
+    best = min(candidates, key=_score)
+    if best and (len(best) >= int(len(s) * 0.9)):
+        return best
+    return s
+
+
+def _extractive_fallback(snippets: list[dict]) -> str:
+    """High-precision fallback: quote sentences directly from retrieved context."""
+    if not snippets:
+        return "Không tìm thấy thông tin liên quan trong dữ liệu hiện có."
+
+    lines: list[str] = []
+    seen_sentences: set[str] = set()
+    for s in snippets[:3]:
+        idx = s["idx"]
+        sentences = _split_sentences(s["text"])
+        if sentences:
+            sent = sentences[0]
+            key = re.sub(r"\s+", " ", sent.strip().lower())
+            if key and key not in seen_sentences:
+                seen_sentences.add(key)
+                lines.append(f"- {sent} [{idx}]")
+        else:
+            preview = (s["text"][:200] or "").strip()
+            key = re.sub(r"\s+", " ", preview.strip().lower())
+            if key and key not in seen_sentences:
+                seen_sentences.add(key)
+                lines.append(f"- {preview}... [{idx}]")
+
+    if not lines:
+        return "Không tìm thấy thông tin liên quan trong dữ liệu hiện có."
+
+    return "Dựa trên các đoạn trích từ Wikipedia:\n" + "\n".join(lines)
+def _synthesize_answer_grounded(question: str, snippets: list[dict]) -> str:
+    """Grounded synthesis: only use provided snippets and always cite."""
+    if not snippets:
+        return "Không tìm thấy thông tin liên quan trong dữ liệu hiện có."
+
+    context = "\n\n".join(f"[{s['idx']}] {s['text']}" for s in snippets)
+    prompt = (
+        "Bạn là trợ lý tra cứu Wikipedia.\n"
+        "QUY TẮC BẮT BUỘC:\n"
+        "- Chỉ được dùng thông tin có trong Ngữ cảnh.\n"
+        "- Mọi khẳng định phải có trích dẫn dạng [1], [2]...\n"
+        "- Nếu Ngữ cảnh không đủ để trả lời chắc chắn: trả lời 'Không đủ thông tin trong dữ liệu hiện có.'\n\n"
+        f"Câu hỏi: {question}\n\n"
+        f"Ngữ cảnh:\n{context}\n\n"
+        "Trả lời (ngắn gọn, đúng trọng tâm, có trích dẫn):"
+    )
+
+    try:
+        if settings.model_mode == "ollama":
+            from src.infrastructure.ollama_llm import chat as ollama_chat
+
+            answer = ollama_chat(
+                [
+                    {"role": "system", "content": "Bạn là trợ lý hỏi đáp tiếng Việt."},
+                    {"role": "user", "content": prompt},
+                ],
+                max_new_tokens=350,
+                temperature=0.0,
+            )
+            if answer:
+                return answer
+
+        from google.genai import types
+
+        clients = _client_pool()
+        for client in clients:
+            try:
+                resp = client.models.generate_content(
+                    model=settings.gemini_model_text,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(temperature=0.0, max_output_tokens=300),
+                )
+                answer = (resp.text or "").strip()
+                if answer:
+                    return answer
+            except Exception:
+                continue
+    except Exception as exc:
+        logger.warning("LLM synthesis failed, using extractive fallback", extra={"error": str(exc)})
+
+    return _extractive_fallback(snippets)
+
+
 def _synthesize_answer(question: str, snippets: list[str]) -> str:
     """Synthesize a natural-language answer from retrieved snippets using LLM."""
     if not snippets:
@@ -608,6 +941,20 @@ def _synthesize_answer(question: str, snippets: list[str]) -> str:
     )
 
     try:
+        if settings.model_mode == "ollama":
+            from src.infrastructure.ollama_llm import chat as ollama_chat
+
+            answer = ollama_chat(
+                [
+                    {"role": "system", "content": "Bạn là trợ lý hỏi đáp tiếng Việt."},
+                    {"role": "user", "content": prompt},
+                ],
+                max_new_tokens=350,
+                temperature=0.2,
+            )
+            if answer:
+                return answer
+
         from google.genai import types
 
         clients = _client_pool()
@@ -647,6 +994,27 @@ def _run_generated_query(question: str, top_k: int) -> list[dict]:
     return rows
 
 
+def _run_template_query(question: str, top_k: int) -> tuple[str | None, list[dict]]:
+    """Run a stable, intent-specific Cypher template when possible.
+
+    Returns (template_intent, rows).
+    """
+    p = plan_query(question)
+    cypher = pick_template(p.intent)
+    if not cypher:
+        return None, []
+
+    q = build_fulltext_query(question, subject=p.subject)
+    with neo4j_client.session() as session:
+        records = session.run(cypher, q=q, top_k=min(8, max(1, top_k)))
+        rows = [dict(r) for r in records]
+
+    # Must match downstream expectations.
+    required_keys = {"page_title", "page_url", "page_id", "chunk_id", "chunk_text", "score"}
+    rows = [r for r in rows if required_keys.issubset(r)]
+    return p.intent, rows
+
+
 def query_graph(question: str, top_k: int = 4) -> QueryResult:
     """Query graph and synthesize a deterministic answer with citations."""
     if settings.model_mode == "local":
@@ -654,17 +1022,36 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
 
         return agent_query(question, top_k)
 
-    retrieval_tier = "generated"
+    # Fast path: if the question looks like it's about a specific Page title,
+    # resolve it accent-insensitively and pull chunks directly from that page.
+    page = None
     try:
-        rows = _run_generated_query(question, top_k)
-    except (RuntimeError, ValueError, KeyError, TypeError, CypherSyntaxError) as exc:
-        logger.warning("Generated query failed, falling back to WRRF", extra={"error": str(exc)})
-        retrieval_tier = "wrrf"
-        rows = _run_fallback_query(question, top_k)
+        page = _resolve_page_by_title(question)
+    except Exception:
+        page = None
+
+    if page and page.get("id"):
+        retrieval_tier = "page_title"
+        with neo4j_client.session() as session:
+            records = session.run(_PAGE_CHUNKS_CYPHER, page_id=page["id"], top_k=top_k * 5)
+            rows = [dict(r) for r in records]
+    else:
+        # Prefer deterministic templates over free-form LLM Cypher generation.
+        template_intent, rows = _run_template_query(question, top_k)
+        if rows:
+            retrieval_tier = f"template:{template_intent}"
+        else:
+            retrieval_tier = "generated"
+            try:
+                rows = _run_generated_query(question, top_k)
+            except (RuntimeError, ValueError, KeyError, TypeError, CypherSyntaxError) as exc:
+                logger.warning("Generated query failed, falling back to WRRF", extra={"error": str(exc)})
+                retrieval_tier = "wrrf"
+                rows = _run_fallback_query(question, top_k)
 
     if not rows:
         return QueryResult(
-            answer="I could not find relevant context in the graph yet. Try ingesting more topics.",
+            answer="Không đủ thông tin trong dữ liệu hiện có.",
             citations=[],
             retrieval_tier=retrieval_tier,
         )
@@ -672,6 +1059,23 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
     from src.retrieval.reranker import rerank
 
     reranked = rerank(question, rows, text_key="chunk_text", top_k=top_k)
+
+    # Safety filter: if retrieval is off-topic, prefer abstaining over hallucinating.
+    q_terms = _key_terms(question)
+    if q_terms:
+        filtered = []
+        for r in reranked:
+            title_terms = set(_normalize_for_tokens(r.get("page_title", "")).split())
+            if q_terms & title_terms:
+                filtered.append(r)
+        if filtered:
+            reranked = filtered
+        else:
+            return QueryResult(
+                answer="Không đủ thông tin trong dữ liệu hiện có.",
+                citations=[],
+                retrieval_tier=retrieval_tier,
+            )
 
     if settings.multi_hop_expansion and reranked:
         page_ids = list({r["page_id"] for r in reranked if r.get("page_id")})
@@ -683,20 +1087,55 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
                 combined = reranked + new_rows
                 reranked = rerank(question, combined, text_key="chunk_text", top_k=top_k)
 
-    citations = [
-        {
-            "page_title": r["page_title"],
-            "page_url": r["page_url"],
-            "chunk_id": r["chunk_id"],
-        }
-        for r in reranked
-    ]
+    # Avoid repeated answers/citations when multiple chunks come from the same page.
+    limited: list[dict] = []
+    per_page: dict[str, int] = {}
+    for r in reranked:
+        url = str(r.get("page_url") or "")
+        per_page[url] = per_page.get(url, 0) + 1
+        if per_page[url] <= 2:
+            limited.append(r)
+        if len(limited) >= max(top_k, 4):
+            break
+
+    citations = []
+    seen_pages: set[str] = set()
+    for r in limited:
+        url = _fix_mojibake(str(r.get("page_url") or ""))
+        if not url or url in seen_pages:
+            continue
+        seen_pages.add(url)
+        citations.append({
+            "page_title": _fix_mojibake(r.get("page_title", "")),
+            "page_url": url,
+            "chunk_id": r.get("chunk_id", ""),
+        })
+
+    # Heuristic: for questions explicitly asking "hiệp ước/hiệp định nào", the
+    # answer is often exactly the retrieved treaty page title. If we have such a
+    # citation, return it directly to avoid the LLM abstaining when snippets are
+    # missing the exact phrasing.
+    q_norm = (question or "").lower()
+    if citations and ("hiệp ước nào" in q_norm or "hiệp định nào" in q_norm):
+        for i, c in enumerate(citations, start=1):
+            title = (c.get("page_title") or "").strip()
+            if title.startswith("Hiệp định") or title.startswith("Hiệp ước"):
+                return QueryResult(
+                    answer=f"{title} [{i}].",
+                    citations=citations,
+                    retrieval_tier=retrieval_tier,
+                )
 
     snippets = []
-    for r in reranked:
-        txt = (r["chunk_text"] or "").strip().replace("\n", " ")
-        snippets.append(txt[:500])
+    for i, r in enumerate(limited[:3], start=1):
+        txt = _fix_mojibake((r["chunk_text"] or "").strip()).replace("\n", " ")
+        snippets.append({"idx": i, "text": txt[:700]})
 
-    answer = _synthesize_answer(question, snippets[:3])
+    synthesized = _fix_mojibake(_synthesize_answer_grounded(question, snippets))
+    # If the model abstains but we do have retrieved evidence, fall back to a
+    # high-precision extractive answer instead of returning "no info".
+    if synthesized.strip().startswith("Không đủ thông tin"):
+        synthesized = _extractive_fallback(snippets)
+    answer = synthesized
 
     return QueryResult(answer=answer, citations=citations, retrieval_tier=retrieval_tier)

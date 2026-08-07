@@ -245,6 +245,7 @@ header h1 {
   width: 2rem;
   text-align: right;
 }
+#qa-types-panel .signal-label { width: 7rem; }
 .eval-grid {
   display: flex;
   flex-direction: column;
@@ -342,6 +343,11 @@ header h1 {
       <span class="stat-value" data-stat="total_rels">{{ stats.total_rels|fmt }}</span>
       <span class="stat-label">Relationships</span>
       {% if not stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
+    </div>
+    <div class="stat-card">
+      <span class="stat-value accent" data-stat="total_questions">{{ qa_stats.total_questions|fmt }}</span>
+      <span class="stat-label">Questions</span>
+      {% if not qa_stats.available %}<span class="unavailable-badge">unavailable</span>{% endif %}
     </div>
   </div>
   </section>
@@ -511,6 +517,60 @@ header h1 {
       </div>
     </section>
   </div>
+
+  <section aria-labelledby="section-qa">
+  <h2 class="section-title" id="section-qa">Multi-hop QA Overview</h2>
+  <div class="grid-two">
+    <section class="panel" aria-labelledby="section-qa-types">
+      <h2 class="section-title" id="section-qa-types">Question Types</h2>
+      <div id="qa-types-panel" aria-live="polite">
+        {% if qa_stats and qa_stats.available and qa_stats.by_type %}
+        {% set qa_max = qa_stats.by_type|map(attribute='count')|max %}
+        {% set qa_mv = qa_max if qa_max > 0 else 1 %}
+        <div class="signal-bar-group">
+          {% for row in qa_stats.by_type %}
+          <div class="signal-row">
+            <span class="signal-label">{{ row.type }}</span>
+            <div class="signal-bar-bg"><div class="signal-bar-fill bm25" style="width: {{ (row.count / qa_mv * 100)|round|int }}%"></div></div>
+            <span class="signal-count">{{ row.count|fmt }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="entity-row" style="margin-top:0.75rem;">
+          <span class="entity-name">Answerable</span>
+          <span class="entity-count">{{ qa_stats.answerable|fmt }}</span>
+        </div>
+        <div class="entity-row">
+          <span class="entity-name">Unanswerable</span>
+          <span class="entity-count">{{ qa_stats.unanswerable|fmt }}</span>
+        </div>
+        {% else %}
+        <div class="empty-state">No QA data available</div>
+        {% endif %}
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="section-qa-bridged">
+      <h2 class="section-title" id="section-qa-bridged">Most Bridged Pages</h2>
+      <div class="query-table-wrap" id="top-bridged-panel" aria-live="polite">
+        {% if top_bridged %}
+        <table class="query-table" id="top-bridged-table">
+          <thead><tr><th>Page</th><th>Bridge count</th></tr></thead>
+          <tbody>
+            {% for row in top_bridged %}
+            <tr>
+              <td class="col-question">{{ row.title }}</td>
+              <td class="col-count">{{ row.bridge_count|fmt }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">No bridged pages yet</div>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+  </section>
 </main>
 
 <!-- Keyboard shortcuts overlay -->
@@ -698,17 +758,71 @@ header h1 {
     panel.innerHTML = html;
   }
 
+  function updateQAStats(data) {
+    var panel = document.getElementById('qa-types-panel');
+    if (!data.available || !data.by_type || data.by_type.length === 0) {
+      panel.innerHTML = '<div class="empty-state">No QA data available</div>';
+      return;
+    }
+    var maxCount = Math.max.apply(null, data.by_type.map(function(r){ return r.count; }));
+    if (maxCount === 0) maxCount = 1;
+    var html = '<div class="signal-bar-group">';
+    data.by_type.forEach(function(row) {
+      var pct = Math.round(row.count / maxCount * 100);
+      html += '<div class="signal-row"><span class="signal-label">' + escapeHtml(row.type) + '</span>';
+      html += '<div class="signal-bar-bg"><div class="signal-bar-fill bm25" style="width:' + pct + '%"></div></div>';
+      html += '<span class="signal-count">' + formatNumber(row.count) + '</span></div>';
+    });
+    html += '</div>';
+    html += '<div class="entity-row" style="margin-top:0.75rem;"><span class="entity-name">Answerable</span>';
+    html += '<span class="entity-count">' + formatNumber(data.answerable || 0) + '</span></div>';
+    html += '<div class="entity-row"><span class="entity-name">Unanswerable</span>';
+    html += '<span class="entity-count">' + formatNumber(data.unanswerable || 0) + '</span></div>';
+    panel.innerHTML = html;
+  }
+
+  function updateTopBridged(data) {
+    var panel = document.getElementById('top-bridged-panel');
+    if (!data.pages || data.pages.length === 0) {
+      panel.innerHTML = '<div class="empty-state">No bridged pages yet</div>';
+      return;
+    }
+    var table = document.createElement('table');
+    table.className = 'query-table';
+    var thead = document.createElement('thead');
+    thead.innerHTML = '<tr><th>Page</th><th>Bridge count</th></tr>';
+    table.appendChild(thead);
+    var tbody = document.createElement('tbody');
+    data.pages.forEach(function(row) {
+      var tr = document.createElement('tr');
+      var tdTitle = document.createElement('td');
+      tdTitle.className = 'col-question';
+      tdTitle.textContent = row.title;
+      var tdCount = document.createElement('td');
+      tdCount.className = 'col-count';
+      tdCount.textContent = row.bridge_count;
+      tr.appendChild(tdTitle);
+      tr.appendChild(tdCount);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    panel.innerHTML = '';
+    panel.appendChild(table);
+  }
+
   function refresh() {
     countdown = INTERVAL;
     var panels = document.querySelectorAll('.panel, #stats-grid');
     panels.forEach(function(p) { p.classList.add('loading'); });
     var done = 0;
-    var total = 4;
+    var total = 6;
     function checkDone() { done++; if (done >= total) panels.forEach(function(p) { p.classList.remove('loading'); }); }
     fetch('/dashboard/api/stats').then(function(r){return r.json();}).then(function(d){updateStats(d);checkDone();}).catch(checkDone);
     fetch('/dashboard/api/queries').then(function(r){return r.json();}).then(function(d){updateQueries(d);checkDone();}).catch(checkDone);
     fetch('/dashboard/api/signals').then(function(r){return r.json();}).then(function(d){updateSignals(d);checkDone();}).catch(checkDone);
     fetch('/dashboard/api/eval').then(function(r){return r.json();}).then(function(d){updateEval(d);checkDone();}).catch(checkDone);
+    fetch('/dashboard/api/qa-stats').then(function(r){return r.json();}).then(function(d){updateQAStats(d);checkDone();}).catch(checkDone);
+    fetch('/dashboard/api/top-bridged').then(function(r){return r.json();}).then(function(d){updateTopBridged(d);checkDone();}).catch(checkDone);
   }
 
   function toggleOverlay() {

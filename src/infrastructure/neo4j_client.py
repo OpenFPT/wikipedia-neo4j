@@ -122,6 +122,19 @@ class Neo4jClient:
                 "`vector.similarity_function`: 'cosine'}}",
                 dim=settings.embedding_dim,
             )
+            # QA dataset schema: Question nodes bridging to Page/Chunk
+            session.run(
+                "CREATE CONSTRAINT question_id IF NOT EXISTS "
+                "FOR (q:Question) REQUIRE q.id IS UNIQUE"
+            )
+            session.run(
+                "CREATE INDEX question_type_idx IF NOT EXISTS "
+                "FOR (q:Question) ON (q.type)"
+            )
+            session.run(
+                "CREATE FULLTEXT INDEX question_text_ft IF NOT EXISTS "
+                "FOR (q:Question) ON EACH [q.text]"
+            )
         logger.debug("Neo4j schema ensured")
 
     def get_server_version(self) -> str:

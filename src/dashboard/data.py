@@ -135,3 +135,82 @@ def fetch_wrrf_weights() -> dict:
         "graph": settings.wrrf_weight_graph,
         "community": settings.wrrf_weight_community,
     }
+
+
+def fetch_qa_stats() -> dict:
+    """Fetch multi-hop QA benchmark statistics from Neo4j.
+
+    Returns question-type distribution, hop-count histogram, and
+    answerable/unanswerable ratio, or zeros with an error flag on failure.
+    """
+    try:
+        from src.infrastructure.neo4j_client import neo4j_client
+
+        with neo4j_client.session() as session:
+            result = session.run(
+                """
+                CALL {
+                    MATCH (q:Question) RETURN count(q) AS total_questions
+                } CALL {
+                    MATCH (q:Question) WHERE q.is_impossible = true RETURN count(q) AS unanswerable
+                } CALL {
+                    MATCH ()-[r:SUPPORTED_BY]->() RETURN count(r) AS supported_by_rels
+                } CALL {
+                    MATCH ()-[r:BRIDGES]->() RETURN count(r) AS bridges_rels
+                } CALL {
+                    MATCH (q:Question)
+                    RETURN q.type AS type, count(q) AS cnt
+                    ORDER BY cnt DESC
+                }
+                WITH total_questions, unanswerable, supported_by_rels, bridges_rels,
+                     collect({type: type, count: cnt}) AS by_type
+                RETURN total_questions, unanswerable, supported_by_rels, bridges_rels, by_type
+                """
+            )
+            record = result.single()
+            if record:
+                total = record["total_questions"] or 0
+                unanswerable = record["unanswerable"] or 0
+                return {
+                    "total_questions": total,
+                    "answerable": total - unanswerable,
+                    "unanswerable": unanswerable,
+                    "supported_by_rels": record["supported_by_rels"],
+                    "bridges_rels": record["bridges_rels"],
+                    "by_type": [row for row in record["by_type"] if row.get("type")],
+                    "available": True,
+                }
+    except Exception as exc:
+        logger.warning("Failed to fetch QA stats", extra={"error": str(exc)})
+
+    return {
+        "total_questions": None,
+        "answerable": None,
+        "unanswerable": None,
+        "supported_by_rels": None,
+        "bridges_rels": None,
+        "by_type": [],
+        "available": False,
+    }
+
+
+def fetch_top_bridged_pages(limit: int = 10) -> list[dict]:
+    """Return the pages most frequently spanned by multi-hop questions."""
+    try:
+        from src.infrastructure.neo4j_client import neo4j_client
+
+        with neo4j_client.session() as session:
+            result = session.run(
+                """
+                MATCH (q:Question)-[:BRIDGES]->(p:Page)
+                WITH p, count(q) AS bridge_count
+                ORDER BY bridge_count DESC
+                LIMIT $limit
+                RETURN p.title AS title, bridge_count
+                """,
+                limit=limit,
+            )
+            return [dict(r) for r in result]
+    except Exception as exc:
+        logger.warning("Failed to fetch top bridged pages", extra={"error": str(exc)})
+        return []

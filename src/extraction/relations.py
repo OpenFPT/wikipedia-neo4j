@@ -19,22 +19,47 @@ RELATION_TYPES = [
     "CREATED_BY",
 ]
 
-EXTRACTION_PROMPT = """Extract relationships between entities from the following Vietnamese text.
+EXTENDED_RELATION_TYPES = [
+    "DIED_IN",
+    "NATIONALITY",
+    "OCCUPATION",
+    "CAPITAL_OF",
+    "LEADER_OF",
+    "WORKED_AT",
+    "STUDIED_AT",
+    "AWARDED",
+    "SPOUSE_OF",
+    "PARENT_OF",
+]
 
-Only extract relationships of these types:
-- FOUNDED_BY: Organization was founded by Person
-- LOCATED_IN: Entity is located in Location
-- BORN_IN: Person was born in Location
-- MEMBER_OF: Person is a member of Organization
-- PART_OF: Entity is part of another Entity
-- CREATED_BY: Work/Entity was created by Person/Organization
+_ALLOWED_RELATION_TYPES = set(RELATION_TYPES + EXTENDED_RELATION_TYPES)
 
-Return a JSON array of triples:
-[{{"subject": "entity1", "relation": "RELATION_TYPE", "object": "entity2"}}]
+EXTRACTION_PROMPT = """Trích xuất các mối quan hệ giữa các thực thể từ văn bản Wikipedia tiếng Việt dưới đây.
 
-If no relationships can be extracted, return an empty array: []
+Các loại quan hệ được phép:
+- FOUNDED_BY: Tổ chức được thành lập bởi Người (vd: "Công ty X được thành lập bởi Y")
+- LOCATED_IN: Thực thể nằm ở Địa điểm (vd: "X nằm ở tỉnh Y")
+- BORN_IN: Người sinh ra ở Địa điểm (vd: "X sinh tại Y")
+- DIED_IN: Người mất ở Địa điểm (vd: "X mất tại Y")
+- MEMBER_OF: Người là thành viên của Tổ chức (vd: "X là thành viên của Y")
+- PART_OF: Thực thể là một phần của Thực thể khác (vd: "X là một phần của Y")
+- CREATED_BY: Tác phẩm/Thực thể được tạo bởi Người/Tổ chức (vd: "X được viết bởi Y")
+- NATIONALITY: Người có quốc tịch (vd: "X là người Việt Nam")
+- OCCUPATION: Người có nghề nghiệp (vd: "X là nhà văn/chính trị gia")
+- CAPITAL_OF: Địa điểm là thủ đô/trung tâm của Thực thể (vd: "Hà Nội là thủ đô của Việt Nam")
+- LEADER_OF: Người lãnh đạo Tổ chức/Quốc gia (vd: "X là chủ tịch của Y")
+- WORKED_AT: Người làm việc tại Tổ chức (vd: "X làm việc tại Y")
+- STUDIED_AT: Người học tại Tổ chức (vd: "X học tại trường Y")
+- AWARDED: Người/Thực thể nhận giải thưởng (vd: "X nhận giải Y")
+- SPOUSE_OF: Người là vợ/chồng của Người (vd: "X kết hôn với Y")
+- PARENT_OF: Người là cha/mẹ của Người (vd: "X là cha của Y")
 
-Text: {text}"""
+Trả về JSON array các triple. Trích xuất TẤT CẢ quan hệ tìm thấy, kể cả khi không chắc chắn hoàn toàn:
+[{{"subject": "tên thực thể 1", "relation": "LOẠI_QUAN_HỆ", "object": "tên thực thể 2"}}]
+
+Nếu không tìm thấy quan hệ nào, trả về: []
+
+Văn bản: {text}"""
 
 
 @dataclass
@@ -68,23 +93,23 @@ def extract_relations(text: str, use_local: bool = True) -> list[Triple]:
         ]
         raw = chat(messages, max_new_tokens=512, temperature=0.1)
     else:
+        from openai import OpenAI
         from src.config import settings
-        from src.infrastructure.llm import _client_pool
 
-        from google.genai import types
-
-        clients = _client_pool()
-        client = clients[0]
-        resp = client.models.generate_content(
-            model=settings.gemini_model_text,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.0,
-                max_output_tokens=512,
-                response_mime_type="application/json",
-            ),
+        client = OpenAI(
+            api_key=settings.anthropic_api_key,
+            base_url=settings.cn_base_url + "/v1",
         )
-        raw = resp.text or "[]"
+        resp = client.chat.completions.create(
+            model=settings.cn_model_text,
+            max_tokens=2048,
+            temperature=0.0,
+            messages=[
+                {"role": "system", "content": "You are a relation extraction system. Return only valid JSON."},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        raw = resp.choices[0].message.content or "[]"
 
     return _parse_triples(raw)
 
@@ -119,7 +144,7 @@ def _parse_triples(raw: str) -> list[Triple]:
 
         if not subject or not obj:
             continue
-        if relation not in RELATION_TYPES:
+        if relation not in _ALLOWED_RELATION_TYPES:
             continue
 
         triples.append(

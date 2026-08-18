@@ -170,12 +170,44 @@ def _generate_cypher_local(question: str) -> str:
     return cypher
 
 
+def _cn_client():
+    """Create OpenAI-compatible client for cn.claudible.io batch models."""
+    from openai import OpenAI
+
+    return OpenAI(
+        api_key=settings.anthropic_api_key,
+        base_url=settings.cn_base_url + "/v1",
+    )
+
+
+def _generate_cypher_cn(question: str) -> str:
+    """Generate Cypher using deepseek-v4-flash via cn.claudible.io."""
+    client = _cn_client()
+    resp = client.chat.completions.create(
+        model=settings.cn_model_text,
+        max_tokens=2048,
+        temperature=0.0,
+        messages=[
+            {"role": "system", "content": _CYPHER_SYSTEM_PROMPT},
+            {"role": "user", "content": _build_cypher_user_prompt(question)},
+        ],
+    )
+    text = _strip_code_fence(resp.choices[0].message.content or "")
+    parsed = json.loads(text)
+    cypher = str(parsed.get("cypher", "")).strip()
+    if not cypher:
+        raise RuntimeError("cn model returned empty Cypher")
+    if "$top_k" not in cypher and "limit" not in cypher.lower():
+        cypher = f"{cypher.rstrip(';')} LIMIT $top_k"
+    logger.debug("Cypher generation succeeded (cn: %s)", settings.cn_model_text)
+    return cypher
+
+
 def _generate_cypher_gemini(question: str) -> str:
-    """Generate Cypher using Gemini API with key rotation."""
+    """Generate Cypher using Gemini with the same key-rotation policy as embeddings."""
     from google.genai import types
 
-    prompt = f"{_CYPHER_SYSTEM_PROMPT}\n\n{_build_cypher_user_prompt(question)}"
-
+    prompt = _build_cypher_user_prompt(question)
     clients = _client_pool()
     last_error: Exception | None = None
 
@@ -183,11 +215,18 @@ def _generate_cypher_gemini(question: str) -> str:
         try:
             resp = client.models.generate_content(
                 model=settings.gemini_model_text,
-                contents=prompt,
+                contents=[
+                    types.Content(
+                        role="user",
+                        parts=[
+                            types.Part.from_text(text=_CYPHER_SYSTEM_PROMPT),
+                            types.Part.from_text(text=prompt),
+                        ],
+                    )
+                ],
                 config=types.GenerateContentConfig(
                     temperature=0.0,
                     max_output_tokens=512,
-                    response_mime_type="application/json",
                 ),
             )
             text = _strip_code_fence(resp.text or "")
@@ -197,7 +236,7 @@ def _generate_cypher_gemini(question: str) -> str:
                 raise RuntimeError("Gemini returned empty Cypher")
             if "$top_k" not in cypher and "limit" not in cypher.lower():
                 cypher = f"{cypher.rstrip(';')} LIMIT $top_k"
-            logger.debug("Cypher generation succeeded", extra={"client_index": i})
+            logger.debug("Cypher generation succeeded (gemini)", extra={"client_index": i})
             return cypher
         except Exception as exc:
             last_error = exc
@@ -206,7 +245,6 @@ def _generate_cypher_gemini(question: str) -> str:
                 raise
             delay = min(2**i, 4) + random.uniform(0, 0.5)
             time.sleep(delay)
-            continue
 
     raise RuntimeError(f"All Gemini keys failed for cypher generation: {last_error}")
 

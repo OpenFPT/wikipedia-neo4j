@@ -296,6 +296,7 @@ def _get_ner_pipeline():
             aggregation_strategy="simple",
             device=-1,
             truncation=True,
+            model_kwargs={"ignore_mismatched_sizes": True},
         )
         logger.info("Loaded NER model: %s", settings.ner_model_id)
     return _ner_pipeline

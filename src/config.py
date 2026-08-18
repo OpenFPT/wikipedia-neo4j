@@ -63,6 +63,20 @@ class Settings(BaseSettings):
 
     lora_adapter_path: str | None = None
 
+    # Claude / Claudible (vip endpoint — Anthropic SDK)
+    anthropic_api_key: str | None = None
+    anthropic_base_url: str = "https://vip.claudible.io"
+    claude_model_text: str = "claude-haiku-4-5"
+
+    # Claudible cn endpoint — OpenAI-compatible, cheaper batch models
+    cn_base_url: str = "https://cn.claudible.io"
+    cn_model_text: str = "deepseek-v4-flash"
+
+    # MHQA dataset expansion pipeline
+    mhqa_generation_model: str = "claude-haiku-4-5"
+    mhqa_batch_size: int = 10
+    mhqa_concurrency: int = 5
+
     min_text_length: int = 200
     ingest_batch_size: int = 100
     embed_batch_size: int = 50

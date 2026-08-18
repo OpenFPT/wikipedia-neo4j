@@ -592,11 +592,6 @@ def evaluate_viquad(
         latencies.append(latency)
 
         retrieved_texts = [r.get("chunk_text", "") for r in rows]
-        raw_scores = [r.get("score") for r in rows]
-        max(
-            ((s[0] if isinstance(s, list) else s) or 0 for s in raw_scores),
-            default=0,
-        )
 
         # Context hit: token overlap between gold context and retrieved chunks
         ctx_tokens = set(context.lower().split())
@@ -696,6 +691,289 @@ Total samples: {metrics.total} (answerable: {metrics.answerable_count}, impossib
     return report
 
 
+# --- MHQA Dataset Evaluation ---
+
+MHQA_DATASET_PATH = Path("data/mhqa/final.jsonl")
+
+
+@dataclass
+class MHQAMetrics:
+    """Aggregated evaluation metrics for MHQA dataset."""
+
+    total: int = 0
+    context_hit_rate: float = 0.0
+    mrr: float = 0.0
+    token_f1: float = 0.0
+    supporting_fact_recall: float = 0.0
+    decomposition_accuracy: float = 0.0
+    avg_latency_ms: float = 0.0
+    level_breakdown: dict = field(default_factory=dict)
+    details: list[dict] = field(default_factory=list)
+
+
+def _compute_supporting_fact_recall(
+    retrieved_chunks: list[dict], supporting_facts: list[dict], context: list[dict]
+) -> float:
+    """Compute % of gold supporting_facts sentences present in retrieved chunks.
+
+    For each supporting fact (title + sent_id), check if the corresponding
+    sentence text appears in any retrieved chunk.
+    """
+    if not supporting_facts:
+        return 0.0
+
+    # Build map of supporting fact sentences
+    sf_sentences = []
+    for sf in supporting_facts:
+        title = sf.get("title", "")
+        sent_id = sf.get("sent_id", 0)
+        for ctx in context:
+            if ctx.get("title") == title:
+                sentences = ctx.get("sentences", [])
+                if sent_id < len(sentences):
+                    sf_sentences.append(sentences[sent_id].lower().strip())
+                break
+
+    if not sf_sentences:
+        return 0.0
+
+    # Check how many supporting fact sentences appear in retrieved chunks
+    retrieved_text = " ".join(c.get("chunk_text", "").lower() for c in retrieved_chunks)
+    hits = sum(1 for sent in sf_sentences if sent[:50] in retrieved_text)
+
+    return hits / len(sf_sentences)
+
+
+def _compute_decomposition_accuracy(
+    decomposition: list[dict], top_k: int = 10
+) -> float:
+    """Run sub-questions independently and check if sub-answers are retrievable."""
+    if not decomposition:
+        return 0.0
+
+    from src.retrieval.fusion import _wrrf_fuse
+    from src.retrieval.bm25 import run_bm25_query
+    from src.retrieval.vector import vector_search
+    from src.retrieval.graph import graph_search
+
+    hits = 0
+    for decomp in decomposition:
+        sub_q = decomp.get("sub_question", "")
+        sub_a = decomp.get("sub_answer", "").lower().strip()
+        if not sub_q or not sub_a:
+            continue
+
+        try:
+            bm25 = run_bm25_query(sub_q, top_k=top_k)
+            vector = vector_search(sub_q, top_k=top_k)
+            graph = graph_search(sub_q, top_k=top_k)
+
+            fused = _wrrf_fuse({"bm25": bm25, "vector": vector, "graph": graph})
+            for chunk in fused[:top_k]:
+                if sub_a in chunk.get("chunk_text", "").lower():
+                    hits += 1
+                    break
+        except Exception:
+            continue
+
+    return hits / len(decomposition)
+
+
+def evaluate_mhqa(
+    limit: int | None = None,
+    top_k_retrieve: int = 20,
+    dataset_path: Path | None = None,
+    output_path: str = "reports/eval_mhqa.json",
+) -> MHQAMetrics:
+    """Evaluate on MHQA dataset with decomposition-aware metrics.
+
+    Metrics:
+        - Context Hit Rate: % of questions where answer is in top-K chunks
+        - MRR: Mean Reciprocal Rank of first relevant chunk
+        - Token F1: Token-level F1 between retrieved answer and gold answer
+        - Supporting Fact Recall: % of gold supporting fact sentences in retrieved chunks
+        - Decomposition Accuracy: % of sub-questions with retrievable sub-answers
+    """
+    try:
+        from src.retrieval.fusion import _wrrf_fuse
+        from src.retrieval.bm25 import run_bm25_query
+        from src.retrieval.vector import vector_search
+        from src.retrieval.graph import graph_search
+        from src.retrieval.community import community_search
+    except ImportError as e:
+        raise ImportError(f"Retrieval modules not available for MHQA evaluation: {e}") from e
+
+    p = dataset_path or MHQA_DATASET_PATH
+    if not p.exists():
+        raise FileNotFoundError(f"MHQA dataset not found: {p}. Run the MHQA pipeline first.")
+
+    # Load dataset
+    samples = []
+    with open(p, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                samples.append(json.loads(line))
+                if limit and len(samples) >= limit:
+                    break
+
+    logger.info(f"Evaluating MHQA dataset: {len(samples)} samples")
+    metrics = MHQAMetrics(total=len(samples))
+
+    hit_rates: list[float] = []
+    mrrs: list[float] = []
+    f1s: list[float] = []
+    sf_recalls: list[float] = []
+    decomp_accs: list[float] = []
+    latencies: list[float] = []
+    level_hits: dict[str, list[float]] = {}
+
+    for i, sample in enumerate(samples):
+        question = sample["question"]
+        answer = sample["answer"]
+        level = sample.get("level", "medium")
+        supporting_facts = sample.get("supporting_facts", [])
+        context = sample.get("context", [])
+        decomposition = sample.get("decomposition", [])
+
+        # Retrieve
+        t0 = time.perf_counter()
+        try:
+            bm25_results = run_bm25_query(question, top_k=top_k_retrieve)
+            vector_results = vector_search(question, top_k=top_k_retrieve)
+            graph_results = graph_search(question, top_k=top_k_retrieve)
+            community_results = community_search(question, top_k=top_k_retrieve)
+
+            fused = _wrrf_fuse(
+                {
+                    "bm25": bm25_results,
+                    "vector": vector_results,
+                    "graph": graph_results,
+                    "community": community_results,
+                },
+            )
+        except Exception as e:
+            logger.warning(f"Retrieval failed for sample {i}: {e}")
+            fused = []
+
+        latency = (time.perf_counter() - t0) * 1000
+        latencies.append(latency)
+
+        # Hit rate: answer in retrieved chunks
+        retrieved_texts = [c.get("chunk_text", "").lower() for c in fused[:top_k_retrieve]]
+        answer_lower = answer.lower().strip()
+        hit = 0.0
+        rank = 0
+        for j, text in enumerate(retrieved_texts):
+            if answer_lower in text:
+                hit = 1.0
+                rank = j + 1
+                break
+        hit_rates.append(hit)
+        mrrs.append(1.0 / rank if rank > 0 else 0.0)
+
+        # Token F1
+        if fused:
+            top_chunk_text = fused[0].get("chunk_text", "")
+            f1 = compute_token_f1(top_chunk_text, [answer])
+        else:
+            f1 = 0.0
+        f1s.append(f1)
+
+        # Supporting fact recall
+        sf_recall = _compute_supporting_fact_recall(fused[:top_k_retrieve], supporting_facts, context)
+        sf_recalls.append(sf_recall)
+
+        # Decomposition accuracy (expensive, sample every 5th)
+        if i % 5 == 0 and decomposition:
+            decomp_acc = _compute_decomposition_accuracy(decomposition, top_k=10)
+            decomp_accs.append(decomp_acc)
+
+        # Track by level
+        if level not in level_hits:
+            level_hits[level] = []
+        level_hits[level].append(hit)
+
+        metrics.details.append({
+            "id": sample.get("_id", i),
+            "question": question[:80],
+            "level": level,
+            "hit": hit,
+            "mrr": 1.0 / rank if rank > 0 else 0.0,
+            "sf_recall": round(sf_recall, 3),
+            "latency_ms": round(latency, 1),
+        })
+
+        if (i + 1) % 20 == 0:
+            logger.info(f"MHQA eval: {i + 1}/{len(samples)}")
+
+    # Aggregate
+    if hit_rates:
+        metrics.context_hit_rate = sum(hit_rates) / len(hit_rates)
+        metrics.mrr = sum(mrrs) / len(mrrs)
+    if f1s:
+        metrics.token_f1 = sum(f1s) / len(f1s)
+    if sf_recalls:
+        metrics.supporting_fact_recall = sum(sf_recalls) / len(sf_recalls)
+    if decomp_accs:
+        metrics.decomposition_accuracy = sum(decomp_accs) / len(decomp_accs)
+    if latencies:
+        metrics.avg_latency_ms = sum(latencies) / len(latencies)
+
+    for level, hits in level_hits.items():
+        metrics.level_breakdown[level] = {
+            "count": len(hits),
+            "hit_rate": sum(hits) / len(hits) if hits else 0.0,
+        }
+
+    # Save results
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    data = {
+        "total": metrics.total,
+        "context_hit_rate": metrics.context_hit_rate,
+        "mrr": metrics.mrr,
+        "token_f1": metrics.token_f1,
+        "supporting_fact_recall": metrics.supporting_fact_recall,
+        "decomposition_accuracy": metrics.decomposition_accuracy,
+        "avg_latency_ms": metrics.avg_latency_ms,
+        "level_breakdown": metrics.level_breakdown,
+        "details": metrics.details,
+    }
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    logger.info(f"MHQA results saved to {out}")
+
+    return metrics
+
+
+def print_mhqa_report(metrics: MHQAMetrics) -> str:
+    """Format MHQA evaluation results as a readable report."""
+    level_lines = ""
+    for level, info in metrics.level_breakdown.items():
+        level_lines += f"  {level}: {info['count']} samples, hit_rate={info['hit_rate']:.3f}\n"
+
+    report = f"""
+=== MHQA Evaluation Report ===
+Total samples: {metrics.total}
+
+--- Retrieval ---
+  Context Hit Rate:       {metrics.context_hit_rate:.3f}
+  MRR:                    {metrics.mrr:.3f}
+  Token F1:               {metrics.token_f1:.3f}
+
+--- Multi-hop Specific ---
+  Supporting Fact Recall: {metrics.supporting_fact_recall:.3f}
+  Decomposition Accuracy: {metrics.decomposition_accuracy:.3f}
+
+--- By Difficulty ---
+{level_lines}
+--- Performance ---
+  Avg Latency:            {metrics.avg_latency_ms:.0f} ms
+"""
+    return report
+
+
 if __name__ == "__main__":
     import sys
 
@@ -732,6 +1010,11 @@ if __name__ == "__main__":
         with open(out, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         logger.info(f"Results saved to {out}")
+    elif dataset == "mhqa":
+        print(f"Running MHQA evaluation on {limit} samples...")
+        mhqa_results = evaluate_mhqa(limit=limit)
+        report = print_mhqa_report(mhqa_results)
+        print(report)
     else:
         print(f"Running evaluation on {limit} samples...")
         results = evaluate(limit=limit)

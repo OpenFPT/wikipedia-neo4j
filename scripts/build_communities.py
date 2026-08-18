@@ -187,65 +187,39 @@ def _get_community_context(
     return entities, passages
 
 
-def _generate_summary_gemini(entities: list[str], passages: list[str]) -> str:
-    """Generate community summary using Gemini API."""
-    from google import genai
-    from google.genai import types
-
-    from src.config import load_gemini_api_keys
+def _generate_summary_cn(entities, passages):
+    """Generate community summary using deepseek-v4-flash via cn.claudible.io."""
+    from openai import OpenAI
 
     prompt = COMMUNITY_SUMMARY_PROMPT.format(
         entities="\n".join(f"- {e}" for e in entities),
         passages="\n---\n".join(passages) if passages else "(Không có đoạn văn mẫu)",
     )
 
-    keys = load_gemini_api_keys()
-    last_error: Exception | None = None
-
-    for key in keys:
-        try:
-            client = genai.Client(api_key=key)
-            resp = client.models.generate_content(
-                model=settings.gemini_model_text,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.3,
-                    max_output_tokens=256,
-                ),
-            )
-            text = (resp.text or "").strip()
-            if text:
-                return text
-            raise RuntimeError("Empty summary response")
-        except Exception as exc:
-            last_error = exc
-            time.sleep(1)
-            continue
-
-    raise RuntimeError(f"All Gemini keys failed for summary generation: {last_error}")
-
-
-def _generate_summary_local(entities: list[str], passages: list[str]) -> str:
-    """Generate community summary using local model."""
-    from src.infrastructure.local_llm import chat
-
-    prompt = COMMUNITY_SUMMARY_PROMPT.format(
-        entities="\n".join(f"- {e}" for e in entities),
-        passages="\n---\n".join(passages) if passages else "(Không có đoạn văn mẫu)",
+    client = OpenAI(
+        api_key=settings.anthropic_api_key,
+        base_url=settings.cn_base_url + "/v1",
     )
+    resp = client.chat.completions.create(
+        model=settings.cn_model_text,
+        max_tokens=2048,
+        temperature=0.3,
+        messages=[
+            {"role": "system", "content": "Bạn là trợ lý tóm tắt nội dung Wikipedia tiếng Việt."},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    text = (resp.choices[0].message.content or "").strip()
+    if not text:
+        raise RuntimeError("Empty summary response from cn model")
+    return text
 
-    messages = [
-        {"role": "system", "content": "Bạn là trợ lý tóm tắt nội dung Wikipedia tiếng Việt."},
-        {"role": "user", "content": prompt},
-    ]
-    return chat(messages, max_new_tokens=256, temperature=0.3)
 
-
-def generate_summary(entities: list[str], passages: list[str]) -> str:
+def generate_summary(entities, passages):
     """Generate community summary using configured model backend."""
     if settings.model_mode == "local":
         return _generate_summary_local(entities, passages)
-    return _generate_summary_gemini(entities, passages)
+    return _generate_summary_cn(entities, passages)
 
 
 def write_community_ids_to_entities(

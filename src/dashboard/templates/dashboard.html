@@ -21,6 +21,17 @@
   --border: #2d3f50;
   --radius: 4px;
 }
+[data-theme="light"] {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --accent: #0d9488;
+  --coral: #e53e3e;
+  --text: #1a202c;
+  --muted: #64748b;
+  --success: #16a34a;
+  --warning: #ca8a04;
+  --border: #e2e8f0;
+}
 html { font-size: 16px; }
 body {
   font-family: 'Inter', -apple-system, sans-serif;
@@ -306,6 +317,50 @@ header h1 {
   opacity: 0.6;
   transition: opacity 0.2s ease;
 }
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+}
+.toggle-track {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  transition: background 0.3s ease;
+}
+[data-theme="light"] .toggle-track {
+  background: var(--accent);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: var(--text);
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+[data-theme="light"] .toggle-thumb {
+  transform: translateX(20px);
+  background: #ffffff;
+}
+.toggle-icon::after {
+  content: '\263D';
+  font-size: 1rem;
+  color: var(--muted);
+  transition: opacity 0.2s ease;
+}
+[data-theme="light"] .toggle-icon::after {
+  content: '\2600';
+}
 </style>
 </head>
 <body>
@@ -318,6 +373,7 @@ header h1 {
         Neo4j: {{ 'connected' if stats.available else 'unavailable' }}
       </span>
       <span>Refresh: <span id="refresh-countdown" role="timer" aria-live="off">30</span>s</span>
+      <button id="theme-toggle" aria-label="Toggle light/dark mode" class="theme-toggle"><span class="toggle-track"><span class="toggle-thumb"></span></span><span class="toggle-icon" aria-hidden="true"></span></button>
     </div>
   </header>
 
@@ -399,17 +455,17 @@ header h1 {
         <svg width="100%" height="120" viewBox="0 0 400 120" preserveAspectRatio="none" role="img" aria-label="WRRF weight distribution chart">
           <title>WRRF retrieval weight distribution</title>
           <rect x="20" y="{{ 100 - (weights.bm25 / mw * 80)|round|int }}" width="60" height="{{ (weights.bm25 / mw * 80)|round|int }}" rx="2" fill="#4ecdc4" />
-          <text x="50" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">BM25</text>
+          <text x="50" y="115" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="Inter, sans-serif">BM25</text>
           <rect x="120" y="{{ 100 - (weights.vector / mw * 80)|round|int }}" width="60" height="{{ (weights.vector / mw * 80)|round|int }}" rx="2" fill="#7c4dff" />
-          <text x="150" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">Vector</text>
+          <text x="150" y="115" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="Inter, sans-serif">Vector</text>
           <rect x="220" y="{{ 100 - (weights.graph / mw * 80)|round|int }}" width="60" height="{{ (weights.graph / mw * 80)|round|int }}" rx="2" fill="#ff6b6b" />
-          <text x="250" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">Graph</text>
+          <text x="250" y="115" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="Inter, sans-serif">Graph</text>
           <rect x="320" y="{{ 100 - (weights.community / mw * 80)|round|int }}" width="60" height="{{ (weights.community / mw * 80)|round|int }}" rx="2" fill="#ffd600" />
-          <text x="350" y="115" text-anchor="middle" fill="#a8bcc8" font-size="10" font-family="Inter, sans-serif">Comm.</text>
-          <text x="50" y="{{ 96 - (weights.bm25 / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.bm25) }}</text>
-          <text x="150" y="{{ 96 - (weights.vector / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.vector) }}</text>
-          <text x="250" y="{{ 96 - (weights.graph / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.graph) }}</text>
-          <text x="350" y="{{ 96 - (weights.community / mw * 80)|round|int }}" text-anchor="middle" fill="#e8eaed" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.community) }}</text>
+          <text x="350" y="115" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="Inter, sans-serif">Comm.</text>
+          <text x="50" y="{{ 96 - (weights.bm25 / mw * 80)|round|int }}" text-anchor="middle" fill="var(--text)" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.bm25) }}</text>
+          <text x="150" y="{{ 96 - (weights.vector / mw * 80)|round|int }}" text-anchor="middle" fill="var(--text)" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.vector) }}</text>
+          <text x="250" y="{{ 96 - (weights.graph / mw * 80)|round|int }}" text-anchor="middle" fill="var(--text)" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.graph) }}</text>
+          <text x="350" y="{{ 96 - (weights.community / mw * 80)|round|int }}" text-anchor="middle" fill="var(--text)" font-size="11" font-family="JetBrains Mono, monospace">{{ "%.2f"|format(weights.community) }}</text>
         </svg>
       </div>
     </section>
@@ -574,7 +630,7 @@ header h1 {
 </main>
 
 <!-- Keyboard shortcuts overlay -->
-<div id="shortcuts-overlay" role="dialog" aria-label="Keyboard shortcuts" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(15,20,25,0.85);z-index:1000;align-items:center;justify-content:center;">
+<div id="shortcuts-overlay" role="dialog" aria-label="Keyboard shortcuts" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;max-width:320px;width:90%;">
     <h2 style="font-size:0.875rem;font-weight:600;color:var(--text);margin-bottom:1rem;">Keyboard Shortcuts</h2>
     <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.8125rem;">
@@ -591,6 +647,23 @@ header h1 {
   var countdown = INTERVAL;
   var countdownEl = document.getElementById('refresh-countdown');
   var overlay = document.getElementById('shortcuts-overlay');
+  var themeToggle = document.getElementById('theme-toggle');
+
+  // Theme persistence
+  var savedTheme = localStorage.getItem('graphpulse-theme') || 'dark';
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+  themeToggle.addEventListener('click', function() {
+    var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('graphpulse-theme', 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      localStorage.setItem('graphpulse-theme', 'light');
+    }
+  });
 
   function formatNumber(n) {
     return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -714,7 +787,7 @@ header h1 {
       label.setAttribute('x', x + 30);
       label.setAttribute('y', '88');
       label.setAttribute('text-anchor', 'middle');
-      label.setAttribute('fill', '#a8bcc8');
+      label.setAttribute('fill', 'var(--muted)');
       label.setAttribute('font-size', '10');
       label.setAttribute('font-family', 'Inter, sans-serif');
       label.textContent = ch.label;
@@ -723,7 +796,7 @@ header h1 {
       valText.setAttribute('x', x + 30);
       valText.setAttribute('y', 66 - barH);
       valText.setAttribute('text-anchor', 'middle');
-      valText.setAttribute('fill', '#e8eaed');
+      valText.setAttribute('fill', 'var(--text)');
       valText.setAttribute('font-size', '11');
       valText.setAttribute('font-family', 'JetBrains Mono, monospace');
       valText.textContent = val;

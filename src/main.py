@@ -7,6 +7,7 @@ import time
 import uuid
 from collections import deque
 from contextlib import asynccontextmanager
+from queue import Queue
 from datetime import datetime, timezone
 from contextvars import Token
 import json
@@ -16,6 +17,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import StreamingResponse
 from starlette.responses import JSONResponse as _StarletteJSONResponse
 
 from src.config import settings, validate_runtime_settings
@@ -95,6 +97,9 @@ app.add_middleware(
         "http://127.0.0.1:1420",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://tauri.localhost",
+        "https://tauri.localhost",
+        "tauri://localhost",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -148,6 +153,7 @@ class QueryRequest(BaseModel):
 
     question: str = Field(min_length=3, max_length=1000)
     top_k: int = Field(default=4, ge=1, le=20)
+    debug: bool = Field(default=False, description="Include safe backend trace in response.")
 
 
 class ChatMessage(BaseModel):
@@ -295,6 +301,35 @@ def _with_request_context(request: Request) -> tuple[str, Token[str]]:
     return request_id, token
 
 
+def _last_user_question(messages: list[ChatMessage]) -> str:
+    """Extract the latest user question from chat history."""
+    for message in reversed(messages):
+        if message.role == "user":
+            question = message.content.strip()
+            if len(question) >= 3:
+                return question
+            break
+    raise HTTPException(status_code=400, detail="No user message found in chat history")
+
+
+def _chat_payload_from_result(result, debug: bool) -> dict:
+    """Serialize a query result into the chat response shape."""
+    payload = {
+        "answer": result.answer,
+        "citations": result.citations,
+        "retrieval_tier": getattr(result, "retrieval_tier", "unknown"),
+    }
+    if debug and getattr(result, "trace", None) is not None:
+        payload["trace"] = result.trace
+        payload["debug"] = {"retrieval_tier": payload["retrieval_tier"]}
+    return payload
+
+
+def _sse(event: str, payload: dict) -> str:
+    """Format one SSE frame."""
+    return f"event: {event}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
 @app.get("/health")
 def health() -> dict:
     """Return basic liveness status."""
@@ -383,11 +418,14 @@ def query(req: QueryRequest, request: Request) -> dict:
         signal_scores={},
     ))
 
-    return {
+    payload = {
         "answer": result.answer,
         "citations": result.citations,
         "retrieval_tier": getattr(result, "retrieval_tier", "unknown"),
     }
+    if req.debug and getattr(result, "trace", None) is not None:
+        payload["trace"] = result.trace
+    return payload
 
 
 @app.post("/chat", dependencies=[Depends(_guard)])
@@ -398,18 +436,9 @@ def chat(req: ChatRequest, request: Request) -> dict:
     - Retrieval uses only the latest user message (best for precision).
     - The response always includes citations pointing back to Wikipedia pages/chunks.
     """
-    # Pick the last user message as the question.
-    question = ""
-    for m in reversed(req.messages):
-        if m.role == "user":
-            question = m.content.strip()
-            break
-    if len(question) < 3:
-        raise HTTPException(status_code=400, detail="No user message found in chat history")
+    question = _last_user_question(req.messages)
 
-    resp = query(QueryRequest(question=question, top_k=req.top_k), request)
-    if req.debug:
-        resp["debug"] = {"retrieval_tier": resp.get("retrieval_tier", "unknown")}
+    resp = query(QueryRequest(question=question, top_k=req.top_k, debug=req.debug), request)
 
     # Collect hard-fail/abstain queries for improving templates later.
     # This is intentionally best-effort and never blocks the request.
@@ -433,6 +462,58 @@ def chat(req: ChatRequest, request: Request) -> dict:
     except Exception:
         pass
     return resp
+
+
+@app.post("/chat/stream", dependencies=[Depends(_guard)])
+def chat_stream(req: ChatRequest, request: Request) -> StreamingResponse:
+    """Stream live backend processing events for one chat request."""
+    question = _last_user_question(req.messages)
+    request_id = _request_id(request)
+
+    def _event_stream():
+        event_queue: Queue[tuple[str, dict] | None] = Queue()
+
+        def emit(event: str, payload: dict) -> None:
+            event_queue.put((event, payload))
+
+        def worker() -> None:
+            token = set_request_id(request_id)
+            started = time.perf_counter()
+            try:
+                emit("status", {"state": "started", "question": question})
+                result = query_graph(question, req.top_k, emit=emit)
+                payload = _chat_payload_from_result(result, req.debug)
+                emit("final", payload)
+            except RuntimeError as exc:
+                logger.exception("Streaming chat failed")
+                emit("error", {"error_type": type(exc).__name__, "message": str(exc)})
+            except Exception as exc:  # noqa: BLE001
+                logger.exception("Streaming chat failed unexpectedly")
+                emit("error", {"error_type": type(exc).__name__, "message": str(exc)})
+            finally:
+                elapsed_ms = int((time.perf_counter() - started) * 1000)
+                logger.info("Streaming chat completed", extra={"duration_ms": elapsed_ms})
+                event_queue.put(None)
+                reset_request_id(token)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+        while True:
+            item = event_queue.get()
+            if item is None:
+                break
+            event, payload = item
+            yield _sse(event, payload)
+
+    return StreamingResponse(
+        _event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.post("/query/hybrid", dependencies=[Depends(_guard)])

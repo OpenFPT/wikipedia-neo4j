@@ -88,6 +88,4 @@ class TestRerank:
 
         docs = [{"chunk_text": "a"}, {"chunk_text": "b"}]
         result = reranker_mod.rerank("query", docs, top_k=5, min_score=0.5)
-        # All below threshold, but fallback returns top-1
-        assert len(result) == 1
-        assert result[0]["rerank_score"] == 0.01
+        assert result == []

@@ -21,8 +21,10 @@ from src.orchestration.voting import run_agent_scaled, _majority_vote, _answers_
 class _FakeSession:
     def __init__(self, results: list[dict]):
         self._results = results
+        self.calls: list[tuple[str, dict]] = []
 
     def run(self, cypher, **params):
+        self.calls.append((cypher, params))
         return self._results
 
     def __enter__(self):
@@ -435,6 +437,36 @@ class TestRunAgentScaled:
 
 
 class TestToolKgQuery:
+    def test_accepts_general_readonly_query_without_retrieval_aliases(self, monkeypatch) -> None:
+        monkeypatch.setattr(
+            agent_mod.neo4j_client, "session",
+            _make_fake_session_factory([{"name": "Hà Nội", "type": "Location"}]),
+        )
+
+        result = agent_mod._tool_kg_query(
+            "MATCH (e:Entity) RETURN e.name AS name, e.type AS type LIMIT 5"
+        )
+
+        data = json.loads(result)
+        assert data[0]["name"] == "Hà Nội"
+
+    def test_passes_top_k_parameter_to_query(self, monkeypatch) -> None:
+        fake_session = _FakeSession([{"name": "Hà Nội"}])
+
+        @contextmanager
+        def _session():
+            yield fake_session
+
+        monkeypatch.setattr(agent_mod.neo4j_client, "session", _session)
+
+        agent_mod._tool_kg_query(
+            "MATCH (e:Entity) RETURN e.name AS name LIMIT $top_k"
+        )
+
+        assert fake_session.calls == [
+            ("MATCH (e:Entity) RETURN e.name AS name LIMIT $top_k", {"top_k": 10})
+        ]
+
     def test_returns_results(self, monkeypatch) -> None:
         monkeypatch.setattr(
             agent_mod.neo4j_client, "session",

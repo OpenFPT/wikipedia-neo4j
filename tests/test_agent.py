@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import src.orchestration.agent as agent
+import src.orchestration.agent_loop as agent_loop
 from src.retrieval.hybrid import QueryResult
 
 
@@ -54,6 +55,13 @@ class TestToolKgQuery:
     def test_rejects_empty_cypher(self) -> None:
         result = agent._tool_kg_query("")
         assert "Error" in result
+
+    def test_rejects_queries_with_unknown_schema_terms(self) -> None:
+        result = agent._tool_kg_query(
+            "MATCH (n:Người {ten:'Ho Chi Minh'}) RETURN n"
+        )
+        assert "Error" in result
+        assert "schema" in result
 
     def test_valid_cypher_executes(self, monkeypatch) -> None:
         class _FakeSession:
@@ -234,7 +242,7 @@ class TestAgentQuery:
         monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
 
         result = agent.agent_query("test question")
-        assert "Không tìm thấy" in result.answer
+        assert "Không đủ thông tin" in result.answer or "Không tìm thấy" in result.answer
 
     def test_unknown_tool_handled(self, monkeypatch) -> None:
         call_count = [0]
@@ -302,18 +310,73 @@ class TestSynthesizeFromObservations:
     def test_with_valid_observations(self):
         obs = ["Hà Nội là thủ đô", "Error: failed", "Dân số 8 triệu"]
         citations = [{"page_title": "Hà Nội", "chunk_id": "c1"}]
-        result = agent._synthesize_from_observations(obs, citations)
-        assert "Dựa trên thông tin" in result.answer
+        result = agent_loop._synthesize_from_observations(obs, citations)
+        assert "Không đủ thông tin" in result.answer
         assert result.citations == citations
 
     def test_with_no_valid_observations(self):
         obs = ["Error: failed", "No results found."]
-        result = agent._synthesize_from_observations(obs, [])
+        result = agent_loop._synthesize_from_observations(obs, [])
         assert "Không tìm thấy" in result.answer
 
     def test_empty_observations(self):
-        result = agent._synthesize_from_observations([], [])
+        result = agent_loop._synthesize_from_observations([], [])
         assert "Không tìm thấy" in result.answer
+
+
+class TestComposeFallbackAnswer:
+    def test_extracts_quality_phrase_for_detail_question(self):
+        rows = [
+            {
+                "chunk_id": "c1",
+                "chunk_text": "Trải qua 8 phiên họp toàn thể và 23 phiên họp rất căng thẳng và phức tạp, với tinh thần chủ động và cố gắng của phái đoàn Việt Nam.",
+            }
+        ]
+
+        result = agent_loop._compose_fallback_answer(
+            "Hội nghị Genève về Đông Dương có tính chất như thế nào?",
+            rows,
+        )
+
+        assert result == "rất căng thẳng và phức tạp"
+
+    def test_abstains_instead_of_stitching_snippets_for_weak_lookup(self):
+        rows = [
+            {
+                "chunk_id": "c1",
+                "chunk_text": "Hội nghị Genève khai mạc ngày 26 tháng 4 năm 1954 nhằm mục đích ban đầu để bàn về vấn đề khôi phục hòa bình tại Triều Tiên và Đông Dương.",
+            },
+            {
+                "chunk_id": "c2",
+                "chunk_text": "Năm 1954, ông được giao nhiệm vụ Trưởng phái đoàn Chính phủ dự Hội nghị Genève về Đông Dương.",
+            },
+        ]
+
+        result = agent_loop._compose_fallback_answer(
+            "Hội nghị Genève về Đông Dương có tính chất như thế nào?",
+            rows,
+        )
+
+        assert "Dựa trên thông tin tìm được:" not in result
+
+    def test_prefers_quality_phrase_from_later_row_over_first_sentence(self):
+        rows = [
+            {
+                "chunk_id": "c1",
+                "chunk_text": "Hội nghị Genève khai mạc ngày 26 tháng 4 năm 1954 nhằm mục đích ban đầu để bàn về vấn đề khôi phục hòa bình tại Triều Tiên và Đông Dương.",
+            },
+            {
+                "chunk_id": "c2",
+                "chunk_text": "Trải qua 8 phiên họp toàn thể và 23 phiên họp rất căng thẳng và phức tạp, với tinh thần chủ động và cố gắng của phái đoàn Việt Nam.",
+            },
+        ]
+
+        result = agent_loop._compose_fallback_answer(
+            "Hội nghị Genève về Đông Dương có tính chất như thế nào?",
+            rows,
+        )
+
+        assert result == "rất căng thẳng và phức tạp"
 
 
 class TestAnswersSimilar:
@@ -745,8 +808,129 @@ class TestAgentQueryStandard:
         import src.infrastructure.local_llm
         monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
 
-        result = agent._agent_query_standard("test")
+        result = agent.agent_query_standard("test")
         assert result.answer == "Got it"
+
+    def test_repeated_unparseable_output_falls_back_to_text_search(self, monkeypatch):
+        """Agent should use deterministic retrieval after repeated unparseable turns."""
+
+        def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
+            return "still not json"
+
+        monkeypatch.setattr(
+            agent_loop,
+            "_exact_subject_rows",
+            lambda question, top_k: [{
+                "page_title": "Hồ Chí Minh",
+                "page_url": "http://x",
+                "page_id": "p1",
+                "chunk_id": "c1",
+                "chunk_text": "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam.",
+                "score": 1.0,
+            }],
+        )
+        monkeypatch.setattr(agent_loop, "hybrid_retrieve", lambda question, top_k: [])
+        monkeypatch.setattr(agent_loop, "rerank", lambda question, documents, text_key="chunk_text", top_k=5: documents[:top_k])
+        monkeypatch.setattr(agent_loop, "_expand_same_page_chunks", lambda rows, limit_per_page=4: [])
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
+
+        result = agent.agent_query_standard("Hồ Chí Minh là ai?")
+        assert result.answer == "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam."
+        assert result.citations[0]["page_title"] == "Hồ Chí Minh"
+
+    def test_non_converged_agent_uses_clean_text_search_fallback(self, monkeypatch):
+        """Agent should prefer deterministic retrieval over mixed observation synthesis on non-convergence."""
+        call_count = [0]
+
+        def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return json.dumps({"thought": "schema", "action": "kg_schema", "action_input": {}})
+            return json.dumps({"thought": "search", "action": "text_search", "action_input": {"query": "Hồ Chí Minh là ai"}})
+
+        class _FakeSession:
+            def run(self, cypher, **params):
+                if "queryNodes('chunk_text_ft'" in cypher:
+                    return [{
+                        "page_title": "Hồ Chí Minh",
+                        "page_url": "http://x",
+                        "chunk_id": "c1",
+                        "chunk_text": "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam.",
+                        "score": 1.0,
+                    }]
+                return []
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                pass
+
+        from contextlib import contextmanager
+
+        @contextmanager
+        def _fake_session():
+            yield _FakeSession()
+
+        monkeypatch.setattr(agent.neo4j_client, "session", _fake_session)
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
+
+        result = agent.agent_query_standard("Hồ Chí Minh là ai?")
+        assert "Node labels:" not in result.answer
+        assert result.citations[0]["page_title"] == "Hồ Chí Minh"
+
+    def test_invalid_kg_query_prompts_grounded_recovery(self, monkeypatch):
+        """Agent should recover after schema-invalid Cypher instead of burning all turns."""
+        call_count = [0]
+
+        def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return json.dumps({
+                    "thought": "try graph query",
+                    "action": "kg_query",
+                    "action_input": {
+                        "cypher": "MATCH (n:Người {ten:'Ho Chi Minh'}) RETURN n"
+                    },
+                })
+            if call_count[0] == 2:
+                last_message = messages[-1]["content"]
+                assert "kg_schema" in last_message or "text_search" in last_message
+                return json.dumps({
+                    "thought": "fallback to text search",
+                    "action": "text_search",
+                    "action_input": {"query": "Hồ Chí Minh là ai"},
+                })
+            return json.dumps({"thought": "done", "final_answer": "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam."})
+
+        class _FakeSession:
+            def run(self, cypher, **params):
+                return [{"page_title": "Hồ Chí Minh", "page_url": "http://x", "chunk_id": "c1", "chunk_text": "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam.", "score": 1.0}]
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_):
+                pass
+
+        from contextlib import contextmanager
+
+        @contextmanager
+        def _fake_session():
+            yield _FakeSession()
+
+        monkeypatch.setattr(agent.neo4j_client, "session", _fake_session)
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
+
+        result = agent.agent_query_standard("Hồ Chí Minh là ai?")
+        assert result.answer == "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam."
+        assert result.citations[0]["page_title"] == "Hồ Chí Minh"
 
     def test_llm_failure_breaks_loop(self, monkeypatch):
         """Agent breaks loop when LLM fails after retry."""
@@ -760,3 +944,68 @@ class TestAgentQueryStandard:
         result = agent._agent_query_standard("test")
         # Should return synthesized/fallback answer
         assert result.answer != ""
+
+    def test_local_agent_standard_attaches_safe_trace(self, monkeypatch):
+        """Local agent path should expose only safe structured trace metadata."""
+        call_count = [0]
+
+        def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return json.dumps({
+                    "thought": "schema",
+                    "action": "kg_schema",
+                    "action_input": {},
+                })
+            return json.dumps({
+                "thought": "done",
+                "final_answer": "Câu trả lời thử nghiệm",
+            })
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
+
+        result = agent_loop.agent_query_standard("test question")
+        assert result.answer == "Câu trả lời thử nghiệm"
+        assert result.trace is not None
+        assert result.trace["tier"] == "generated"
+        assert any(step.get("name") == "route.local_agent" for step in result.trace["steps"])
+        assert any(step.get("name") == "tool.kg_schema" for step in result.trace["steps"])
+
+        for step in result.trace["steps"]:
+            assert "thought" not in step
+            assert "prompt" not in step
+            assert "raw" not in step
+            assert "final_answer" not in step
+
+    def test_local_agent_fallback_attaches_fallback_trace(self, monkeypatch):
+        """Fallback result should include explicit fallback metadata in trace."""
+
+        def _fake_chat(messages, max_new_tokens=512, temperature=0.1):
+            return "still not json"
+
+        monkeypatch.setattr(
+            agent_loop,
+            "_exact_subject_rows",
+            lambda question, top_k: [{
+                "page_title": "Hồ Chí Minh",
+                "page_url": "http://x",
+                "page_id": "p1",
+                "chunk_id": "c1",
+                "chunk_text": "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam.",
+                "score": 1.0,
+            }],
+        )
+        monkeypatch.setattr(agent_loop, "hybrid_retrieve", lambda question, top_k: [])
+        monkeypatch.setattr(agent_loop, "rerank", lambda question, documents, text_key="chunk_text", top_k=5: documents[:top_k])
+        monkeypatch.setattr(agent_loop, "_expand_same_page_chunks", lambda rows, limit_per_page=4: [])
+
+        import src.infrastructure.local_llm
+        monkeypatch.setattr(src.infrastructure.local_llm, "chat", _fake_chat)
+
+        result = agent_loop.agent_query_standard("Hồ Chí Minh là ai?")
+        assert result.answer == "Hồ Chí Minh là lãnh tụ cách mạng Việt Nam."
+        assert result.trace is not None
+        assert result.trace["tier"] == "generated"
+        assert any(step.get("name") == "fallback.deterministic_retrieval" for step in result.trace["steps"])
+        assert any(step.get("status") == "fallback" for step in result.trace["steps"])

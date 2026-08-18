@@ -9,10 +9,8 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/features/i18n/i18n";
 import { cn } from "@/lib/utils";
-import type { EvidenceSource, RetrievalStage } from "../types";
+import type { EvidenceSource, RetrievalStage, StageStatus } from "../types";
 import { GraphCanvas } from "./graph-canvas";
-
-export type StageStatus = "complete" | "pending" | "running";
 
 type InspectorTab = "evidence" | "graph";
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal, TypedDict
 
 from neo4j.exceptions import CypherSyntaxError
 
@@ -19,6 +20,24 @@ from src.retrieval.community import community_search
 logger = get_logger(__name__)
 
 
+class QueryTraceStep(TypedDict, total=False):
+    """One safe, structured backend trace step."""
+
+    kind: Literal["retrieval", "ranking", "answer"]
+    name: str
+    status: Literal["ok", "fallback", "empty"]
+    row_count: int
+    top_k: int
+    error_type: str
+
+
+class QueryTrace(TypedDict):
+    """Safe backend trace metadata for query execution."""
+
+    tier: Literal["generated", "wrrf"]
+    steps: list[QueryTraceStep]
+
+
 @dataclass
 class QueryResult:
     """Query response model used by API layer."""
@@ -26,6 +45,7 @@ class QueryResult:
     answer: str
     citations: list[dict]
     retrieval_tier: str = "unknown"
+    trace: QueryTrace | None = None
 
 
 _LEGACY_HYBRID_CYPHER = """
@@ -356,11 +376,13 @@ def _run_legacy_fallback_query(question: str, top_k: int) -> list[dict]:
 def _synthesize_answer(question: str, snippets: list[str]) -> str:
     """Synthesize a natural-language answer from retrieved snippets using LLM."""
     if not snippets:
-        return "Không tìm thấy thông tin liên quan."
+        return "Không đủ thông tin trong dữ liệu hiện có để trả lời chính xác."
 
     context = "\n\n".join(f"[{i+1}] {s}" for i, s in enumerate(snippets))
     prompt = (
-        f"Dựa vào các đoạn văn bản sau, hãy trả lời câu hỏi một cách ngắn gọn và chính xác bằng tiếng Việt.\n\n"
+        f"Dựa vào các đoạn văn bản sau, hãy trả lời câu hỏi ngắn gọn, trực tiếp và chính xác bằng tiếng Việt.\n"
+        f"Chỉ sử dụng thông tin có trong ngữ cảnh. Nếu ngữ cảnh không đủ để trả lời chắc chắn, "
+        f"hãy trả về đúng câu: Không đủ thông tin trong dữ liệu hiện có để trả lời chính xác.\n\n"
         f"Câu hỏi: {question}\n\n"
         f"Ngữ cảnh:\n{context}\n\n"
         f"Trả lời:"
@@ -383,14 +405,17 @@ def _synthesize_answer(question: str, snippets: list[str]) -> str:
             except Exception:
                 continue
     except Exception as exc:
-        logger.warning("LLM synthesis failed, using snippet fallback", extra={"error": str(exc)})
+        logger.warning("LLM synthesis failed, abstaining", extra={"error": str(exc)})
 
-    return "Dựa trên thông tin tìm được: " + " | ".join(s[:200] for s in snippets[:2])
+    return "Không đủ thông tin trong dữ liệu hiện có để trả lời chính xác."
 
 
-def _run_generated_query(question: str, top_k: int) -> list[dict]:
+def _run_generated_query(question: str, top_k: int, emit=None) -> list[dict]:
     """Generate, validate, and execute LLM-produced read-only Cypher."""
     cypher = generate_readonly_cypher(question)
+    if emit is not None:
+        emit("tool_call", {"tool": "generated_query", "input": {"question": question}})
+        emit("cypher", {"query": cypher})
     assert_readonly_cypher(cypher)
 
     with neo4j_client.session() as session:
@@ -403,29 +428,74 @@ def _run_generated_query(question: str, top_k: int) -> list[dict]:
             raise RuntimeError("Generated query returned unexpected shape")
 
     logger.info("Generated retrieval executed", extra={"rows": len(rows)})
+    if emit is not None:
+        emit("tool_result", {"tool": "generated_query", "row_count": len(rows), "status": "ok"})
     return rows
 
 
-def query_graph(question: str, top_k: int = 4) -> QueryResult:
+def query_graph(question: str, top_k: int = 4, emit=None) -> QueryResult:
     """Query graph and synthesize a deterministic answer with citations."""
     if settings.model_mode == "local":
         from src.orchestration.agent_loop import agent_query
 
-        return agent_query(question, top_k)
+        return agent_query(question, top_k, emit=emit)
 
     retrieval_tier = "generated"
+    trace_steps: list[QueryTraceStep] = []
+    if emit is not None:
+        emit("route", {"route": "generated"})
     try:
-        rows = _run_generated_query(question, top_k)
+        rows = (
+            _run_generated_query(question, top_k, emit=emit)
+            if emit is not None
+            else _run_generated_query(question, top_k)
+        )
+        trace_steps.append(
+            {
+                "kind": "retrieval",
+                "name": "generated_query",
+                "status": "ok",
+                "row_count": len(rows),
+                "top_k": top_k,
+            }
+        )
     except (RuntimeError, ValueError, KeyError, TypeError, CypherSyntaxError) as exc:
         logger.warning("Generated query failed, falling back to WRRF", extra={"error": str(exc)})
         retrieval_tier = "wrrf"
+        if emit is not None:
+            emit(
+                "fallback",
+                {"name": "wrrf_fallback", "error_type": type(exc).__name__, "message": str(exc)},
+            )
+        trace_steps.append(
+            {
+                "kind": "retrieval",
+                "name": "generated_query_failed",
+                "status": "fallback",
+                "error_type": type(exc).__name__,
+            }
+        )
         rows = _run_fallback_query(question, top_k)
+        if emit is not None:
+            emit("tool_result", {"tool": "wrrf_fallback", "row_count": len(rows), "status": "ok"})
+        trace_steps.append(
+            {
+                "kind": "retrieval",
+                "name": "wrrf_fallback",
+                "status": "ok",
+                "row_count": len(rows),
+                "top_k": top_k,
+            }
+        )
+
+    trace: QueryTrace = {"tier": retrieval_tier, "steps": trace_steps}
 
     if not rows:
         return QueryResult(
             answer="I could not find relevant context in the graph yet. Try ingesting more topics.",
             citations=[],
             retrieval_tier=retrieval_tier,
+            trace=trace,
         )
 
     from src.retrieval.reranker import rerank
@@ -457,5 +527,12 @@ def query_graph(question: str, top_k: int = 4) -> QueryResult:
         snippets.append(txt[:500])
 
     answer = _synthesize_answer(question, snippets[:3])
+    if emit is not None:
+        emit("answer_delta", {"text": answer})
 
-    return QueryResult(answer=answer, citations=citations, retrieval_tier=retrieval_tier)
+    return QueryResult(
+        answer=answer,
+        citations=citations,
+        retrieval_tier=retrieval_tier,
+        trace=trace,
+    )

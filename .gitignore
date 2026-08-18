@@ -34,3 +34,16 @@ app/dist/
 *.snm
 *.toc
 *.vrb
+openswarm/
+
+# Root/frontend dependencies and local editor artifacts
+/node_modules/
+/.tours/
+
+# Nested dependency folders generated in report workspaces
+reports/**/node_modules/
+
+# Local exports and archives that should not be versioned
+/*.zip
+/*.csv
+/*.docx

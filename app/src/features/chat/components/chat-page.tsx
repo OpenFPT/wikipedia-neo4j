@@ -23,16 +23,17 @@ import {
   getMockStages,
   mockModels,
 } from "../api/mock-chat";
-import { runBackendChat } from "../api/backend-chat";
+import { streamBackendChat } from "../api/backend-chat";
 import type {
   ChatMessage,
   EvidenceSource,
   ModelId,
   RetrievalStage,
+  StageStatus,
 } from "../types";
 import { Composer } from "./composer";
 import { Conversation } from "./conversation";
-import { EvidencePanel, type StageStatus } from "./evidence-panel";
+import { EvidencePanel } from "./evidence-panel";
 
 const onboardingKey = "knowledge-onboarding-complete";
 
@@ -68,7 +69,6 @@ export function ChatPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeThread, setActiveThread] = useState("new");
   const [toast, setToast] = useState("");
-  const [debug, setDebug] = useState(false);
   const inspectorVisible = view === "chat" && !showOnboarding && evidenceOpen;
   let statusText = t("ready");
   if (runStatus.kind === "retrieving") {
@@ -132,28 +132,27 @@ export function ChatPage() {
       {
         id: assistantId,
         role: "assistant",
+        backendEvents: [],
         content: "",
         time: timeNow(locale),
       },
     ]);
 
     try {
-      // Lightweight, deterministic progress UI (no token streaming).
-      const stagesToRun = getMockStages(requestScope, locale);
-      setStages(stagesToRun);
-      for (const stage of stagesToRun) {
-        setStageStatuses((current) => ({ ...current, [stage.id]: "running" }));
-        // Small delay so the user sees progress.
-        // eslint-disable-next-line no-await-in-loop
-        await new Promise((resolve) => globalThis.setTimeout(resolve, 120));
-        setStageStatuses((current) => ({ ...current, [stage.id]: "complete" }));
-      }
-
-      const result = await runBackendChat({
+      const result = await streamBackendChat({
         message,
         locale,
         model: requestModel,
-        debug,
+        onEvent(event, raw) {
+          updateMessage(assistantId, (current) => ({
+            ...current,
+            backendEvents: [...(current.backendEvents ?? []), event],
+            content:
+              raw.event === "answer_delta" && typeof raw.data.text === "string"
+                ? `${current.content}${raw.data.text}`
+                : current.content,
+          }));
+        },
       });
 
       setSources(result.sources);
@@ -161,15 +160,31 @@ export function ChatPage() {
         ...current,
         content: result.answer,
         sources: result.sources,
+        trace: result.trace,
         usage: result.usage,
       }));
+      setStageStatuses(
+        Object.fromEntries(
+          getMockStages(requestScope, locale).map((stage) => [stage.id, "complete"])
+        ) as Record<string, StageStatus>
+      );
       setRunStatus({
         kind: "completed",
         seconds: (result.usage.elapsedMs / 1000).toFixed(2),
       });
-    } catch {
+    } catch (error) {
       updateMessage(assistantId, (current) => ({
         ...current,
+        backendEvents: [
+          ...(current.backendEvents ?? []),
+          {
+            id: `error-${Date.now()}`,
+            title: t("streamError"),
+            detail:
+              error instanceof Error ? error.message : t("simulationFailed"),
+            type: "error",
+          },
+        ],
         content: t("simulationFailed"),
       }));
       setRunStatus({ kind: "failed" });
@@ -316,17 +331,6 @@ export function ChatPage() {
             </h1>
           )}
           <span className="flex-1" />
-          {view === "chat" && !showOnboarding && (
-            <label className="mr-1 flex select-none items-center gap-2 text-xs text-muted-foreground">
-              <input
-                checked={debug}
-                className="h-4 w-4"
-                onChange={(e) => setDebug(e.target.checked)}
-                type="checkbox"
-              />
-              Debug
-            </label>
-          )}
           <ThemeToggle />
           {view === "chat" && !showOnboarding && (
             <button

@@ -89,10 +89,10 @@ def rerank(
 
     if not filtered and ranked:
         logger.warning(
-            "All results below rerank threshold, returning top-1 as fallback",
+            "All results below rerank threshold, returning empty set",
             extra={"min_score": min_score, "top_score": ranked[0]["rerank_score"]},
         )
-        filtered = ranked[:1]
+        return []
 
     logger.info(
         "Reranked results",

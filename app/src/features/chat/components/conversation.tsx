@@ -7,6 +7,9 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/features/i18n/i18n";
 import type { ChatMessage, EvidenceSource } from "../types";
+import { BackendProcessingPanel } from "./backend-processing-panel";
+import { ChatThinkingPanel } from "./chat-thinking-panel";
+import { TracePanel } from "./trace-panel";
 
 interface ConversationProps {
   messages: ChatMessage[];
@@ -91,11 +94,18 @@ function Message({
         <p className="whitespace-pre-wrap text-foreground text-sm leading-7">
           {message.content}
         </p>
+      ) : message.backendEvents && message.backendEvents.length > 0 ? (
+        <BackendProcessingPanel events={message.backendEvents} live />
+      ) : message.thinking ? (
+        <ChatThinkingPanel thinking={message.thinking} />
       ) : (
         <p className="flex items-center gap-2 text-muted-foreground text-sm">
           <LoaderCircle className="size-3.5 animate-spin" />
           {t("generating")}
         </p>
+      )}
+      {message.backendEvents && message.backendEvents.length > 0 && message.content && (
+        <BackendProcessingPanel events={message.backendEvents} live={false} />
       )}
       {message.sources && message.sources.length > 0 && (
         <fieldset className="mt-3 flex flex-wrap gap-1.5">
@@ -115,6 +125,7 @@ function Message({
           ))}
         </fieldset>
       )}
+      {message.trace && <TracePanel trace={message.trace} />}
       {message.content && (
         <div className="mt-1 flex h-8 items-center text-muted-foreground opacity-100 focus-within:opacity-100 min-[721px]:opacity-0 min-[721px]:transition-opacity min-[721px]:group-hover/message:opacity-100">
           <button

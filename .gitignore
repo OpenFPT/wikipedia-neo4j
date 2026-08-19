@@ -25,6 +25,8 @@ models/react_adapter/
 app/.env
 app/node_modules/
 app/dist/
+models/stt/faster-whisper-small/*
+!models/stt/faster-whisper-small/.gitkeep
 
 # LaTeX build artifacts
 *.aux

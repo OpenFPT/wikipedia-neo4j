@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     local_model_id: str = "AITeamVN/Vi-Qwen2-7B-RAG"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "qwen2.5:7b-instruct"
+    local_bypass_agent: bool = False
+    local_force_wrrf: bool = False
+    stt_model_path: str | None = None
+    stt_model_size: str = "small"
+    stt_language: str = "vi"
+    stt_device: str = "auto"
+    stt_compute_type: str = "int8"
 
     app_api_key: str | None = None
     rate_limit_per_minute: int = 120
@@ -118,6 +125,14 @@ class Settings(BaseSettings):
         if mode not in {"local", "api", "ollama"}:
             raise ValueError("model_mode must be 'local', 'ollama', or 'api'")
         return mode
+
+    @field_validator("stt_model_size", "stt_language", "stt_device", "stt_compute_type")
+    @classmethod
+    def validate_nonempty_runtime_strings(cls, value: str) -> str:
+        cleaned = (value or "").strip()
+        if not cleaned:
+            raise ValueError("speech-to-text settings must be non-empty strings")
+        return cleaned
 
     @field_validator("neo4j_uri", "neo4j_username", "neo4j_password", mode="before")
     @classmethod

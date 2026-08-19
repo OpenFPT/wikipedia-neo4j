@@ -19,6 +19,8 @@ models/checkpoints/
 models/text2cypher_adapter/
 models/text2cypher_dpo/
 models/react_adapter/
+models/stt/faster-whisper-small/*
+!models/stt/faster-whisper-small/.gitkeep
 
 # LaTeX build artifacts
 *.aux

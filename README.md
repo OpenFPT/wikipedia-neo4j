@@ -68,6 +68,8 @@ Key environment variables:
 | `EMBEDDING_BACKEND` | `local` | `gemini` or `local` |
 | `MODEL_MODE` | `local` | `api` (Gemini) or `local` (Vi-Qwen2-7B-RAG) |
 | `LOCAL_MODEL_ID` | `AITeamVN/Vi-Qwen2-7B-RAG` | HuggingFace model for local mode |
+| `STT_MODEL_PATH` | `models/stt/faster-whisper-small` | Local faster-whisper model directory; avoids downloading on first STT request |
+| `STT_MODEL_SIZE` | `small` | Fallback model name if `STT_MODEL_PATH` is empty |
 
 ### 2) Start Neo4j
 
@@ -88,6 +90,26 @@ uv run uvicorn src.main:app --reload --port 8000
 ```
 
 Docs: <http://localhost:8000/docs>
+
+### Local speech-to-text model
+
+If you want `POST /speech/transcribe` to work without downloading from Hugging Face at runtime,
+place a local faster-whisper model under `models/stt/` and keep `STT_MODEL_PATH` pointed at it.
+
+Example:
+
+```text
+models/
+  stt/
+    faster-whisper-small/
+      config.json
+      tokenizer.json
+      vocabulary.*
+      model.bin
+```
+
+If the directory is missing or incomplete, the API returns a controlled `400` error instead of
+crashing the backend.
 
 ## API examples
 

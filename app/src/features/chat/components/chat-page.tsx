@@ -1,5 +1,5 @@
 import { Menu, PanelLeftOpen, PanelRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type Locale, useI18n } from "@/features/i18n/i18n";
 import { KnowledgePage } from "@/features/knowledge/components/knowledge-page";
 import {
@@ -24,6 +24,10 @@ import {
   mockModels,
 } from "../api/mock-chat";
 import { streamBackendChat } from "../api/backend-chat";
+import {
+  pickRecordingMimeType,
+  transcribeSpeech,
+} from "../api/speech-to-text";
 import type {
   ChatMessage,
   EvidenceSource,
@@ -69,6 +73,11 @@ export function ChatPage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeThread, setActiveThread] = useState("new");
   const [toast, setToast] = useState("");
+  const [recording, setRecording] = useState(false);
+  const [speechBusy, setSpeechBusy] = useState(false);
+  const [speechStatus, setSpeechStatus] = useState("");
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const inspectorVisible = view === "chat" && !showOnboarding && evidenceOpen;
   let statusText = t("ready");
   if (runStatus.kind === "retrieving") {
@@ -91,6 +100,96 @@ export function ChatPage() {
   function showToast(message: string) {
     setToast(message);
     globalThis.setTimeout(() => setToast(""), 2400);
+  }
+
+  async function handleToggleRecording() {
+    if (busy || speechBusy) {
+      return;
+    }
+
+    if (recording) {
+      recorderRef.current?.stop();
+      return;
+    }
+
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices ||
+      typeof MediaRecorder === "undefined"
+    ) {
+      setSpeechStatus(t("recordingUnsupported"));
+      return;
+    }
+
+    try {
+      setSpeechStatus(t("recordingStarting"));
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const mimeType = pickRecordingMimeType();
+      const recorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      recorder.onerror = () => {
+        setRecording(false);
+        setSpeechBusy(false);
+        setSpeechStatus(t("recordingError"));
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        recorderRef.current = null;
+      };
+      recorder.onstop = async () => {
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        recorderRef.current = null;
+        setRecording(false);
+
+        if (chunks.length === 0) {
+          setSpeechStatus("");
+          return;
+        }
+
+        try {
+          setSpeechBusy(true);
+          setSpeechStatus(t("transcribingAudio"));
+          const blob = new Blob(chunks, {
+            type: recorder.mimeType || mimeType || "audio/webm",
+          });
+          const result = await transcribeSpeech(blob);
+          if (result.text.trim()) {
+            setPrompt((current) =>
+              current.trim()
+                ? `${current.trim()} ${result.text.trim()}`
+                : result.text.trim()
+            );
+            setSpeechStatus(t("transcriptionReady", { model: result.model }));
+          } else {
+            setSpeechStatus(t("transcriptionEmpty"));
+          }
+        } catch (error) {
+          setSpeechStatus(
+            error instanceof Error ? error.message : t("recordingError")
+          );
+        } finally {
+          setSpeechBusy(false);
+        }
+      };
+
+      recorder.start();
+      setRecording(true);
+      setSpeechStatus(t("recordingLive"));
+    } catch (error) {
+      setRecording(false);
+      setSpeechBusy(false);
+      setSpeechStatus(error instanceof Error ? error.message : t("recordingError"));
+    }
   }
 
   function handleScopeChange(nextScope: KnowledgeScope) {
@@ -372,9 +471,13 @@ export function ChatPage() {
               knowledgeBases={knowledgeBases}
               onAttach={() => navigate("knowledge")}
               onChange={setPrompt}
+              onToggleRecording={handleToggleRecording}
               onScopeChange={handleScopeChange}
               onSubmit={handleSend}
+              recording={recording}
               scope={scope}
+              speechBusy={speechBusy}
+              speechStatus={speechStatus}
               value={prompt}
             />
           </div>

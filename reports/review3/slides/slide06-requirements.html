@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar { position: absolute; top: 0; left: 0; right: 0; height: 50pt; background: #1C3D5A; }
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 24pt; }
+h3 { color: #1C3D5A; font-size: 13pt; margin: 0 0 8pt 0; }
+.row { display: flex; margin-bottom: 1pt; }
+.row-h { background: #1C3D5A; }
+.row-h p { color: #FFFFFF; font-weight: bold; }
+.row-d { border-bottom: 1pt solid #DDE3E8; }
+.row p { margin: 0; font-size: 10pt; color: #333333; }
+.c { padding: 5pt 8pt; }
+.c1 { width: 44pt; } .c2 { flex: 1; } .c3 { width: 130pt; }
+.c4 { width: 90pt; }
+.ok p { color: #2E8B8B; font-weight: bold; }
+.wip p { color: #E67E22; font-weight: bold; }
+.section { margin-bottom: 12pt; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>5. Requirements (SRS Summary)</h2></div>
+<div class="container">
+  <div class="content">
+    <div class="section">
+      <h3>Functional Requirements</h3>
+      <div class="row row-h"><div class="c c1"><p>ID</p></div><div class="c c2"><p>Requirement</p></div><div class="c c3"><p>Verifiable By</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>FR-01</p></div><div class="c c2"><p>Ingest Vietnamese Wikipedia articles</p></div><div class="c c3"><p>Unit test</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>FR-02</p></div><div class="c c2"><p>Answer single-hop factual questions</p></div><div class="c c3"><p>EM/F1 on ViQuAD2</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>FR-03</p></div><div class="c c2"><p>Answer multi-hop questions + citations</p></div><div class="c c3"><p>Hit Rate on ViWiki-MHR</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>FR-04</p></div><div class="c c2"><p>Bulk ingest from HuggingFace</p></div><div class="c c3"><p>Load test 10K articles</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>FR-05</p></div><div class="c c2"><p>Generate MHQA evaluation dataset</p></div><div class="c c3"><p>QC pipeline pass rate</p></div></div>
+    </div>
+    <div class="section">
+      <h3>Non-Functional Requirements</h3>
+      <div class="row row-h"><div class="c c1"><p>ID</p></div><div class="c c2"><p>Metric</p></div><div class="c c3"><p>Target</p></div><div class="c c4"><p>Status</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>NFR-01</p></div><div class="c c2"><p>P50 latency</p></div><div class="c c3"><p>&lt; 3s / &lt; 8s</p></div><div class="c c4 ok"><p>51ms</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>NFR-02</p></div><div class="c c2"><p>Context Hit Rate</p></div><div class="c c3"><p>&gt; 70%</p></div><div class="c c4 wip"><p>64.67%</p></div></div>
+      <div class="row row-d"><div class="c c1"><p>NFR-03</p></div><div class="c c2"><p>Test coverage</p></div><div class="c c3"><p>&gt;= 75%</p></div><div class="c c4 ok"><p>85%</p></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

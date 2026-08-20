@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 50pt;
+  background: #1C3D5A;
+}
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 24pt; display: flex; flex-direction: column; align-items: center; }
+.arch-box {
+  background: #FFFFFF; border: 2pt solid #1C3D5A; padding: 16pt 24pt;
+  width: 520pt; margin-bottom: 6pt;
+}
+.arch-box p { margin: 0; color: #333333; font-size: 11pt; text-align: center; }
+.arch-box.dark { background: #1C3D5A; }
+.arch-box.dark p { color: #FFFFFF; }
+.arch-box.teal { background: #2E8B8B; border-color: #2E8B8B; }
+.arch-box.teal p { color: #FFFFFF; }
+.arch-row { display: flex; gap: 6pt; width: 520pt; margin-bottom: 6pt; }
+.arch-cell { flex: 1; background: #E8F4F4; border: 1pt solid #2E8B8B; padding: 10pt 8pt; text-align: center; }
+.arch-cell p { margin: 0; color: #1C3D5A; font-size: 10pt; }
+.input-label { margin-bottom: 8pt; }
+.input-label p { color: #1C3D5A; font-size: 12pt; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>4. System Architecture</h2></div>
+<div class="container">
+  <div class="content">
+    <div class="input-label"><p>User Question (Vietnamese)</p></div>
+    <div class="arch-box dark"><p><b>FastAPI</b> — auth, rate-limit, job management</p></div>
+    <div class="arch-box teal"><p><b>Agent Layer</b> — complexity detect, ReAct / multi-trajectory</p></div>
+    <div class="arch-row">
+      <div class="arch-cell"><p><b>BM25</b><br/>fulltext</p></div>
+      <div class="arch-cell"><p><b>Vector</b><br/>1024-dim</p></div>
+      <div class="arch-cell"><p><b>Graph</b><br/>2-hop</p></div>
+      <div class="arch-cell"><p><b>Community</b><br/>Louvain</p></div>
+    </div>
+    <div class="arch-box dark"><p><b>Neo4j Knowledge Graph</b> — Page, Chunk, Person, Org, Location, Work</p></div>
+  </div>
+</div>
+</body>
+</html>

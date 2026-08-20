@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar { position: absolute; top: 0; left: 0; right: 0; height: 50pt; background: #1C3D5A; }
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 24pt; display: flex; gap: 24pt; }
+.col { flex: 1; }
+h3 { color: #1C3D5A; font-size: 13pt; margin: 0 0 10pt 0; }
+.row { display: flex; margin-bottom: 1pt; }
+.row-h { background: #1C3D5A; }
+.row-h p { color: #FFFFFF; font-weight: bold; }
+.row-d { border-bottom: 1pt solid #DDE3E8; }
+.row p { margin: 0; font-size: 10pt; color: #333333; }
+.c { padding: 6pt 8pt; }
+.c-label { width: 60pt; font-weight: bold; }
+.c-label p { color: #1C3D5A; font-weight: bold; }
+.c-val { flex: 1; }
+.c-type { width: 70pt; } .c-hops { width: 44pt; } .c-ex { flex: 1; }
+.formula { background: #E8F4F4; padding: 10pt 14pt; margin-top: 12pt; border-left: 4pt solid #2E8B8B; }
+.formula p { margin: 0; color: #1C3D5A; font-size: 11pt; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>6. AI: Problem Framing</h2></div>
+<div class="container">
+  <div class="content">
+    <div class="col">
+      <h3>Problem Layers</h3>
+      <div class="row row-d"><div class="c c-label"><p>Business</p></div><div class="c c-val"><p>Complex Vietnamese questions need synthesis across multiple articles</p></div></div>
+      <div class="row row-d"><div class="c c-label"><p>AI Task</p></div><div class="c c-val"><p>Multi-hop KGQA: Graph-augmented RAG with typed KG</p></div></div>
+      <div class="row row-d"><div class="c c-label"><p>Formal</p></div><div class="c c-val"><p>Q -&gt; retrieve {P1..Pn} from KG G -&gt; generate A + citations</p></div></div>
+      <div class="formula">
+        <p><b>Feasibility:</b> 15 weeks, team of 4 — core pipeline operational</p>
+      </div>
+    </div>
+    <div class="col">
+      <h3>Question Taxonomy</h3>
+      <div class="row row-h"><div class="c c-type"><p>Type</p></div><div class="c c-hops"><p>Hops</p></div><div class="c c-ex"><p>Example</p></div></div>
+      <div class="row row-d"><div class="c c-type"><p>Simple</p></div><div class="c c-hops"><p>1</p></div><div class="c c-ex"><p>Born in which year?</p></div></div>
+      <div class="row row-d"><div class="c c-type"><p>Bridge</p></div><div class="c c-hops"><p>2</p></div><div class="c c-ex"><p>Where did founder of [X] study?</p></div></div>
+      <div class="row row-d"><div class="c c-type"><p>Compare</p></div><div class="c c-hops"><p>2+</p></div><div class="c c-ex"><p>Who is older: A or B?</p></div></div>
+      <div class="row row-d"><div class="c c-type"><p>Fan-out</p></div><div class="c c-hops"><p>3+</p></div><div class="c c-ex"><p>List all works by [X]</p></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

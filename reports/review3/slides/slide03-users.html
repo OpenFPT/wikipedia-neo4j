@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 50pt;
+  background: #1C3D5A;
+}
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 30pt; display: flex; gap: 24pt; }
+.col { flex: 1; }
+h3 { color: #1C3D5A; font-size: 14pt; margin: 0 0 12pt 0; }
+ul { margin: 0; padding-left: 16pt; }
+li { color: #333333; font-size: 11pt; margin-bottom: 8pt; line-height: 1.4; }
+.row { display: flex; margin-bottom: 2pt; }
+.row-header { background: #1C3D5A; }
+.row-header p { color: #FFFFFF; font-weight: bold; }
+.cell { padding: 6pt 10pt; }
+.cell-role { width: 100pt; }
+.cell-entity { flex: 1; }
+.row p { margin: 0; color: #333333; font-size: 11pt; }
+.row-border { border-bottom: 1pt solid #DDE3E8; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>2. Users &amp; Practical Applicability</h2></div>
+<div class="container">
+  <div class="content">
+    <div class="col">
+      <h3>Real User Groups</h3>
+      <ul>
+        <li><b>FPT / HUST / UIT students</b> — academic knowledge lookup in Vietnamese</li>
+        <li><b>Researchers / journalists</b> — synthesize from Vietnamese Wikipedia sources</li>
+        <li><b>AI developers</b> — integrate into their own Vietnamese RAG pipelines</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3>Stakeholders</h3>
+      <div class="row row-header">
+        <div class="cell cell-role"><p>Role</p></div>
+        <div class="cell cell-entity"><p>Entity</p></div>
+      </div>
+      <div class="row row-border">
+        <div class="cell cell-role"><p>End users</p></div>
+        <div class="cell cell-entity"><p>FPT University students</p></div>
+      </div>
+      <div class="row row-border">
+        <div class="cell cell-role"><p>Advisors</p></div>
+        <div class="cell cell-entity"><p>Supervisor + committee</p></div>
+      </div>
+      <div class="row row-border">
+        <div class="cell cell-role"><p>Open-source</p></div>
+        <div class="cell cell-entity"><p>ViWiki-MHR (CC-BY-SA)</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

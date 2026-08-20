@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 50pt;
+  background: #1C3D5A;
+}
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 24pt; }
+.paper-title { color: #1C3D5A; font-size: 14pt; font-weight: bold; margin: 0 0 4pt 0; }
+.paper-ref { color: #666666; font-size: 10pt; margin: 0 0 14pt 0; font-style: italic; }
+.quote-box { background: #E8F4F4; padding: 10pt 16pt; margin-bottom: 14pt; border-left: 4pt solid #2E8B8B; }
+.quote-box p { color: #1C3D5A; font-size: 11pt; margin: 0; }
+h3 { color: #1C3D5A; font-size: 12pt; margin: 14pt 0 6pt 0; }
+ul { margin: 0; padding-left: 16pt; }
+li { color: #333333; font-size: 11pt; margin-bottom: 6pt; }
+.result { color: #2E8B8B; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>8. Related Works — Paper 2</h2></div>
+<div class="container">
+  <div class="content">
+    <p class="paper-title">Inference-Scaled GraphRAG</p>
+    <p class="paper-ref">Thompson et al., 2025 (arXiv:2506.19967)</p>
+    <div class="quote-box">
+      <p>Sample N graph traversal trajectories with temperature scaling -&gt; aggregate via majority voting.</p>
+    </div>
+    <p class="result">Original result: +64.7% vs traditional GraphRAG; 31.44% vs 15.26% on hard multi-hop.</p>
+    <h3>Applied in project:</h3>
+    <ul>
+      <li>AGENT_N_TRAJECTORIES config — N agents run in parallel with temperature scaling</li>
+      <li>Majority voting -&gt; consensus answer</li>
+      <li>Particularly effective for comparison/fan-out question types</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>

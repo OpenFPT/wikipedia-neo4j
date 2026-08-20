@@ -1,0 +1,13 @@
+flowchart LR
+    page["Page<br/>title, url"] -->|"HAS_CHUNK"| chunk["Chunk<br/>text, chunk_id"]
+    chunk -->|"MENTIONS"| entity["Typed Entity<br/>Person / Org / Loc / Work"]
+    page -->|"LINKS_TO + relations"| entity
+    chunk -->|"member of"| community["Community<br/>summary"]
+
+    classDef node fill:#EAF2FF,stroke:#1A2B4A,stroke-width:2px,color:#1A2B4A;
+    classDef semantic fill:#FFF3EB,stroke:#F37021,stroke-width:1.5px,color:#1A2B4A;
+    classDef support fill:#EEF8F4,stroke:#017C59,stroke-width:2px,color:#1A2B4A;
+
+    class page,chunk node;
+    class entity semantic;
+    class community support;

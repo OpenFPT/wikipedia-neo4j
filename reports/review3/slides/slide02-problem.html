@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 50pt;
+  background: #1C3D5A;
+}
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 30pt; }
+.quote-box {
+  background: #E8F4F4; padding: 14pt 20pt; margin-bottom: 16pt;
+  border-left: 5pt solid #2E8B8B;
+}
+.quote-box p { color: #1C3D5A; font-size: 12pt; margin: 0; }
+.row { display: flex; margin-bottom: 2pt; }
+.row-header { background: #1C3D5A; }
+.row-header p { color: #FFFFFF; font-weight: bold; }
+.cell { padding: 8pt 12pt; }
+.cell-user { width: 160pt; }
+.cell-problem { flex: 1; }
+.row p { margin: 0; color: #333333; font-size: 11pt; }
+.row-border { border-bottom: 1pt solid #DDE3E8; }
+.goal { margin-top: 16pt; background: #1C3D5A; padding: 12pt 20pt; }
+.goal p { color: #FFFFFF; font-size: 12pt; margin: 0; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>1. Problem Statement</h2></div>
+<div class="container">
+  <div class="content">
+    <div class="quote-box">
+      <p><b>Complex questions</b> about Vietnamese history, geography, and people often <b>span multiple Wikipedia articles</b> — impossible to answer with a single search.</p>
+    </div>
+    <div class="row row-header">
+      <div class="cell cell-user"><p>User</p></div>
+      <div class="cell cell-problem"><p>Problem</p></div>
+    </div>
+    <div class="row row-border">
+      <div class="cell cell-user"><p><b>Students / researchers</b></p></div>
+      <div class="cell cell-problem"><p>Must read 5-10 articles to synthesize an answer</p></div>
+    </div>
+    <div class="row row-border">
+      <div class="cell cell-user"><p><b>Standard RAG systems</b></p></div>
+      <div class="cell cell-problem"><p>Only retrieves nearest chunk — loses multi-hop links</p></div>
+    </div>
+    <div class="row row-border">
+      <div class="cell cell-user"><p><b>Vanilla LLMs</b></p></div>
+      <div class="cell cell-problem"><p>Hallucinate Vietnamese facts, no verifiable citations</p></div>
+    </div>
+    <div class="goal">
+      <p><b>Goal:</b> Build a fully local Vietnamese KGQA system that answers multi-hop questions with validated citations.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

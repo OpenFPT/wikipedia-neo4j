@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar { position: absolute; top: 0; left: 0; right: 0; height: 50pt; background: #1C3D5A; }
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 24pt; }
+h3 { color: #1C3D5A; font-size: 12pt; margin: 16pt 0 8pt 0; }
+.row { display: flex; margin-bottom: 1pt; }
+.row-h { background: #1C3D5A; }
+.row-h p { color: #FFFFFF; font-weight: bold; }
+.row-d { border-bottom: 1pt solid #DDE3E8; }
+.row p { margin: 0; font-size: 11pt; color: #333333; }
+.c { padding: 8pt 10pt; }
+.c1 { width: 140pt; } .c2 { width: 80pt; } .c3 { flex: 1; }
+.dep-chain { background: #E8F4F4; padding: 12pt 16pt; border-left: 4pt solid #2E8B8B; }
+.dep-chain p { margin: 0; color: #1C3D5A; font-size: 11pt; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>11. Team Assignment</h2></div>
+<div class="container">
+  <div class="content">
+    <div class="row row-h"><div class="c c1"><p>Member</p></div><div class="c c2"><p>ID</p></div><div class="c c3"><p>Responsibility</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>Huynh Quoc Trung</p></div><div class="c c2"><p>QE180038</p></div><div class="c c3"><p>KG Construction, NER (6 backends), Entity Resolution</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>Nhu Quang Anh</p></div><div class="c c2"><p>QE180005</p></div><div class="c c3"><p>WRRF Retrieval, Reranker, Evaluation Pipeline</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>Pham Ngo Dinh Khoi</p></div><div class="c c2"><p>QE180110</p></div><div class="c c3"><p>ReAct Agent, Local LLM, MHQA Dataset Gen</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>Truong Dinh Thien</p></div><div class="c c2"><p>QE180018</p></div><div class="c c3"><p>FastAPI, Job Management, Gradio Demo, Deploy</p></div></div>
+    <h3>Dependency Chain</h3>
+    <div class="dep-chain">
+      <p>NER (Trung) -&gt; Entity quality -&gt; Graph signal (Anh) -&gt; Agent tools (Khoi) -&gt; FastAPI (Thien)</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

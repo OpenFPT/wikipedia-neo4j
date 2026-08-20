@@ -1,0 +1,22 @@
+flowchart LR
+    corpus["ViWikiHop<br/>Evidence Corpus"] --> api["Wikipedia-Neo4j<br/>API + Tooling"]
+    api --> agent["Agent Layer<br/>Fusion + Reasoning"]
+    agent --> app["Aster UI<br/>Answer + Citations"]
+
+    agent -.-> bm25["BM25<br/>Lexical"]
+    agent -.-> vector["Vector<br/>Dense"]
+    agent -.-> graphNode["Graph<br/>Traversal"]
+    agent -.-> community["Community<br/>Summary"]
+
+    bm25 --> neo["Neo4j Graph Store<br/>Page • Chunk • Entity • Community"]
+    vector --> neo
+    graphNode --> neo
+    community --> neo
+
+    classDef core fill:#EAF2FF,stroke:#1A2B4A,stroke-width:2px,color:#1A2B4A;
+    classDef support fill:#FFF3EB,stroke:#F37021,stroke-width:1.5px,color:#1A2B4A;
+    classDef storage fill:#EEF8F4,stroke:#017C59,stroke-width:2px,color:#1A2B4A;
+
+    class corpus,api,agent,app core;
+    class bm25,vector,graphNode,community support;
+    class neo storage;

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+html { background: #ffffff; }
+body {
+  width: 720pt; height: 405pt; margin: 0; padding: 0;
+  background: #F4F6F8; font-family: Arial, sans-serif;
+  display: flex;
+}
+.container { margin: 0; padding: 30pt 40pt; width: 100%; box-sizing: border-box; }
+.header-bar { position: absolute; top: 0; left: 0; right: 0; height: 50pt; background: #1C3D5A; }
+.header-bar h2 { color: #FFFFFF; font-size: 20pt; margin: 14pt 0 0 40pt; }
+.content { margin-top: 24pt; }
+.ucp { color: #2E8B8B; font-size: 12pt; font-weight: bold; margin: 0 0 14pt 0; }
+.row { display: flex; margin-bottom: 1pt; }
+.row-h { background: #1C3D5A; }
+.row-h p { color: #FFFFFF; font-weight: bold; }
+.row-d { border-bottom: 1pt solid #DDE3E8; }
+.row p { margin: 0; font-size: 11pt; color: #333333; }
+.c { padding: 8pt 12pt; }
+.c1 { width: 60pt; } .c2 { flex: 1; } .c3 { width: 100pt; }
+.done p { color: #2E8B8B; font-weight: bold; }
+.wip p { color: #E67E22; font-weight: bold; }
+.pend p { color: #999999; }
+</style>
+</head>
+<body>
+<div class="header-bar"><h2>12. System Scale &amp; Timeline</h2></div>
+<div class="container">
+  <div class="content">
+    <p class="ucp">UCP = 96.5 (UUCP=134, TCF=0.9, ECF=0.8) — Feasible in 15 weeks</p>
+    <div class="row row-h"><div class="c c1"><p>Week</p></div><div class="c c2"><p>Milestone</p></div><div class="c c3"><p>Status</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>1-4</p></div><div class="c c2"><p>Core pipeline + SRS + Architecture</p></div><div class="c c3 done"><p>Done</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>5-7</p></div><div class="c c2"><p>Full ingestion + Ablation + MHQA</p></div><div class="c c3 wip"><p>In progress</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>8-10</p></div><div class="c c2"><p>QLoRA Text2Cypher + DPO alignment</p></div><div class="c c3 pend"><p>Pending</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>11-13</p></div><div class="c c2"><p>WRRF tuning + final evaluation</p></div><div class="c c3 pend"><p>Pending</p></div></div>
+    <div class="row row-d"><div class="c c1"><p>14-15</p></div><div class="c c2"><p>Final report + demo + defense</p></div><div class="c c3 pend"><p>Pending</p></div></div>
+  </div>
+</div>
+</body>
+</html>

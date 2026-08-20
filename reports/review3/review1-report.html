@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: "Times New Roman", serif; font-size: 13pt; margin: 2.5cm; line-height: 1.5; }
+  h1 { font-size: 18pt; text-align: center; margin-bottom: 4pt; }
+  h2 { font-size: 15pt; margin-top: 18pt; border-bottom: 1px solid #333; padding-bottom: 4pt; }
+  h3 { font-size: 13pt; margin-top: 12pt; }
+  table { border-collapse: collapse; width: 100%; margin: 10pt 0; font-size: 11pt; }
+  th, td { border: 1px solid #444; padding: 5pt 8pt; }
+  th { background: #d9e1f2; font-weight: bold; }
+  tr:nth-child(even) td { background: #f2f2f2; }
+  .cover { text-align: center; margin-bottom: 30pt; }
+  .cover p { margin: 4pt 0; }
+  code, pre { font-family: Consolas, monospace; font-size: 10pt; background: #f5f5f5; padding: 2pt 4pt; }
+  pre { padding: 8pt; display: block; white-space: pre-wrap; border-left: 3pt solid #4472c4; margin: 8pt 0; }
+  .note { color: #7f7f7f; font-size: 11pt; font-style: italic; }
+  ul, ol { margin: 6pt 0; padding-left: 20pt; }
+  li { margin-bottom: 3pt; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>BÁO CÁO CAPSTONE REVIEW 1</h1>
+  <h1>Vietnamese GraphRAG<br>Multi-hop Question Answering over Wikipedia</h1>
+  <br>
+  <p><strong>Trường:</strong> FPT University &nbsp;|&nbsp; <strong>Học kỳ:</strong> Summer 2026 — SE+AI Capstone</p>
+  <p><strong>Tuần:</strong> 4 (tháng 6/2026)</p>
+  <br>
+  <table style="width:70%; margin: auto;">
+    <tr><th>Vai trò</th><th>Thành viên</th><th>MSSV</th></tr>
+    <tr><td>KG &amp; NER</td><td>Huỳnh Quốc Trung</td><td>QE180038</td></tr>
+    <tr><td>Retrieval &amp; Eval</td><td>Nhữ Quang Anh</td><td>QE180005</td></tr>
+    <tr><td>Agent &amp; LLM</td><td>Phạm Ngô Đình Khôi</td><td>QE180110</td></tr>
+    <tr><td>API &amp; Deploy</td><td>Trương Đình Thiên</td><td>QE180018</td></tr>
+  </table>
+  <br>
+  <p><strong>GVHD:</strong> <!-- TODO --></p>
+</div>
+
+<hr>
+
+<h2>1. Vấn đề và Mục tiêu dự án</h2>
+
+<h3>1.1 Bối cảnh</h3>
+<p>Sinh viên và nhà nghiên cứu Việt Nam thường phải trả lời các câu hỏi phức tạp trải dài qua nhiều bài Wikipedia. Các hệ thống RAG thông thường chỉ lấy một đoạn gần nhất và mất liên kết đa bước. LLM thuần túy hay hallucinate thông tin Việt Nam và không cung cấp nguồn trích dẫn.</p>
+
+<h3>1.2 Mục tiêu</h3>
+<p>Xây dựng hệ thống <strong>KGQA hoàn toàn local</strong> cho tiếng Việt: trả lời câu hỏi đa bước với citations xác thực, không gửi dữ liệu ra ngoài.</p>
+
+<h3>1.3 Phạm vi</h3>
+<table>
+  <tr><th>Trong phạm vi</th><th>Ngoài phạm vi</th></tr>
+  <tr><td>Local single-process pipeline</td><td>Web search / external retrieval</td></tr>
+  <tr><td>Vietnamese Wikipedia (~590K bài)</td><td>Gated datasets (ViMQA)</td></tr>
+  <tr><td>WRRF hybrid retrieval + reranking</td><td>Multi-agent nhiều LLM</td></tr>
+  <tr><td>Dataset generation + QC pipeline</td><td></td></tr>
+</table>
+
+<h2>2. Tính thực tiễn và Người dùng</h2>
+<table>
+  <tr><th>Người dùng</th><th>Pain Point</th><th>Gain Point</th></tr>
+  <tr><td>Sinh viên đại học</td><td>Mất nhiều thời gian đọc nhiều bài để tổng hợp</td><td>Câu trả lời với nguồn trích dẫn ngay lập tức</td></tr>
+  <tr><td>Nhà nghiên cứu</td><td>Không có công cụ QA tiếng Việt đáng tin cậy</td><td>Công cụ tra cứu học thuật chính xác</td></tr>
+  <tr><td>Nhà phát triển AI</td><td>Thiếu pipeline RAG tiếng Việt open-source</td><td>Tích hợp pipeline sẵn có</td></tr>
+</table>
+<p><strong>Stakeholders:</strong> Sinh viên FPT (thử nghiệm) · GVHD + hội đồng · Cộng đồng mã nguồn mở (dataset CC-BY-SA)</p>
+
+<h2>3. Đổi mới và Công nghệ mới</h2>
+<table>
+  <tr><th>Điểm đổi mới</th><th>Mô tả</th></tr>
+  <tr><td>WRRF Hybrid Retrieval</td><td>BM25 + Vector + Graph + Community — chưa hệ thống QA tiếng Việt nào dùng đủ 4 signal</td></tr>
+  <tr><td>Multi-trajectory Agent</td><td>N trajectories song song + majority voting (arXiv:2506.19967)</td></tr>
+  <tr><td>Local-first sovereignty</td><td>Toàn bộ pipeline chạy local 8GB VRAM</td></tr>
+  <tr><td>ViWiki-MHR Dataset</td><td>Dataset đa bước tiếng Việt đầu tiên từ KG walk + 5-layer QC</td></tr>
+  <tr><td>Typed Vietnamese KG</td><td>Neo4j với 4 entity types, 6 relation types từ Wikipedia VN 2026</td></tr>
+</table>
+
+<h2>4. Kiến trúc hệ thống</h2>
+<pre>
+User Question (Vietnamese)
+        |
+        v
+  FastAPI (auth · rate-limit · background jobs)
+        |
+        v
+  Agent Layer
+  |- Complexity detection
+  |- Simple  --> ReAct loop (max 6 iter, 6 tools)
+  +- Complex --> decompose --> N trajectories --> majority vote
+        |
+        v
+  WRRF Retrieval: BM25(0.4) + Vector(0.4) + Graph(0.2) + Community(0.15)
+  score(d) = sum( wᵢ / (60 + rankᵢ(d)) )
+        |
+        v
+  Cross-encoder Rerank: BAAI/bge-reranker-v2-m3
+        |
+        v
+  Answer + Citations (passage_ids)
+</pre>
+
+<h3>Graph Schema</h3>
+<pre>
+(:Page)-[:HAS_CHUNK]->(:Chunk)-[:MENTIONS_PERSON]->(:Person)
+(:Page)-[:LINKS_TO]->(:Page)         [:MENTIONS_ORG]->(:Organization)
+                                     [:MENTIONS_LOCATION]->(:Location)
+                                     [:MENTIONS_WORK]->(:Work)
+</pre>
+
+<h3>Các module chính</h3>
+<table>
+  <tr><th>Module</th><th>File</th><th>Chức năng</th></tr>
+  <tr><td>Ingestion</td><td>src/ingest.py</td><td>Wikipedia → chunk → NER → embed → Neo4j</td></tr>
+  <tr><td>NER</td><td>src/ner.py</td><td>6 backends (simple/underthesea/phonlp/phobert/videberta/wikilink)</td></tr>
+  <tr><td>Retrieval</td><td>src/retrieve.py + hybrid.py</td><td>WRRF fusion (BM25+vector+graph+community)</td></tr>
+  <tr><td>Agent</td><td>src/agent.py + agent_tools.py</td><td>ReAct loop, complexity detection, multi-trajectory</td></tr>
+  <tr><td>Dataset Gen</td><td>src/dataset_gen.py</td><td>KG walk, QA templates, LLM rewrite, 5-layer QC</td></tr>
+  <tr><td>Evaluation</td><td>src/evaluation.py</td><td>Hit Rate, MRR, EM/F1 trên ViWiki-MHR + ViQuAD2</td></tr>
+  <tr><td>API</td><td>src/main.py</td><td>FastAPI, auth, rate limiting, background jobs</td></tr>
+</table>
+
+<h2>5. Đặc tả yêu cầu (SRS)</h2>
+
+<h3>Functional Requirements (MoSCoW)</h3>
+<table>
+  <tr><th>ID</th><th>Yêu cầu</th><th>Ưu tiên</th><th>Verifiable By</th></tr>
+  <tr><td>FR-01</td><td>Ingest Vietnamese Wikipedia articles vào Neo4j</td><td>Must</td><td>Unit test ingestion pipeline</td></tr>
+  <tr><td>FR-02</td><td>Trả lời câu hỏi single-hop factual</td><td>Must</td><td>EM/F1 ≥30% trên ViQuAD2</td></tr>
+  <tr><td>FR-03</td><td>Trả lời câu hỏi multi-hop với citations</td><td>Must</td><td>Hit Rate ≥70% trên ViWiki-MHR</td></tr>
+  <tr><td>FR-04</td><td>Bulk ingest từ HuggingFace dataset</td><td>Must</td><td>Load test 10K articles</td></tr>
+  <tr><td>FR-05</td><td>Sinh MHQA evaluation dataset</td><td>Must</td><td>QC pipeline pass rate ≥80%</td></tr>
+  <tr><td>FR-06</td><td>ReAct agent với 6 tools, tối đa 6 vòng</td><td>Must</td><td>Integration test 50 queries</td></tr>
+  <tr><td>FR-07</td><td>Gradio demo interface</td><td>Should</td><td>Demo hoạt động với 3 test cases</td></tr>
+  <tr><td>FR-08</td><td>Fine-tune Text2Cypher (QLoRA)</td><td>Should</td><td>Cypher exec rate ≥95%</td></tr>
+</table>
+
+<h3>Non-Functional Requirements</h3>
+<table>
+  <tr><th>ID</th><th>Metric</th><th>Target</th><th>Đạt được (Tuần 4)</th></tr>
+  <tr><td>NFR-01</td><td>P50 latency (simple)</td><td>&lt;3s</td><td>51ms retrieval ✅</td></tr>
+  <tr><td>NFR-02</td><td>Context Hit Rate@5</td><td>&gt;70%</td><td>64.67% 🔄</td></tr>
+  <tr><td>NFR-03</td><td>MRR@5</td><td>&gt;0.50</td><td>0.4497 🔄</td></tr>
+  <tr><td>NFR-04</td><td>Test coverage</td><td>≥75%</td><td>85% ✅</td></tr>
+  <tr><td>NFR-05</td><td>Hardware target</td><td>8GB VRAM</td><td>RTX 3060/4060 ✅</td></tr>
+</table>
+
+<h2>6. Đặc tả AI</h2>
+
+<h3>6.1 Framing bài toán</h3>
+<table>
+  <tr><th>Layer</th><th>Nội dung</th></tr>
+  <tr><td>Business Problem</td><td>Câu hỏi phức tạp tiếng Việt cần tổng hợp từ nhiều bài Wikipedia</td></tr>
+  <tr><td>AI Task</td><td>Multi-hop KGQA: Graph-augmented RAG với typed knowledge graph</td></tr>
+  <tr><td>Formal</td><td>Q → retrieve {P₁…Pₙ} từ KG G → generate A + citations</td></tr>
+</table>
+
+<h3>6.2 Dataset</h3>
+<table>
+  <tr><th>Dataset</th><th>Kích thước</th><th>Nguồn</th><th>Mục đích</th></tr>
+  <tr><td>Vietnamese Wikipedia</td><td>~590K bài</td><td>wikimedia/wikipedia 20231101.vi</td><td>KG construction</td></tr>
+  <tr><td>ViWiki-MHR</td><td>~200 pairs</td><td>KG walk + thủ công</td><td>Multi-hop eval</td></tr>
+  <tr><td>UIT-ViQuAD 2.0</td><td>36,457 pairs</td><td>UIT-NLP (VLSP 2021)</td><td>Benchmark</td></tr>
+  <tr><td>MHQA (generated)</td><td>700–1000 target</td><td>KG walks + Claude API</td><td>Expanded eval</td></tr>
+</table>
+
+<h3>6.3 Related Works (3 papers)</h3>
+
+<p><strong>[1] Microsoft GraphRAG</strong> — Edge et al. (2024), arXiv:2404.16130<br>
+Leiden community detection → pre-generate summaries → map-reduce. Win rate 70–80% vs naive RAG.<br>
+<em>Áp dụng:</em> Louvain community signal → WRRF weight=0.15.</p>
+
+<p><strong>[2] Inference-Scaled GraphRAG</strong> — Thompson et al. (2025), arXiv:2506.19967<br>
+N trajectories + temperature scaling + majority voting. +64.7% vs traditional GraphRAG trên hard multi-hop.<br>
+<em>Áp dụng:</em> AGENT_N_TRAJECTORIES config, majority voting cho complex queries.</p>
+
+<p><strong>[3] UIT-ViQuAD 2.0</strong> — Nguyen et al. (2020), arXiv:2009.14725<br>
+36,457 QA pairs từ Vietnamese Wikipedia. XLM-R đạt 77.8% EM.<br>
+<em>Áp dụng:</em> Benchmark chính; src/viquad_adapter.py. Đạt 64.67% context hit rate (top-5).</p>
+
+<h3>6.4 AI Pipeline</h3>
+<pre>
+[Ingestion]
+  Wikipedia --> normalize --> chunk(500/50) --> NER(PER/ORG/LOC/WORK)
+             --> embed(GreenNode 1024-dim) --> Neo4j UNWIND batch
+
+[Retrieval — WRRF]
+  Q --> BM25(w=0.4) + Vector(w=0.4) + Graph-2hop(w=0.2) + Community(w=0.15)
+     --> score = sum(wᵢ/(60+rankᵢ)) --> rerank(bge-reranker-v2-m3) --> top-K
+
+[Answer Generation]
+  Q + complexity detect
+    |- Simple  --> ReAct(max 6 iter): kg_schema, kg_query, text_search,
+    |                                  get_passage, entity_neighborhood, path_search
+    +- Complex --> decompose --> N trajectories(temp scaling) --> majority vote
+                --> Answer + supporting_facts[] + confidence
+</pre>
+
+<h3>6.5 Model Stack</h3>
+<table>
+  <tr><th>Component</th><th>Model</th><th>Quantization</th></tr>
+  <tr><td>Local LLM</td><td>AITeamVN/Vi-Qwen2-7B-RAG</td><td>4-bit NF4</td></tr>
+  <tr><td>Embeddings (local)</td><td>GreenNode-Embedding-Large-VN-Mixed-V1</td><td>FP16, 1024-dim</td></tr>
+  <tr><td>Reranker</td><td>BAAI/bge-reranker-v2-m3</td><td>FP16</td></tr>
+  <tr><td>NER</td><td>NlpHUST/ner-vietnamese-electra-base</td><td>FP32</td></tr>
+</table>
+
+<h3>6.6 Phân công AI workstream</h3>
+<table>
+  <tr><th>Thành viên</th><th>MSSV</th><th>Phụ trách</th><th>Deliverables</th></tr>
+  <tr><td>Huỳnh Quốc Trung</td><td>QE180038</td><td>KG + NER</td><td>6 NER backends, entity resolution, bulk export</td></tr>
+  <tr><td>Nhữ Quang Anh</td><td>QE180005</td><td>Retrieval + Eval</td><td>WRRF, reranker, eval pipeline, baselines</td></tr>
+  <tr><td>Phạm Ngô Đình Khôi</td><td>QE180110</td><td>Agent + LLM + Dataset</td><td>ReAct, local LLM, decomposition, MHQA gen</td></tr>
+  <tr><td>Trương Đình Thiên</td><td>QE180018</td><td>API + Deploy</td><td>FastAPI, job mgmt, Gradio demo</td></tr>
+</table>
+
+<h2>7. Kết quả đạt được và Baseline</h2>
+<table>
+  <tr><th>Method</th><th>MRR</th><th>Hit Rate@5</th><th>Latency</th></tr>
+  <tr><td>BM25 only</td><td>~0.35</td><td>~55%</td><td>0.8s</td></tr>
+  <tr><td>Dense only</td><td>~0.40</td><td>~60%</td><td>1.2s</td></tr>
+  <tr><td>Naive RAG</td><td>~0.42</td><td>~62%</td><td>2.5s</td></tr>
+  <tr><td>BM25 + Vector</td><td>~0.48</td><td>~66%</td><td>1.5s</td></tr>
+  <tr><td><strong>Ours (WRRF+Rerank)</strong></td><td><strong>0.4497</strong></td><td><strong>64.67%</strong></td><td><strong>51ms</strong></td></tr>
+</table>
+<p class="note">Đánh giá trên ViQuAD2 (2,652 queries). Hit Rate chưa đạt 70% do KG chưa đủ entity coverage — cần full ingestion (~590K bài).</p>
+
+<p><strong>Metrics khác (Tuần 4):</strong> Test coverage 85% ✅ · UCP = 96.5 ✅ · Retrieval latency P50 = 51ms ✅</p>
+
+<h2>8. Quy mô hệ thống (UCP = 96.5)</h2>
+<p>UUCP = 134 (UAW=9 + UUCW=125, 10 use cases) × TCF=0.9 × ECF=0.8 = <strong>96.5 UCP</strong></p>
+<p>Effort: 96.5 × 20 = 1,930 person-hours. Available: 3 × 15 × 40 = 1,800h. Codebase ~30% head-start → net ~1,350h. <strong>Feasible ✅</strong></p>
+
+<h2>9. Timeline và Kế hoạch</h2>
+<table>
+  <tr><th>Giai đoạn</th><th>Tuần</th><th>Milestone</th><th>Trạng thái</th></tr>
+  <tr><td>Phase 1: Foundation</td><td>1–4</td><td>Pipeline cốt lõi + SRS + Architecture</td><td>✅ Hoàn thành</td></tr>
+  <tr><td>Phase 2: Eval &amp; Data</td><td>5–7</td><td>Full ingestion + Ablation + MHQA expansion</td><td>🔄 Đang làm</td></tr>
+  <tr><td>Phase 3: Fine-tune</td><td>8–10</td><td>QLoRA Text2Cypher + DPO alignment</td><td>⏳ Chờ</td></tr>
+  <tr><td>Phase 4: Optimization</td><td>11–13</td><td>WRRF tuning + final eval</td><td>⏳ Chờ</td></tr>
+  <tr><td>Phase 5: Defense</td><td>14–15</td><td>Final report + demo + capstone defense</td><td>⏳ Chờ</td></tr>
+</table>
+
+<h3>Kế hoạch tuần W24 (09–15/06)</h3>
+<ul>
+  <li>Chạy full ingestion ~50K article để có KG size thực tế</li>
+  <li>Ablation study: bật/tắt từng WRRF component</li>
+  <li>Eval MHQA dataset trên ViWiki-MHR (200 queries)</li>
+  <li>Chuẩn bị live demo cho Review 1</li>
+  <li>Fine-tune WRRF weights dựa trên ablation results</li>
+</ul>
+
+<hr>
+<p class="note" style="text-align:center">
+  ViWiki-GraphRAG · FPT University Capstone SE+AI · 2026 ·
+  Corpus: Keithsel/viwiki-20260523 (HuggingFace)
+</p>
+</body>
+</html>

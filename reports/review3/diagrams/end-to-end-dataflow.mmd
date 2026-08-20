@@ -1,0 +1,22 @@
+flowchart LR
+    dump["Vietnamese Wikipedia<br/>Snapshot"] --> filter["Structural + Quality Filters"]
+    filter --> segment["Segment + Stable IDs"]
+    segment --> kg["Graph Build<br/>Neo4j"]
+    kg --> split["ViWikiHop<br/>Grouped Test Set"]
+
+    question["Question Q"] --> route{"Route"}
+    route --> retrieve["WRRF<br/>Retrieval"]
+    route --> expand["Link Expansion"]
+    retrieve --> rerank["Cross-encoder<br/>Rerank"]
+    expand --> rerank
+    rerank --> answer["Answer + Citations"]
+
+    split -. test queries .-> retrieve
+
+    classDef corpus fill:#EAF2FF,stroke:#1A2B4A,stroke-width:2px,color:#1A2B4A;
+    classDef qa fill:#FFF3EB,stroke:#F37021,stroke-width:1.5px,color:#1A2B4A;
+    classDef output fill:#EEF8F4,stroke:#017C59,stroke-width:2px,color:#1A2B4A;
+
+    class dump,filter,segment,kg,split corpus;
+    class question,route,retrieve,expand,rerank qa;
+    class answer output;

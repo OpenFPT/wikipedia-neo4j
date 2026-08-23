@@ -18,6 +18,8 @@ _DATASET_PATH = (
 
 
 def _load_record(record_id: str) -> dict:
+    if not _DATASET_PATH.exists():
+        pytest.skip(f"ViWikiHop fixture not available: {_DATASET_PATH}")
     with _DATASET_PATH.open(encoding="utf-8") as handle:
         for line in handle:
             record = json.loads(line)

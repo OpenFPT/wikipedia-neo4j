@@ -2,15 +2,9 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 import os
 
 import gradio as gr
-
-_REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
 
 from src.retrieval.hybrid import query_graph
 
@@ -81,7 +75,7 @@ def main() -> None:
         gr.Markdown("UI build: `dedup-citations-v2`")
 
         # Explicitly use messages format to match our {role,content} history payload.
-        chatbot = gr.Chatbot(label="Chat", height=520, type="messages")
+        chatbot = gr.Chatbot(label="Chat", height=520, type="messages")  # type: ignore[call-arg]
         msg = gr.Textbox(
             label="Câu hỏi",
             placeholder="Ví dụ: Hồ Chí Minh là ai?",

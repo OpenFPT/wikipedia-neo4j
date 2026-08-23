@@ -440,7 +440,7 @@ def query_graph(question: str, top_k: int = 4, emit=None) -> QueryResult:
 
         return agent_query(question, top_k, emit=emit)
 
-    retrieval_tier = "generated"
+    retrieval_tier: Literal["generated", "wrrf"] = "generated"
     trace_steps: list[QueryTraceStep] = []
     if emit is not None:
         emit("route", {"route": "generated"})

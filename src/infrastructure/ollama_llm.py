@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import requests
 
 from src.config import settings
@@ -22,7 +24,7 @@ def chat(
     messages format: [{"role":"system"|"user"|"assistant","content":"..."}]
     """
     url = settings.ollama_base_url.rstrip("/") + "/api/chat"
-    payload = {
+    payload: dict[str, Any] = {
         "model": settings.ollama_model,
         "messages": messages,
         "stream": False,
@@ -41,4 +43,3 @@ def chat(
     except Exception as exc:
         logger.warning("Ollama chat failed", extra={"error": str(exc), "url": url, "model": settings.ollama_model})
         raise
-

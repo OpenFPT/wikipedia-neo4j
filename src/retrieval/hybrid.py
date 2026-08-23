@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from neo4j.exceptions import CypherSyntaxError
 
 from src.config import settings
 from src.infrastructure.llm import (
-    _client_pool,
     assert_readonly_cypher,
     embed_texts,
     generate_readonly_cypher,
@@ -19,20 +20,17 @@ from src.retrieval.fusion import (
     QueryTrace,
     QueryTraceStep,
     _LEGACY_HYBRID_CYPHER,
-    _wrrf_fuse,
+    _wrrf_fuse as _wrrf_fuse,
     _wrrf_fusion,
-    hybrid_retrieve,
+    hybrid_retrieve as hybrid_retrieve,
 )
 from src.retrieval.graph import (
     expand_via_links as _expand_via_links,
-    graph_search as _graph_search,
     run_graph_query as _run_graph_query,
 )
 import src.retrieval.reranker as _reranker_mod
 from src.retrieval.vector import (
     run_vector_query as _run_vector_query,
-    run_vector_query_cypher25 as _run_vector_query_cypher25,
-    vector_search as _vector_search,
 )
 
 _DEFAULT_NEO4J_CLIENT = neo4j_client
@@ -135,7 +133,7 @@ def _run_generated_query(question: str, top_k: int, emit=None) -> list[dict]:
 
 
 def query_graph(question: str, top_k: int = 4, emit=None) -> QueryResult:
-    retrieval_tier = "generated"
+    retrieval_tier: Literal["generated", "wrrf"] = "generated"
     trace_steps: list[QueryTraceStep] = []
 
     if emit is not None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import Literal
 
 from src.logging_utils import get_logger
 from src.infrastructure.neo4j_client import neo4j_client
@@ -473,9 +474,9 @@ def _synthesize_from_observations(observations: list[str], citations: list[dict]
 def _append_trace_step(
     trace_steps: list[QueryTraceStep],
     *,
-    kind: str,
+    kind: Literal["retrieval", "ranking", "answer"],
     name: str,
-    status: str,
+    status: Literal["ok", "fallback", "empty"],
     row_count: int | None = None,
     top_k: int | None = None,
     error_type: str | None = None,
@@ -788,25 +789,49 @@ def _deterministic_retrieval_fallback(
     """Use deterministic retrieval when the agent stops producing valid actions."""
     local_trace_steps = trace_steps if trace_steps is not None else []
 
-    rows = _exact_subject_rows(question, top_k=max(top_k, 4))
-    _append_trace_step(
-        local_trace_steps,
-        kind="retrieval",
-        name="retrieval.exact_subject",
-        status="ok" if rows else "empty",
-        row_count=len(rows),
-        top_k=max(top_k, 4),
-    )
-    if not rows:
-        rows = hybrid_retrieve(question, top_k=max(top_k * 3, 8))
+    try:
+        rows = _exact_subject_rows(question, top_k=max(top_k, 4))
         _append_trace_step(
             local_trace_steps,
             kind="retrieval",
-            name="retrieval.hybrid",
+            name="retrieval.exact_subject",
             status="ok" if rows else "empty",
             row_count=len(rows),
-            top_k=max(top_k * 3, 8),
+            top_k=max(top_k, 4),
         )
+    except Exception as exc:
+        logger.warning("Exact-subject fallback retrieval failed", extra={"error": str(exc)})
+        rows = []
+        _append_trace_step(
+            local_trace_steps,
+            kind="retrieval",
+            name="retrieval.exact_subject",
+            status="fallback",
+            error_type=type(exc).__name__,
+            top_k=max(top_k, 4),
+        )
+    if not rows:
+        try:
+            rows = hybrid_retrieve(question, top_k=max(top_k * 3, 8))
+            _append_trace_step(
+                local_trace_steps,
+                kind="retrieval",
+                name="retrieval.hybrid",
+                status="ok" if rows else "empty",
+                row_count=len(rows),
+                top_k=max(top_k * 3, 8),
+            )
+        except Exception as exc:
+            logger.warning("Hybrid fallback retrieval failed", extra={"error": str(exc)})
+            rows = []
+            _append_trace_step(
+                local_trace_steps,
+                kind="retrieval",
+                name="retrieval.hybrid",
+                status="fallback",
+                error_type=type(exc).__name__,
+                top_k=max(top_k * 3, 8),
+            )
 
     if not rows:
         observation = _tool_text_search(question)
@@ -829,14 +854,25 @@ def _deterministic_retrieval_fallback(
             top_k=5,
         )
     else:
-        expanded_rows = _expand_same_page_chunks(rows)
-        _append_trace_step(
-            local_trace_steps,
-            kind="retrieval",
-            name="retrieval.same_page_expansion",
-            status="ok" if expanded_rows else "empty",
-            row_count=len(expanded_rows),
-        )
+        try:
+            expanded_rows = _expand_same_page_chunks(rows)
+            _append_trace_step(
+                local_trace_steps,
+                kind="retrieval",
+                name="retrieval.same_page_expansion",
+                status="ok" if expanded_rows else "empty",
+                row_count=len(expanded_rows),
+            )
+        except Exception as exc:
+            logger.warning("Same-page expansion failed", extra={"error": str(exc)})
+            expanded_rows = []
+            _append_trace_step(
+                local_trace_steps,
+                kind="retrieval",
+                name="retrieval.same_page_expansion",
+                status="fallback",
+                error_type=type(exc).__name__,
+            )
         combined_rows: list[dict] = []
         seen_chunk_map: set[str] = set()
         for row in rows + expanded_rows:
@@ -845,15 +881,28 @@ def _deterministic_retrieval_fallback(
                 continue
             seen_chunk_map.add(chunk_id)
             combined_rows.append(row)
-        rows = rerank(question, combined_rows, text_key="chunk_text", top_k=max(top_k * 3, 8))
-        _append_trace_step(
-            local_trace_steps,
-            kind="ranking",
-            name="ranking.rerank",
-            status="ok" if rows else "empty",
-            row_count=len(rows),
-            top_k=max(top_k * 3, 8),
-        )
+        try:
+            rows = rerank(question, combined_rows, text_key="chunk_text", top_k=max(top_k * 3, 8))
+            _append_trace_step(
+                local_trace_steps,
+                kind="ranking",
+                name="ranking.rerank",
+                status="ok" if rows else "empty",
+                row_count=len(rows),
+                top_k=max(top_k * 3, 8),
+            )
+        except Exception as exc:
+            logger.warning("Fallback rerank failed", extra={"error": str(exc)})
+            rows = combined_rows[: max(top_k * 3, 8)]
+            _append_trace_step(
+                local_trace_steps,
+                kind="ranking",
+                name="ranking.rerank",
+                status="fallback",
+                error_type=type(exc).__name__,
+                row_count=len(rows),
+                top_k=max(top_k * 3, 8),
+            )
 
     final_rows = rows[:top_k]
     observation = json.dumps(final_rows, ensure_ascii=False, default=str)

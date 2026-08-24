@@ -7,11 +7,12 @@ import time
 import uuid
 from collections import deque
 from contextlib import asynccontextmanager
-from queue import Queue
-from datetime import datetime, timezone
-from contextvars import Token
 import json
 from pathlib import Path
+from contextvars import Token
+from datetime import datetime, timezone
+from queue import Queue
+from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +27,7 @@ from src.dashboard.graph_viz import router as graph_viz_router
 from src.dashboard.routes import router as dashboard_router
 from src.ingestion.pipeline import IngestResult, ingest_from_hf, ingest_topic
 from src.infrastructure.job_store import JobStore
+from src.infrastructure.speech_to_text import transcribe_audio_bytes
 from src.logging_utils import (
     configure_logging,
     get_logger,
@@ -167,6 +169,15 @@ class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=50)
     top_k: int = Field(default=4, ge=1, le=20)
     debug: bool = Field(default=False, description="Include retrieval debug info in response.")
+
+
+class SpeechTranscriptionResponse(BaseModel):
+    """Response payload for speech transcription."""
+
+    text: str
+    model: str
+    language: str | None = None
+    language_probability: float | None = None
 
 
 class HFDatasetIngestRequest(BaseModel):
@@ -514,6 +525,32 @@ def chat_stream(req: ChatRequest, request: Request) -> StreamingResponse:
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@app.post("/speech/transcribe", dependencies=[Depends(_guard)], response_model=SpeechTranscriptionResponse)
+async def speech_transcribe(request: Request) -> dict[str, Any]:
+    """Transcribe a raw audio request body into text."""
+    _request_id_value, token = _with_request_context(request)
+    started = time.perf_counter()
+    try:
+        audio_bytes = await request.body()
+        result = transcribe_audio_bytes(
+            audio_bytes,
+            content_type=request.headers.get("content-type"),
+        )
+        return {
+            "text": result.text,
+            "model": result.model,
+            "language": result.language,
+            "language_probability": result.language_probability,
+        }
+    except RuntimeError as exc:
+        logger.warning("Speech transcription failed", extra={"error": str(exc)})
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    finally:
+        elapsed_ms = int((time.perf_counter() - started) * 1000)
+        logger.info("Speech transcription completed", extra={"duration_ms": elapsed_ms})
+        reset_request_id(token)
 
 
 @app.post("/query/hybrid", dependencies=[Depends(_guard)])

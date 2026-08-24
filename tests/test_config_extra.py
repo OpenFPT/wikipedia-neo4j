@@ -18,6 +18,14 @@ class TestSettingsValidators:
         s2 = Settings(model_mode="api")
         assert s2.model_mode == "api"
 
+    def test_empty_stt_setting_raises(self) -> None:
+        with pytest.raises(ValueError, match="speech-to-text settings"):
+            Settings(stt_language=" ")
+
+    def test_stt_model_path_allows_none(self) -> None:
+        s = Settings(stt_model_path=None)
+        assert s.stt_model_path is None
+
     def test_invalid_embedding_backend_raises(self) -> None:
         with pytest.raises(ValueError, match="embedding_backend"):
             Settings(embedding_backend="invalid")

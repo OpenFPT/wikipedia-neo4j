@@ -1,4 +1,4 @@
-import { ArrowUp, Plus } from "lucide-react";
+import { ArrowUp, Mic, Plus, Square } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useI18n } from "@/features/i18n/i18n";
 import { KnowledgeSelector } from "@/features/knowledge/components/knowledge-selector";
@@ -10,9 +10,13 @@ interface ComposerProps {
   knowledgeBases: KnowledgeBase[];
   onAttach: () => void;
   onChange: (value: string) => void;
+  onToggleRecording: () => void;
   onScopeChange: (scope: KnowledgeScope) => void;
   onSubmit: () => void;
+  recording: boolean;
   scope: KnowledgeScope;
+  speechBusy: boolean;
+  speechStatus: string;
   value: string;
 }
 
@@ -23,9 +27,13 @@ export function Composer({
   hasMessages,
   knowledgeBases,
   onChange,
+  onToggleRecording,
   onScopeChange,
   onSubmit,
   onAttach,
+  recording,
+  speechBusy,
+  speechStatus,
 }: ComposerProps) {
   const { t } = useI18n();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -81,6 +89,19 @@ export function Composer({
           >
             <Plus className="size-4" />
           </button>
+          <button
+            aria-label={recording ? t("stopRecording") : t("startRecording")}
+            className="grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={busy || speechBusy}
+            onClick={onToggleRecording}
+            type="button"
+          >
+            {recording ? (
+              <Square className="size-4 fill-current" />
+            ) : (
+              <Mic className="size-4" />
+            )}
+          </button>
           <KnowledgeSelector
             knowledgeBases={knowledgeBases}
             onChange={onScopeChange}
@@ -96,6 +117,9 @@ export function Composer({
             <ArrowUp className="size-[15px]" />
           </button>
         </div>
+        {speechStatus ? (
+          <p className="px-4 pt-2 text-muted-foreground text-xs">{speechStatus}</p>
+        ) : null}
       </form>
     </div>
   );
